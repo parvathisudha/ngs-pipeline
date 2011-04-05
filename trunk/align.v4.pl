@@ -102,10 +102,11 @@ sub sai_to_sam {
 	my $reverse_sai   = $project->reverse_sai($lane);
 	my $sam           = $project->sam($lane);
 	my $program       = "";
+	my $qsub_param = "";
 	if ( $lane->{'PAIRED'} ) {
 		$program =
 "$sampe -f $sam $genome $forward_sai $reverse_sai $forward_reads $reverse_reads";
-		my $qsub_param =
+		$qsub_param =
 		    '-hold_jid '
 		  . $project->task_id( $project->forward_align_id($lane) ) . ','
 		  . $project->task_id( $project->reverse_align_id($lane) );
@@ -113,7 +114,7 @@ sub sai_to_sam {
 	else {
 		$program =
 "$samse -f $sam $genome $forward_sai $reverse_sai $forward_reads $reverse_reads";
-		my $qsub_param =
+		$qsub_param =
 		    '-hold_jid '
 		  . $project->task_id( $project->forward_align_id($lane) ) . ','
 		  . $project->task_id( $project->reverse_align_id($lane) );

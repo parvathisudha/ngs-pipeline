@@ -37,15 +37,16 @@ my $sort     = "$samtools sort";
 my $index    = "$samtools index";
 my $merge    = "$samtools merge";
 my $gatk     = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
-my $snprod   = $config->{'SNPROD'};
 my $call     = "";
+my $genome = $config->{'GENOME'};
+my $gene_list = $config->{'GENELIST'};
 my $effect   =
   $config->{'VCFCODINGSNPS'}
-  . "/vcfCodingSnps.v1.5 -r /data/software/vcfCodingSnps.v1.5/referenceGenomes/genome.V36.fa -g /data/software/vcfCodingSnps.v1.5/geneLists/UCSCknownGene.B36.txt";
+  . "/vcfCodingSnps.v1.5 -r $genome -g $gene_list";
 my $filter_interesting = "perl /data/software/filter_interesting.pl";
 my $genome_coverage    = $config->{'BEDTOOLS'} . "/genomeCoverageBed";
 
-my $genome = $config->{'GENOME'};
+
 
 ####### commands to execute ##
 
@@ -211,8 +212,9 @@ sub call_SNPs {
 	my $merged   = $project->merged_sorted();
 	my $gatk_vcf = $project->gatk_vcf();
 	my $id       = $project->{'CONFIG'}->{'PROJECT'};
+	my $dbSNP = $project->{'CONFIG'}->{'DBSNP'};
 	my $program  = <<PROGRAM;
-java -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF /data/genomes/bwa/human_g1k_v37/dbsnp132_20101103.vcf -o $gatk_vcf \\
+java -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF $dbSNP -o $gatk_vcf \\
 -stand_call_conf 50.0 \\
 -stand_emit_conf 10.0 \\
 -dcov 50 -U \\

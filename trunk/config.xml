@@ -1,0 +1,22 @@
+<config>
+	<data>
+      <single_end>file</single_end>
+      <paired_end>file</paired_end>
+    </data>
+	<alignment_directory>dir</alignment_directory>
+    <analisis>
+      <align input="" param2="">10.0.0.102</align>
+      <sai_to_sam param1="" param2="">10.0.0.102</sai_to_sam>
+      <import_sam param1="" param2="">10.0.0.102</import_sam>
+      <sort_bam param1="" param2="">10.0.0.102</sort_bam>
+      <index_bam param1="" param2="">10.0.0.102</index_bam>
+      <index_bam param1="" param2="">10.0.0.102</index_bam>
+      <merge param1="" param2="">10.0.0.102</merge>
+      <mark_duplicates param1="" param2="">10.0.0.102</mark_duplicates>
+      <add_rg param1="" param2="">10.0.0.102</add_rg>     
+    </analisis>
+    <server name="kalahari" osname="linux" osversion="2.0.34">
+      <address>10.0.0.103</address>
+      <address>10.0.1.103</address>
+    </server>
+</config>

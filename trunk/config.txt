@@ -1,10 +1,11 @@
 USER=reshetov
 EMAIL=reshetovdenis@gmail.com
-PROJECT=S000005.14.March.2011
-DIR=F:/rogaev/programming/pipeline
-GENOME=/data/genomes/bwa/hg18/hg18.fasta/
-ARCHIVED=1
-BEDGENOME=/data/software/BEDTools-Version-2.10.1/genomes/human.hg18.genome
-GATKGENOMEBED=/data/genomes/bwa/hg18/genome.bed
-SNPROD=/data/genomes/bwa/hg18/snp130.rod
-/data/CURENT/101127_SN150_0129_B205D1ABXX/	2
+PROJECT=test2
+DIR=/data/test/test2
+GENOME=/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta/
+ARCHIVED=0
+BEDGENOME=/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta.genome
+GATKGENOMEBED=/data/genomes/bwa/human_g1k_v37/human_g1k_v37.bed
+DBSNP=/data/genomes/bwa/human_g1k_v37/dbsnp132_20101103.vcf
+GENELIST=/data/software/vcfCodingSnps.v1.5/geneLists/ensemblGene.B37.txt
+/data/test/ngs-data/    1

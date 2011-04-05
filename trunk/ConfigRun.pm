@@ -39,10 +39,11 @@ sub new {
 		BEDTOOLS      => $params->{'BEDTOOLS'},
 		BEDGENOME     => $params->{'BEDGENOME'},
 		VCFCODINGSNPS => $params->{'VCFCODINGSNPS'},
+		GENELIST => $params->{'GENELIST'},		
 		MPIRUN        => $params->{'MPIRUN'},
 		GATK          => $params->{'GATK'},
 		GATKGENOMEBED => $params->{'GATKGENOMEBED'},
-		SNPROD        => $params->{'SNPROD'},
+		DBSNP => $params->{'DBSNP'},
 		LANES         => $lanes,
 	};
 	bless $self, $class;

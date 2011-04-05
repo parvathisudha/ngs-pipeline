@@ -56,13 +56,14 @@ sub reverse_name {
 sub get_read_name {
 	my ( $self, $is_forward ) = @_;
 	my $read_direction = $is_forward ? 1 : 2;
-
+	my $gz = "";
+	$gz = '.gz' if $self->{'ARCHIVED'};
 	#s_$num_$read_direction_sequence.txt
 	my $name =
 	    $self->{DIR} . '/' . 's_'
 	  . $self->{NUM} . '_'
 	  . $read_direction
-	  . '_sequence.txt';
+	  . '_sequence.txt' . $gz;
 	return $name;
 }
 

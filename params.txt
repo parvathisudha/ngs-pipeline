@@ -3,6 +3,4 @@ SAMTOOLS=/data/software/samtools-0.1.12a
 BEDTOOLS=/data/software/BEDTools-Version-2.10.1/bin
 VCFCODINGSNPS=/data/software/vcfCodingSnps.v1.5
 MPIRUN=/data/software/openmpi-1.4.3/bin
-GATK=/data/software/GenomeAnalysisTK-1.0.4705
-#COMMENT EXAMPLE
-#
+GATK=/data/software/GenomeAnalysisTK-1.0.4705	

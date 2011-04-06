@@ -117,7 +117,6 @@ sub sai_to_sam {
 "$samse -f $sam $genome $reverse_sai $reverse_reads";
 		$qsub_param =
 		    '-hold_jid '
-		  . $project->task_id( $project->forward_align_id($lane) ) . ','
 		  . $project->task_id( $project->reverse_align_id($lane) );
 	}
 	$task_scheduler->submit( $project->sam_id($lane), $qsub_param, $program );

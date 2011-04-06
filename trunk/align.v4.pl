@@ -30,23 +30,21 @@ my $mpirun = $config->{'MPIRUN'} . "/mpirun -np $proc";
 my $align  = "$bwa aln -t $proc";
 my $sampe  = "$bwa sampe";
 my $samse  = "$bwa samse";
+
 #samtools commands
-my $samtools = $config->{'SAMTOOLS'} . "/samtools";
-my $import   = "$samtools import";
-my $sort     = "$samtools sort";
-my $index    = "$samtools index";
-my $merge    = "$samtools merge";
-my $gatk     = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
-my $call     = "";
-my $genome = $config->{'GENOME'};
+my $samtools  = $config->{'SAMTOOLS'} . "/samtools";
+my $import    = "$samtools import";
+my $sort      = "$samtools sort";
+my $index     = "$samtools index";
+my $merge     = "$samtools merge";
+my $gatk      = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
+my $call      = "";
+my $genome    = $config->{'GENOME'};
 my $gene_list = $config->{'GENELIST'};
-my $effect   =
-  $config->{'VCFCODINGSNPS'}
-  . "/vcfCodingSnps.v1.5 -r $genome -g $gene_list";
+my $effect    =
+  $config->{'VCFCODINGSNPS'} . "/vcfCodingSnps.v1.5 -r $genome -g $gene_list";
 my $filter_interesting = "perl /data/software/filter_interesting.pl";
 my $genome_coverage    = $config->{'BEDTOOLS'} . "/genomeCoverageBed";
-
-
 
 ####### commands to execute ##
 
@@ -80,16 +78,18 @@ filter_snps($project);
 sub align {
 	my ( $project, $lane ) = @_;
 	sleep($sleep_time);
+
 	submit_alignment(
-		$project->forward_name($lane),
-		$project->forward_sai($lane),
-		$project->forward_align_id($lane)
+		$project->reverse_name($lane),
+		$project->reverse_sai($lane),
+		$project->reverse_align_id($lane)
 	);
+
 	if ( $lane->{'PAIRED'} ) {
 		submit_alignment(
-			$project->reverse_name($lane),
-			$project->reverse_sai($lane),
-			$project->reverse_align_id($lane)
+			$project->forward_name($lane),
+			$project->forward_sai($lane),
+			$project->forward_align_id($lane)
 		);
 	}
 }
@@ -103,7 +103,7 @@ sub sai_to_sam {
 	my $reverse_sai   = $project->reverse_sai($lane);
 	my $sam           = $project->sam($lane);
 	my $program       = "";
-	my $qsub_param = "";
+	my $qsub_param    = "";
 	if ( $lane->{'PAIRED'} ) {
 		$program =
 "$sampe -f $sam $genome $forward_sai $reverse_sai $forward_reads $reverse_reads";
@@ -114,7 +114,7 @@ sub sai_to_sam {
 	}
 	else {
 		$program =
-"$samse -f $sam $genome $forward_sai $reverse_sai $forward_reads $reverse_reads";
+"$samse -f $sam $genome $reverse_sai $reverse_reads";
 		$qsub_param =
 		    '-hold_jid '
 		  . $project->task_id( $project->forward_align_id($lane) ) . ','
@@ -212,7 +212,7 @@ sub call_SNPs {
 	my $merged   = $project->merged_sorted();
 	my $gatk_vcf = $project->gatk_vcf();
 	my $id       = $project->{'CONFIG'}->{'PROJECT'};
-	my $dbSNP = $project->{'CONFIG'}->{'DBSNP'};
+	my $dbSNP    = $project->{'CONFIG'}->{'DBSNP'};
 	my $program  = <<PROGRAM;
 java -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF $dbSNP -o $gatk_vcf \\
 -stand_call_conf 50.0 \\

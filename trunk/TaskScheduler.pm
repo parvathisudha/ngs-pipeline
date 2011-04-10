@@ -16,8 +16,9 @@ sub new {
 sub submit {
 	#my ( $self, $user_id, $job_id, $qsub_params, $program, $email, $dir) = @_;
 	my ( $self, $job_name, $qsub_params, $program) = @_;
-	$self->make_script( $job_name, $program);
-	$self->run_script( $job_name, $qsub_params);
+	print "SUBMITTED: $program\n";
+	#$self->make_script( $job_name, $program);
+	#$self->run_script( $job_name, $qsub_params);
 }
 
 sub run_script {

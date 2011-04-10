@@ -5,6 +5,9 @@ use strict;
 sub new {
 	my ( $class, $config, $debug) = @_;
 	my $time = time;
+	if($config->{'TIME'}){
+		$time = $config->{'TIME'};
+	}
 	my $self = {
 		CONFIG => $config,
 		DEBUG => $debug,

@@ -28,6 +28,7 @@ sub new {
 
 	#$params->{'DIR'} = $params->{'DIR'} . '/' . $params->{'PROJECT'};
 	my $self = {
+		TIME          => $params->{'TIME'},
 		USER          => $params->{'USER'},
 		EMAIL         => $params->{'EMAIL'},
 		PROJECT       => $params->{'PROJECT'},

@@ -163,9 +163,9 @@ sub index_bam {
 sub submit_alignment {
 	my ( $in, $out, $job_id ) = @_;
 	sleep($sleep_time);
-	"PRINT THERE IS: $out\n";
-	return 1 if (-e $out);
 	
+	return 1 if (-e $out);
+	print "THERE IS no: $out\n";
 	my $program    = "$align -f $out $genome $in";
 	my $qsub_param = "-pe mpi $proc -p $bwa_priority";
 	$task_scheduler->submit( $job_id, $qsub_param, $program );

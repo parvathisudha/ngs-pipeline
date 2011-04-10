@@ -164,6 +164,7 @@ sub submit_alignment {
 	my ( $in, $out, $job_id ) = @_;
 	sleep($sleep_time);
 	return 1 if (-e $out);
+	"PRINT THERE IS NO: $out\n";
 	my $program    = "$align -f $out $genome $in";
 	my $qsub_param = "-pe mpi $proc -p $bwa_priority";
 	$task_scheduler->submit( $job_id, $qsub_param, $program );

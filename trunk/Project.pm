@@ -363,4 +363,15 @@ sub get_time {
 	return time;
 }
 
+sub get_all_ids{
+	my ( $self ) = @_;
+	my $dir = $self->ids_dir();
+	my @files = <$dir/*>;
+	my @ids;
+	for my $file(@files){
+		push (@ids, $self->get_sge_id($file));		
+	}
+	return \@ids;
+}
+
 return 1;

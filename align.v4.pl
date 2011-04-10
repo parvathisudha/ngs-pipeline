@@ -102,6 +102,7 @@ sub sai_to_sam {
 	my $forward_sai   = $project->forward_sai($lane);
 	my $reverse_sai   = $project->reverse_sai($lane);
 	my $sam           = $project->sam($lane);
+	return 1 if (-e $sam);
 	my $program       = "";
 	my $qsub_param    = "";
 	if ( $lane->{'PAIRED'} ) {
@@ -127,6 +128,7 @@ sub import_sam {
 	sleep($sleep_time);
 	my $sam        = $project->sam($lane);
 	my $bam        = $project->bam($lane);
+	return 1 if (-e $bam);
 	my $program    = "$import $genome.fai $sam $bam";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->sam_id($lane) );
@@ -139,6 +141,7 @@ sub sort_bam {
 	sleep($sleep_time);
 	my $bam           = $project->bam($lane);
 	my $sorted_prefix = $project->sorted_prefix($lane);
+	return 1 if (-e "$sorted_prefix.bam");
 	my $program       = "$sort $bam $sorted_prefix";
 	my $qsub_param    =
 	  '-hold_jid ' . $project->task_id( $project->import_id($lane) );
@@ -150,6 +153,7 @@ sub index_bam {
 	my ( $project, $lane ) = @_;
 	sleep($sleep_time);
 	my $sorted     = $project->sorted($lane);
+	return 1 if (-e $sorted);
 	my $program    = "$index $sorted";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->sorted_id($lane) );
@@ -159,6 +163,7 @@ sub index_bam {
 sub submit_alignment {
 	my ( $in, $out, $job_id ) = @_;
 	sleep($sleep_time);
+	return 1 if (-e $out);
 	my $program    = "$align -f $out $genome $in";
 	my $qsub_param = "-pe mpi $proc -p $bwa_priority";
 	$task_scheduler->submit( $job_id, $qsub_param, $program );
@@ -174,6 +179,7 @@ sub merge_bams {
 		push( @lane_bams, $file );
 	}
 	my $all_bams = join( ' ', @lane_bams );
+	return 1 if (-e $project->merged());
 	my $program = "$merge " . $project->merged() . " $all_bams";
 	if ( scalar @lane_bams == 1 ) {
 		my $lb = $lane_bams[0];
@@ -188,6 +194,7 @@ sub sort_merged {
 	sleep($sleep_time);
 	my $merged        = $project->merged();
 	my $sorted_prefix = $project->merged_sorted_prefix();
+	return 1 if (-e "$sorted_prefix.bam");
 	my $program       = "$sort $merged $sorted_prefix";
 	my $qsub_param = '-hold_jid ' . $project->task_id( $project->merged_id() );
 	$task_scheduler->submit( $project->merged_sorted_id(),
@@ -199,6 +206,7 @@ sub index_merged {
 	sleep($sleep_time);
 	my $merged     = $project->merged_sorted();
 	my $program    = "$index $merged";
+	return 1 if (-e "$merged.bai");
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_sorted_id() );
 	$task_scheduler->submit( $project->merged_indexed_id(),
@@ -212,6 +220,7 @@ sub call_SNPs {
 	my $gatk_vcf = $project->gatk_vcf();
 	my $id       = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP    = $project->{'CONFIG'}->{'DBSNP'};
+	return 1 if (-e $gatk_vcf);
 	my $program  = <<PROGRAM;
 java -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF $dbSNP -o $gatk_vcf \\
 -stand_call_conf 50.0 \\
@@ -234,6 +243,7 @@ sub callable_loci {
 	my $loci_summary = $project->callable_loci_summary();
 	my $id           = $project->{'CONFIG'}->{'PROJECT'};
 	my $genome_bed   = $project->{'CONFIG'}->{'GATKGENOMEBED'};
+	return 1 if (-e $loci);
 	my $program      = <<PROGRAM;
 java -Xmx4g -jar $gatk -R $genome -T CallableLoci -I $merged -o $loci -l INFO -format BED -maxDepth 160 -L $genome_bed -summary $loci_summary
 PROGRAM
@@ -248,6 +258,7 @@ sub depth_coverage {
 	sleep($sleep_time);
 	my $merged     = $project->merged_sorted();
 	my $out        = $project->depth_coverage();
+	return 1 if (-e $out);
 	my $genome_bed = $project->{'CONFIG'}->{'GATKGENOMEBED'};
 	my $program    = <<PROGRAM;
 java -jar $gatk -R $genome -T DepthOfCoverage -I $merged -L $genome_bed -o $out
@@ -263,6 +274,7 @@ sub predict_effect {
 	sleep($sleep_time);
 	my $gatk_vcf   = $project->gatk_vcf();
 	my $eff_vcf    = $project->eff_vcf();
+	return 1 if (-e $eff_vcf);
 	my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->gatk_vcf_id() );
@@ -274,6 +286,7 @@ sub filter_snps {
 	sleep($sleep_time);
 	my $eff_vcf    = $project->eff_vcf();
 	my $filtered   = $project->filter_snps();
+	return 1 if (-e $filtered);
 	my $program    = "$filter_interesting $eff_vcf $filtered";
 	my $qsub_param = '-hold_jid ' . $project->task_id( $project->eff_vcf_id() );
 	$task_scheduler->submit( $project->filter_snps_id(), $qsub_param,
@@ -284,7 +297,7 @@ sub calculate_genome_coverage {
 	my ($project) = @_;
 	sleep($sleep_time);
 	my $merged = $project->merged_sorted();
-
+	return 1 if (-e $project->genome_coverage());
 	#my $coverage_file = $project->genome_coverage();
 
 	my $program =
@@ -301,7 +314,7 @@ sub calculate_bga_coverage {
 	my ($project) = @_;
 	sleep($sleep_time);
 	my $merged = $project->merged_sorted();
-
+	return 1 if (-e $project->genome_coverage_bga());
 	#my $coverage_file = $project->genome_coverage_bga();
 
 	my $program =
@@ -317,6 +330,8 @@ sub calculate_bga_coverage {
 sub move_bedtools_results {
 	my ($project) = @_;
 	sleep($sleep_time);
+	return 1 if (-e $project->genome_coverage_bga());
+	return 1 if (-e $project->genome_coverage());
 	my $out_dir    = $project->output_dir();
 	my $genome_cov = $out_dir . '/' . $project->genome_coverage_id() . "*";
 	my $bga_cov    = $out_dir . '/' . $project->genome_coverage_bga_id() . "*";

@@ -48,6 +48,8 @@ my $genome_coverage    = $config->{'BEDTOOLS'} . "/genomeCoverageBed";
 
 ####### commands to execute ##
 
+define_done_jobs($project);
+
 for my $lane ( @{ $config->{LANES} } ) {
 	align( $project, $lane );
 	sai_to_sam( $project, $lane );
@@ -235,6 +237,12 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
 	$task_scheduler->submit( $project->gatk_vcf_id(), $qsub_param, $program );
+}
+
+sub define_done_jobs{
+	my ($project) = @_;
+	sleep($sleep_time);	
+	print join (",", $project->get_all_written_files()), "\n";
 }
 
 sub callable_loci {

@@ -299,6 +299,14 @@ sub index_id {
 	return 'index.' . $self->_get_id( $self->bai($lane) );
 }
 
+
+sub get_all_written_files {
+	my ($self) = @_;
+	my $dir = $self->{'CONFIG'}->{'DIR'};
+	my @array = <$dir/*>;
+	return @array;
+}
+
 sub get_garbage_files {
 	my ($self) = @_;
 	my @array;

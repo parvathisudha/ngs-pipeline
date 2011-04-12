@@ -70,6 +70,8 @@ calculate_genome_coverage($project);
 calculate_bga_coverage($project);
 move_bedtools_results($project);
 filter_snps($project);
+bgzip($project);
+tabix($project);
 
 #clean($project);
 
@@ -289,6 +291,28 @@ sub predict_effect {
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->gatk_vcf_id() );
 	$task_scheduler->submit( $project->eff_vcf_id(), $qsub_param, $program );
+}
+
+sub bgzip {
+	my ($project) = @_;
+	sleep($sleep_time);
+	my $eff_vcf    = $project->eff_vcf();
+	return 1 if (-e $project->bgzip());
+	my $program    = "bgzip $eff_vcf";
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->eff_vcf_id() );
+	$task_scheduler->submit( $project->bgzip_id(), $qsub_param, $program );
+}
+
+sub tabix {
+	my ($project) = @_;
+	sleep($sleep_time);
+	my $bgz    = $project->bgzip();
+	return 1 if (-e $project->tabix());
+	my $program    = "tabix -p vcf $bgz";
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->bgzip_id() );
+	$task_scheduler->submit( $project->tabix_id(), $qsub_param, $program );
 }
 
 sub filter_snps {

@@ -229,6 +229,26 @@ sub eff_vcf_id {
 	return 'effect.' . $self->_get_id( $self->eff_vcf() );
 }
 
+sub bgzip {
+	my ($self) = @_;
+	return $self->file_prefix() . ".eff.vcf.gz";
+}
+
+sub bgzip_id {
+	my ($self) = @_;
+	return 'bgzip.' . $self->_get_id( $self->bgzip() );
+}
+
+sub tabix {
+	my ($self) = @_;
+	return $self->file_prefix() . ".eff.vcf.gz.tbi";
+}
+
+sub tabix_id {
+	my ($self) = @_;
+	return 'tabix.' . $self->_get_id( $self->tabix() );
+}
+
 sub filter_snps {
 	my ($self) = @_;
 	return $self->file_prefix() . ".eff.filtered.vcf";

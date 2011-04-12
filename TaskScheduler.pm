@@ -72,6 +72,8 @@ export PATH=\$PATH:/data/software/samtools-0.1.12a
 export PATH=\$PATH:/data/software/BEDTools-Version-2.10.1/bin
 export PATH=\$PATH:/data/software/vcfCodingSnps.v1.5
 export PATH=\$PATH:/data/software/tophat-1.2.0/bin
+export PATH=\$PATH:/data/software/vcftools_0.1.4a/bin
+export PATH=\$PATH:/data/software/tabix
 
 $program
 # Send mail at submission and completion of script

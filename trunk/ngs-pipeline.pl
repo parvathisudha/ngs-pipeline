@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 use strict;
 use lib qw(/data/software/pipeline/);
 use ConfigRun;

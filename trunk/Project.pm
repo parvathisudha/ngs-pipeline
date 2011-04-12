@@ -249,6 +249,36 @@ sub tabix_id {
 	return 'tabix.' . $self->_get_id( $self->tabix() );
 }
 
+sub breakdancer_cfg {
+	my ($self) = @_;
+	return $self->file_prefix() . ".cfg";
+}
+
+sub breakdancer_cfg_id {
+	my ($self) = @_;
+	return 'brd_cfg' . $self->_get_id( $self->breakdancer_cfg() );
+}
+
+sub breakdancer_max {
+	my ($self) = @_;
+	return $self->file_prefix() . ".breakdancer_max";
+}
+
+sub breakdancer_max_id {
+	my ($self) = @_;
+	return 'brd_max' . $self->_get_id( $self->breakdancer_max() );
+}
+
+sub breakdancer_mini {
+	my ($self) = @_;
+	return $self->file_prefix() . ".";
+}
+
+sub breakdancer_mini_id {
+	my ($self) = @_;
+	return 'brd_mini' . $self->_get_id( $self->breakdancer_mini() );
+}
+
 sub filter_snps {
 	my ($self) = @_;
 	return $self->file_prefix() . ".eff.filtered.vcf";

@@ -1,6 +1,6 @@
 package TaskScheduler;
 use strict;
-my $global_qsub_params = '-m be';
+my $global_qsub_params = '-m e';
 
 sub new {
 	my ( $class, $project , $debug) = @_;

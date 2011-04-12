@@ -27,26 +27,8 @@ sub new {
 	( $params, $lanes ) = _read_config($file, $params);
 
 	#$params->{'DIR'} = $params->{'DIR'} . '/' . $params->{'PROJECT'};
-	my $self = {
-		TIME          => $params->{'TIME'},
-		USER          => $params->{'USER'},
-		EMAIL         => $params->{'EMAIL'},
-		PROJECT       => $params->{'PROJECT'},
-		DIR           => $params->{'DIR'},
-		GENOME        => $params->{'GENOME'},
-		ARCHIVED      => $params->{'ARCHIVED'},
-		BWA           => $params->{'BWA'},
-		SAMTOOLS      => $params->{'SAMTOOLS'},
-		BEDTOOLS      => $params->{'BEDTOOLS'},
-		BEDGENOME     => $params->{'BEDGENOME'},
-		VCFCODINGSNPS => $params->{'VCFCODINGSNPS'},
-		GENELIST => $params->{'GENELIST'},		
-		MPIRUN        => $params->{'MPIRUN'},
-		GATK          => $params->{'GATK'},
-		GATKGENOMEBED => $params->{'GATKGENOMEBED'},
-		DBSNP => $params->{'DBSNP'},
-		LANES         => $lanes,
-	};
+	my $self = $params;
+	$self->{'LANES'} => $lanes;
 	bless $self, $class;
 	return $self;
 }

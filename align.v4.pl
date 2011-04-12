@@ -48,7 +48,7 @@ my $genome_coverage    = $config->{'BEDTOOLS'} . "/genomeCoverageBed";
 
 ####### commands to execute ##
 
-define_done_jobs($project);
+#define_done_jobs($project);
 
 for my $lane ( @{ $config->{LANES} } ) {
 	align( $project, $lane );

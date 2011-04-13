@@ -238,7 +238,7 @@ sub call_SNPs {
 java -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF $dbSNP -o $gatk_vcf \\
 -stand_call_conf 50.0 \\
 -stand_emit_conf 10.0 \\
--dcov 50 -U \\
+-dcov 80 -U \\
 --assume_single_sample_reads $id \\
 --platform SOLEXA
 PROGRAM
@@ -253,7 +253,7 @@ sub breakdancer_cfg {
 	sleep($sleep_time);
 	my $merged   = $project->merged_sorted();
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
-	return 1 if (-e $breakdancer_cfg_result);
+	#return 1 if (-e $breakdancer_cfg_result);
 	my $program  = "$bam2cfg $merged > $breakdancer_cfg_result";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
@@ -265,7 +265,7 @@ sub breakdancer_max {
 	sleep($sleep_time);
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
 	my $breakdancer_max_result = $project->breakdancer_max();
-	return 1 if (-e $breakdancer_max_result);
+	#return 1 if (-e $breakdancer_max_result);
 	my $program  = "$BreakDancerMax $breakdancer_cfg_result > $breakdancer_max_result";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->breakdancer_cfg_id() );
@@ -277,7 +277,7 @@ sub breakdancer_mini {
 	sleep($sleep_time);
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
 	my $breakdancer_mini_result = $project->breakdancer_mini();
-	return 1 if (-e $breakdancer_mini_result);
+	#return 1 if (-e $breakdancer_mini_result);
 	my $program  = "$BreakDancerMini $breakdancer_cfg_result > $breakdancer_mini_result";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->breakdancer_cfg_id() );

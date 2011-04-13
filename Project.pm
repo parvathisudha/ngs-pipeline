@@ -271,7 +271,7 @@ sub breakdancer_max_id {
 
 sub breakdancer_mini {
 	my ($self) = @_;
-	return $self->file_prefix() . ".";
+	return $self->file_prefix() . ".breakdancer_mini";
 }
 
 sub breakdancer_mini_id {

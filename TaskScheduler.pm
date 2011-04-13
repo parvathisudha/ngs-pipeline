@@ -74,6 +74,7 @@ export PATH=\$PATH:/data/software/vcfCodingSnps.v1.5
 export PATH=\$PATH:/data/software/tophat-1.2.0/bin
 export PATH=\$PATH:/data/software/vcftools_0.1.4a/bin
 export PATH=\$PATH:/data/software/tabix
+export PERL5LIB=\$PERL5LIB:/data/software/breakdancer
 
 $program
 # Send mail at submission and completion of script

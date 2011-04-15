@@ -28,7 +28,7 @@ sub new {
 
 	#$params->{'DIR'} = $params->{'DIR'} . '/' . $params->{'PROJECT'};
 	my $self = $params;
-	$self->{'LANES'} => $lanes;
+	$self->{'LANES'} = $lanes;
 	bless $self, $class;
 	return $self;
 }

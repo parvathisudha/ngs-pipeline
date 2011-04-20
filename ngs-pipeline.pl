@@ -247,7 +247,7 @@ java $memory_str -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,V
 -dcov 80 -U
 PROGRAM
 
-	my $qsub_param = "-l $memory_qs " .
+	my $qsub_param = "-pe mpi $nump -l $memory_qs " .
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
 	$task_scheduler->submit( $project->gatk_vcf_id(), $qsub_param, $program );
 }

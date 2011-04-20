@@ -74,7 +74,7 @@ callable_loci($project);
 #depth_coverage($project);
 calculate_genome_coverage($project);
 calculate_bga_coverage($project);
-move_bedtools_results($project);
+#move_bedtools_results($project);
 filter_snps($project);
 bgzip($project);
 tabix($project);
@@ -115,7 +115,7 @@ sub sai_to_sam {
 	my $reverse_sai   = $project->reverse_sai($lane);
 	my $sam           = $project->sam($lane);
 	my $bam        = $project->bam($lane);
-	my $rg = $project->{'CONFIG'}->{'RG'};
+	my $rg = $lane->{'RG'};
 	return 1 if (-e $sam);
 	my $program       = "";
 	my $qsub_param    = "";
@@ -177,7 +177,6 @@ sub index_bam {
 sub submit_alignment {
 	my ( $in, $out, $job_id ) = @_;
 	sleep($sleep_time);
-	
 	return 1 if (-e $out);
 	my $program    = "$align -f $out $genome $in";
 	my $qsub_param = "-pe mpi $proc -p $bwa_priority";
@@ -236,7 +235,7 @@ sub call_SNPs {
 	my $id       = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP    = $project->{'CONFIG'}->{'DBSNP'};
 	return 1 if (-e $gatk_vcf);
-	my $nump = 10;
+	my $nump = 5;
 	my $memory = $nump * 4;
 	my $memory_str = '-Xmx' . $memory . 'g';
 	my $memory_qs = 'mem_total=' . $memory . 'G';
@@ -381,11 +380,10 @@ sub calculate_genome_coverage {
 	sleep($sleep_time);
 	my $merged = $project->merged_sorted();
 	return 1 if (-e $project->genome_coverage());
-	#my $coverage_file = $project->genome_coverage();
-
+	my $coverage_file = $project->genome_coverage();
 	my $program =
 	  "$genome_coverage -ibam $merged -g "
-	  . $project->{'CONFIG'}->{'BEDGENOME'};
+	  . $project->{'CONFIG'}->{'BEDGENOME'} . " > $coverage_file";
 
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
@@ -398,11 +396,11 @@ sub calculate_bga_coverage {
 	sleep($sleep_time);
 	my $merged = $project->merged_sorted();
 	return 1 if (-e $project->genome_coverage_bga());
-	#my $coverage_file = $project->genome_coverage_bga();
+	my $coverage_file = $project->genome_coverage_bga();
 
 	my $program =
 	  "$genome_coverage -bga -ibam $merged -g "
-	  . $project->{'CONFIG'}->{'BEDGENOME'};
+	  . $project->{'CONFIG'}->{'BEDGENOME'} . " > $coverage_file";
 
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
@@ -410,26 +408,26 @@ sub calculate_bga_coverage {
 		$qsub_param, $program );
 }
 
-sub move_bedtools_results {
-	my ($project) = @_;
-	sleep($sleep_time);
-	return 1 if (-e $project->genome_coverage_bga());
-	return 1 if (-e $project->genome_coverage());
-	my $out_dir    = $project->output_dir();
-	my $genome_cov = $out_dir . '/' . $project->genome_coverage_id() . "*";
-	my $bga_cov    = $out_dir . '/' . $project->genome_coverage_bga_id() . "*";
-	my $program    =
-	    "/bin/cp $genome_cov "
-	  . $project->genome_coverage() . "\n"
-	  . "/bin/cp $bga_cov "
-	  . $project->genome_coverage_bga() . "\n";
-	my $qsub_param =
-	    '-hold_jid '
-	  . $project->task_id( $project->genome_coverage_id() ) . ','
-	  . $project->task_id( $project->genome_coverage_bga_id() );
-	$task_scheduler->submit( $project->move_bedtools_results_id(),
-		$qsub_param, $program );
-}
+#sub move_bedtools_results {
+#	my ($project) = @_;
+#	sleep($sleep_time);
+#	return 1 if (-e $project->genome_coverage_bga());
+#	return 1 if (-e $project->genome_coverage());
+#	my $out_dir    = $project->output_dir();
+#	my $genome_cov = $out_dir . '/' . $project->genome_coverage_id() . "*";
+#	my $bga_cov    = $out_dir . '/' . $project->genome_coverage_bga_id() . "*";
+#	my $program    =
+#	    "/bin/cp $genome_cov "
+#	  . $project->genome_coverage() . "\n"
+#	  . "/bin/cp $bga_cov "
+#	  . $project->genome_coverage_bga() . "\n";
+#	my $qsub_param =
+#	    '-hold_jid '
+#	  . $project->task_id( $project->genome_coverage_id() ) . ','
+#	  . $project->task_id( $project->genome_coverage_bga_id() );
+#	$task_scheduler->submit( $project->move_bedtools_results_id(),
+#		$qsub_param, $program );
+#}
 
 sub clean() {
 	my ($project) = @_;

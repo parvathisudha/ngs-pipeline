@@ -43,32 +43,33 @@ sub _read_config {
 		if ( $str =~ m/(.+?)\=(.+)/ ) {
 			my ( $param, $value ) = ( $1, $2 );
 			$value =~ s/\/$//;
-
 			#options:NAME,DIR,GENOME
 			$params->{$param} = $value;
 		}
 		elsif ( $str =~ m/(.+?)\%(.+)/ ) {
 			my @args = split( /\%/, $str );
-			if ( scalar @args == 2 ) {
+			if ( scalar @args == 3 ) {
 				my $dir = $args[0];
 				$dir =~ s/\/$//;
 				my @nums = split /,/, $args[1];
+				my $rg = $args[2];
 				for my $num (@nums) {
 					my $lane =
-					  Lane->new( $dir, $num, $params->{'ARCHIVED'} , 0);#POTENTIAL BUG
+					  Lane->new( $dir, $num, $params->{'ARCHIVED'} , 0, $rg);#POTENTIAL BUG
 					push( @lanes, $lane );
 				}
 			}
 		}		
 		else {
-			my @args = split( /\s+/, $str );
-			if ( scalar @args == 2 ) {
+			my @args = split( /\t+/, $str );
+			if ( scalar @args == 3 ) {
 				my $dir = $args[0];
 				$dir =~ s/\/$//;
 				my @nums = split /,/, $args[1];
+				my $rg = $args[2];
 				for my $num (@nums) {
 					my $lane =
-					  Lane->new( $dir, $num, $params->{'ARCHIVED'} , 1 )
+					  Lane->new( $dir, $num, $params->{'ARCHIVED'} , 1, $rg)
 					  ;    #POTENTIAL BUG
 					push( @lanes, $lane );
 				}

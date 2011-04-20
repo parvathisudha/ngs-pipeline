@@ -1,5 +1,5 @@
-BWA=/data/software/bwa-0.5.8c
-SAMTOOLS=/data/software/samtools-0.1.12a
+BWA=/data/software/bwa-0.5.9
+SAMTOOLS=/data/software/samtools
 BEDTOOLS=/data/software/BEDTools-Version-2.10.1/bin
 VCFCODINGSNPS=/data/software/vcfCodingSnps.v1.5
 MPIRUN=/data/software/openmpi-1.4.3/bin

@@ -38,6 +38,7 @@ my $import    = "$samtools import";
 my $sort      = "$samtools sort";
 my $index     = "$samtools index";
 my $merge     = "$samtools merge";
+my $view     = "$samtools view";
 my $gatk      = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
 my $call      = "";
 my $genome    = $config->{'GENOME'};
@@ -58,7 +59,7 @@ my $BreakDancerMini = "perl $break_dancer_dir/BreakDancerMini.pl";
 for my $lane ( @{ $config->{LANES} } ) {
 	align( $project, $lane );
 	sai_to_sam( $project, $lane );
-	import_sam( $project, $lane );
+	#import_sam( $project, $lane );
 	sort_bam( $project, $lane );
 	index_bam( $project, $lane );
 
@@ -113,12 +114,14 @@ sub sai_to_sam {
 	my $forward_sai   = $project->forward_sai($lane);
 	my $reverse_sai   = $project->reverse_sai($lane);
 	my $sam           = $project->sam($lane);
+	my $bam        = $project->bam($lane);
+	my $rg = $project->{'CONFIG'}->{'RG'};
 	return 1 if (-e $sam);
 	my $program       = "";
 	my $qsub_param    = "";
 	if ( $lane->{'PAIRED'} ) {
 		$program =
-"$sampe -f $sam $genome $forward_sai $reverse_sai $forward_reads $reverse_reads";
+"$sampe $genome $forward_sai $reverse_sai $forward_reads $reverse_reads -r $rg | $view -bS - > $bam";
 		$qsub_param =
 		    '-hold_jid '
 		  . $project->task_id( $project->forward_align_id($lane) ) . ','
@@ -126,7 +129,7 @@ sub sai_to_sam {
 	}
 	else {
 		$program =
-"$samse -f $sam $genome $reverse_sai $reverse_reads";
+"$samse $genome $reverse_sai $reverse_reads -r $rg | $view -bS - > $bam";
 		$qsub_param =
 		    '-hold_jid '
 		  . $project->task_id( $project->reverse_align_id($lane) );
@@ -134,18 +137,18 @@ sub sai_to_sam {
 	$task_scheduler->submit( $project->sam_id($lane), $qsub_param, $program );
 }
 
-sub import_sam {
-	my ( $project, $lane ) = @_;
-	sleep($sleep_time);
-	my $sam        = $project->sam($lane);
-	my $bam        = $project->bam($lane);
-	return 1 if (-e $bam);
-	my $program    = "$import $genome.fai $sam $bam";
-	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->sam_id($lane) );
-	$task_scheduler->submit( $project->import_id($lane), $qsub_param,
-		$program );
-}
+#sub import_sam {
+#	my ( $project, $lane ) = @_;
+#	sleep($sleep_time);
+#	my $sam        = $project->sam($lane);
+#	my $bam        = $project->bam($lane);
+#	return 1 if (-e $bam);
+#	my $program    = "$import $genome.fai $sam $bam";
+#	my $qsub_param =
+#	  '-hold_jid ' . $project->task_id( $project->sam_id($lane) );
+#	$task_scheduler->submit( $project->import_id($lane), $qsub_param,
+#		$program );
+#}
 
 sub sort_bam {
 	my ( $project, $lane ) = @_;
@@ -155,7 +158,7 @@ sub sort_bam {
 	return 1 if (-e "$sorted_prefix.bam");
 	my $program       = "$sort $bam $sorted_prefix";
 	my $qsub_param    =
-	  '-hold_jid ' . $project->task_id( $project->import_id($lane) );
+	  '-hold_jid ' . $project->task_id( $project->sam_id($lane) );
 	$task_scheduler->submit( $project->sorted_id($lane), $qsub_param,
 		$program );
 }
@@ -176,7 +179,6 @@ sub submit_alignment {
 	sleep($sleep_time);
 	
 	return 1 if (-e $out);
-	print "THERE IS no: $out\n";
 	my $program    = "$align -f $out $genome $in";
 	my $qsub_param = "-pe mpi $proc -p $bwa_priority";
 	$task_scheduler->submit( $job_id, $qsub_param, $program );

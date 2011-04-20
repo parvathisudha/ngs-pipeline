@@ -236,16 +236,18 @@ sub call_SNPs {
 	my $id       = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP    = $project->{'CONFIG'}->{'DBSNP'};
 	return 1 if (-e $gatk_vcf);
+	my $nump = 10;
+	my $memory = $nump * 4;
+	my $memory_str = '-Xmx' . $memory . 'g';
+	my $memory_qs = 'mem_total=' . $memory . 'G';
 	my $program  = <<PROGRAM;
-java -Xmx4g -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF $dbSNP -o $gatk_vcf \\
+java $memory_str -jar $gatk -R $genome -T UnifiedGenotyper -I $merged -B:dbsnp,VCF $dbSNP -o $gatk_vcf -nt $nump \\
 -stand_call_conf 50.0 \\
 -stand_emit_conf 10.0 \\
--dcov 80 -U \\
---assume_single_sample_reads $id \\
---platform SOLEXA
+-dcov 80 -U
 PROGRAM
 
-	my $qsub_param = '-l mem_total=4G ' .
+	my $qsub_param = "-l $memory_qs " .
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
 	$task_scheduler->submit( $project->gatk_vcf_id(), $qsub_param, $program );
 }

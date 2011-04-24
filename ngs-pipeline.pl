@@ -116,7 +116,7 @@ sub sai_to_sam {
 	my $sam           = $project->sam($lane);
 	my $bam        = $project->bam($lane);
 	my $rg = $lane->{'RG'};
-	return 1 if (-e $sam);
+	return 1 if (-e $bam);
 	my $program       = "";
 	my $qsub_param    = "";
 	if ( $lane->{'PAIRED'} ) {

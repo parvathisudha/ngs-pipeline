@@ -193,7 +193,7 @@ sub merge_bams {
 	my $lanes = $project->{'CONFIG'}->{'LANES'};
 	my @lane_bams;
 	for my $lane (@$lanes) {
-		my $file = $project->bam($lane);
+		my $file = $project->sorted($lane);
 		push( @lane_bams, $file );
 	}
 	my @input_bams = map("INPUT=$_",@lane_bams);

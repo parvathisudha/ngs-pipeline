@@ -65,7 +65,7 @@ for my $lane ( @{ $config->{LANES} } ) {
 
 }
 merge_bams($project);
-sort_merged($project);
+#sort_merged($project);
 index_merged($project);
 call_SNPs($project);
 predict_effect($project);
@@ -186,34 +186,57 @@ sub submit_alignment {
 sub merge_bams {
 	my ($project) = @_;
 	sleep($sleep_time);
+	
+	my $output_bam = $project->merged_sorted;
+	return 1 if (-e $output_bam);
+		
 	my $lanes = $project->{'CONFIG'}->{'LANES'};
 	my @lane_bams;
 	for my $lane (@$lanes) {
 		my $file = $project->bam($lane);
 		push( @lane_bams, $file );
 	}
-	my $all_bams = join( ' ', @lane_bams );
-	return 1 if (-e $project->merged());
-	my $program = "$merge " . $project->merged() . " $all_bams";
-	if ( scalar @lane_bams == 1 ) {
-		my $lb = $lane_bams[0];
-		$program = "/bin/cp $lb " . $project->merged();
-	}
+	my @input_bams = map("INPUT=$_",@lane_bams);
+
+	my $program = $project->{'CONFIG'}->{'PICARD'} . "/MergeSamFiles.jar " .
+	join(" ", @input_bams) . " OUTPUT=$output_bam VALIDATION_STRINGENCY=LENIENT";
+	
 	my $qsub_param = '-hold_jid ' . $project->all_indexed_ids();
 	$task_scheduler->submit( $project->merged_id(), $qsub_param, $program );
 }
 
-sub sort_merged {
-	my ($project) = @_;
-	sleep($sleep_time);
-	my $merged        = $project->merged();
-	my $sorted_prefix = $project->merged_sorted_prefix();
-	return 1 if (-e "$sorted_prefix.bam");
-	my $program       = "$sort $merged $sorted_prefix";
-	my $qsub_param = '-hold_jid ' . $project->task_id( $project->merged_id() );
-	$task_scheduler->submit( $project->merged_sorted_id(),
-		$qsub_param, $program );
-}
+#old vesrion
+#sub merge_bams {
+#	my ($project) = @_;
+#	sleep($sleep_time);
+#	my $lanes = $project->{'CONFIG'}->{'LANES'};
+#	my @lane_bams;
+#	for my $lane (@$lanes) {
+#		my $file = $project->bam($lane);
+#		push( @lane_bams, $file );
+#	}
+#	my $all_bams = join( ' ', @lane_bams );
+#	return 1 if (-e $project->merged());
+#	my $program = "$merge " . $project->merged() . " $all_bams";
+#	if ( scalar @lane_bams == 1 ) {
+#		my $lb = $lane_bams[0];
+#		$program = "/bin/cp $lb " . $project->merged();
+#	}
+#	my $qsub_param = '-hold_jid ' . $project->all_indexed_ids();
+#	$task_scheduler->submit( $project->merged_id(), $qsub_param, $program );
+#}
+
+#sub sort_merged {
+#	my ($project) = @_;
+#	sleep($sleep_time);
+#	my $merged        = $project->merged();
+#	my $sorted_prefix = $project->merged_sorted_prefix();
+#	return 1 if (-e "$sorted_prefix.bam");
+#	my $program       = "$sort $merged $sorted_prefix";
+#	my $qsub_param = '-hold_jid ' . $project->task_id( $project->merged_id() );
+#	$task_scheduler->submit( $project->merged_sorted_id(),
+#		$qsub_param, $program );
+#}
 
 sub index_merged {
 	my ($project) = @_;
@@ -222,7 +245,7 @@ sub index_merged {
 	my $program    = "$index $merged";
 	return 1 if (-e "$merged.bai");
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->merged_sorted_id() );
+	  '-hold_jid ' . $project->task_id( $project->merged_id() );
 	$task_scheduler->submit( $project->merged_indexed_id(),
 		$qsub_param, $program );
 }

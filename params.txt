@@ -5,3 +5,4 @@ VCFCODINGSNPS=/data/software/vcfCodingSnps.v1.5
 MPIRUN=/data/software/openmpi-1.4.3/bin
 GATK=/data/software/gatk_31March2011/Sting/dist
 BREAKDANCER=/data/software/breakdancer
+PICARD=/data/software/picard-tools-1.43

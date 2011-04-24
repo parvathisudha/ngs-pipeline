@@ -197,9 +197,9 @@ sub merge_bams {
 		push( @lane_bams, $file );
 	}
 	my @input_bams = map("INPUT=$_",@lane_bams);
-
+	my $tmp_dir = $project->dir;
 	my $program = "java -Xmx4g -jar " . $project->{'CONFIG'}->{'PICARD'} . "/MergeSamFiles.jar " .
-	join(" ", @input_bams) . " OUTPUT=$output_bam VALIDATION_STRINGENCY=LENIENT";
+	join(" ", @input_bams) . " OUTPUT=$output_bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=$tmp_dir";
 	
 	my $qsub_param = '-hold_jid ' . $project->all_indexed_ids();
 	$task_scheduler->submit( $project->merged_id(), $qsub_param, $program );

@@ -198,8 +198,8 @@ sub merge_bams {
 	}
 	my @input_bams = map("INPUT=$_",@lane_bams);
 	my $tmp_dir = $project->dir;
-	my $program = "java -jar " . $project->{'CONFIG'}->{'PICARD'} . "/MergeSamFiles.jar " .
-	join(" ", @input_bams) . " OUTPUT=$output_bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=$tmp_dir";
+	my $program = "java -Xmx10g -jar " . $project->{'CONFIG'}->{'PICARD'} . "/MergeSamFiles.jar " .
+	join(" ", @input_bams) . " OUTPUT=$output_bam VALIDATION_STRINGENCY=LENIENT TMP_DIR=$tmp_dir MAX_RECORDS_IN_RAM=2500000";
 	
 	my $qsub_param = '-hold_jid ' . $project->all_indexed_ids();
 	$task_scheduler->submit( $project->merged_id(), $qsub_param, $program );

@@ -274,7 +274,7 @@ sub mark_duplicates {
 	return 1 if ( -e $marked );
 	my $tmp_dir = $project->dir;
 	my $program = <<PROGRAM;
-java -jar $project->{'CONFIG'}->{'PICARD'} . "/MarkDuplicates.jar \\
+java -jar $project->{'CONFIG'}->{'PICARD'} . '/' . MarkDuplicates.jar \\
 INPUT=$merged \\
 OUTPUT=$marked.metrics \\
 METRICS_FILE=$marked.metrics \\

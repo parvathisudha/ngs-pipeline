@@ -40,6 +40,7 @@ my $index     = "$samtools index";
 my $merge     = "$samtools merge";
 my $view      = "$samtools view";
 my $gatk      = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
+my $mark_dup      = $project->{'CONFIG'}->{'PICARD'} . '/' . "MarkDuplicates.jar";
 my $call      = "";
 my $genome    = $config->{'GENOME'};
 my $gene_list = $config->{'GENELIST'};
@@ -274,7 +275,7 @@ sub mark_duplicates {
 	return 1 if ( -e $marked );
 	my $tmp_dir = $project->dir;
 	my $program = <<PROGRAM;
-java -jar $project->{'CONFIG'}->{'PICARD'} . '/' . MarkDuplicates.jar \\
+java -jar $mark_dup \\
 INPUT=$merged \\
 OUTPUT=$marked.metrics \\
 METRICS_FILE=$marked.metrics \\

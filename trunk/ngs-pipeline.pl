@@ -317,11 +317,12 @@ sub indel_realigner {
 	my $realigner_target_created = $project->realigner_target_creator();
 
 	my $program = <<PROGRAM;
-java -Xmx1g -jar $gatk \\
--T RealignerTargetCreator \\
+java -Xmx4g -jar $gatk \\
+-T IndelRealigner \\
+-I $marked \\
 -R $genome \\
--o $realigner_target_created \\
--I $marked 
+-targetIntervals $realigner_target_created \\
+-o $indel_realigned
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid '
@@ -364,15 +365,13 @@ sub table_recalibration {
 	return 1 if ( -e $bam_recal );
 	my $recal_file      = $project->count_covariates();
 	my $indel_realigned = $project->indel_realigner();
-	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 	my $program         = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -l INFO \\
 -T TableRecalibration \\
 -R $genome \\
--I $indel_realigned
+-I $indel_realigned \\
 -recalFile $recal_file \\
--B:dbsnp,VCF $dbSNP 
 -o $bam_recal
 PROGRAM
 	my $qsub_param =
@@ -383,6 +382,7 @@ PROGRAM
 sub parallel_call_SNPs {
 	my ($project) = @_;
 	my @chr = $project->read_intervals();
+	my $bam_recal = $project->table_recalibration();
 	for my $chr (@chr) {
 		sleep($sleep_time);
 		my $recal_file = $project->count_covariates();
@@ -394,7 +394,7 @@ sub parallel_call_SNPs {
 java -Xmx4g -jar $gatk \\
 -R $genome \\
 -T UnifiedGenotyper \\
--I $recal_file \\
+-I $bam_recal \\
 -B:dbsnp,VCF $dbSNP \\
 -o $gatk_vcf \\
 -stand_call_conf 20.0 \\
@@ -435,7 +435,7 @@ sub merge_vcf {
 	my $merged_vcf = $project->merge_vcf();
 	return 1 if ( -e $merged_vcf );
 	sleep($sleep_time);
-	my @vcfs = map { "-B:sample,VCF $_" } $project->read_intervals();
+	my @vcfs = map { "-B:sample,VCF $_" } $project->all_gatk_vcf();
 	my $all_vcf = join(' ', @vcfs);
 	my $program         = <<PROGRAM;
 java -Xmx4g -jar $gatk \\

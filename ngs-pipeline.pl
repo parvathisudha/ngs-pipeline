@@ -343,6 +343,7 @@ java -Xmx10g -jar $picard_sort_index \\
 INPUT=$indel_realigned \\
 OUTPUT=$sorted \\
 CREATE_INDEX=true \\
+SORT_ORDER=coordinate \\
 TMP_DIR=$tmp_dir \\
 VALIDATION_STRINGENCY=SILENT \\
 MAX_RECORDS_IN_RAM=2500000

@@ -87,8 +87,6 @@ callable_loci($project);
 calculate_genome_coverage($project);
 calculate_bga_coverage($project);
 
-#move_bedtools_results($project);
-filter_snps($project);
 bgzip($project);
 tabix($project);
 breakdancer_cfg($project);

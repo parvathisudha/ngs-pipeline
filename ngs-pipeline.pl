@@ -277,9 +277,10 @@ sub mark_duplicates {
 	my $program = <<PROGRAM;
 java -jar $mark_dup \\
 INPUT=$merged \\
-OUTPUT=$marked.metrics \\
+OUTPUT=$marked \\
 METRICS_FILE=$marked.metrics \\
-CREATE_INDEX=true
+CREATE_INDEX=true \\
+TMP_DIR=$tmp_dir
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );

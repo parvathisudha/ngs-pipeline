@@ -41,6 +41,7 @@ my $merge     = "$samtools merge";
 my $view      = "$samtools view";
 my $gatk      = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
 my $mark_dup      = $project->{'CONFIG'}->{'PICARD'} . '/' . "MarkDuplicates.jar";
+my $picard_sort_index      = $project->{'CONFIG'}->{'PICARD'} . '/' . "SortSam.jar";
 my $call      = "";
 my $genome    = $config->{'GENOME'};
 my $gene_list = $config->{'GENELIST'};
@@ -73,6 +74,7 @@ index_merged($project);
 mark_duplicates($project);
 realigner_target_creator($project);
 indel_realigner($project);
+index_realigned($project);
 count_covariates($project);
 table_recalibration($project);
 parallel_call_SNPs($project);
@@ -329,20 +331,41 @@ PROGRAM
 		$qsub_param, $program );
 }
 
+sub index_realigned {
+	my ( $project ) = @_;
+	my $sorted = $project->index_realigned;
+	return 1 if ( -e $sorted );
+	sleep($sleep_time);
+	my $indel_realigned = $project->indel_realigner();
+	my $tmp_dir = $project->dir;
+	my $program = <<PROGRAM;
+java -Xmx10g -jar $picard_sort_index \\
+INPUT=$indel_realigned \\
+OUTPUT=$sorted \\
+CREATE_INDEX=true \\
+TMP_DIR=$tmp_dir \\
+VALIDATION_STRINGENCY=SILENT \\
+MAX_RECORDS_IN_RAM=2500000
+PROGRAM
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->indel_realigner_id );
+	$task_scheduler->submit( $project->index_realigned_id, $qsub_param, $program );
+}
+
 sub count_covariates {
 	my ($project) = @_;
 	my $recal_file = $project->count_covariates();
 	sleep($sleep_time);
 	return 1 if ( -e $recal_file );
-	my $indel_realigned = $project->indel_realigner();
+	my $indel_realigned = $project->index_realigned();
 	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -l INFO \\
--T CountCovariates  \\
+-T CountCovariates \\
 -R $genome \\
--I $indel_realigned
+-I $indel_realigned \\
 -cov ReadGroupCovariate \\
 -cov QualityScoreCovariate \\
 -cov CycleCovariate \\
@@ -351,7 +374,7 @@ java -Xmx4g -jar $gatk \\
 -B:dbsnp,VCF $dbSNP 
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->indel_realigner_id() );
+	  '-hold_jid ' . $project->task_id( $project->index_realigned_id() );
 	$task_scheduler->submit( $project->count_covariates_id(),
 		$qsub_param, $program );
 }
@@ -362,7 +385,7 @@ sub table_recalibration {
 	sleep($sleep_time);
 	return 1 if ( -e $bam_recal );
 	my $recal_file      = $project->count_covariates();
-	my $indel_realigned = $project->indel_realigner();
+	my $indel_realigned = $project->index_realigned();
 	my $program         = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -l INFO \\

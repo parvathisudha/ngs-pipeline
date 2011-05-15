@@ -1,5 +1,6 @@
 package Project;
 use strict;
+use Data::Dumper;
 
 #file names for all tasks
 
@@ -259,7 +260,7 @@ sub apply_recalibration {
 	return $self->file_prefix() . ".recal.vcf";
 }
 
-sub variant_recalibrator_id {
+sub apply_recalibration_id {
 	my ($self) = @_;
 	return 'apply_vrecal.' . $self->_get_id( $self->apply_recalibration() );
 }
@@ -281,7 +282,7 @@ sub parallel_gatk_vcf {
 
 sub parallel_gatk_vcf_id {
 	my ($self,$chr) = @_;
-	return 'gatk_snps.$chr.' . $self->_get_id( $self->parallel_gatk_vcf() );
+	return "gatk_snps.$chr." . $self->_get_id( $self->parallel_gatk_vcf() );
 }
 
 sub parallel_predict_effect {
@@ -291,7 +292,7 @@ sub parallel_predict_effect {
 
 sub parallel_predict_effect_id {
 	my ($self,$chr) = @_;
-	return 'eff.$chr.' . $self->_get_id( $self->parallel_predict_effect() );
+	return "eff.$chr." . $self->_get_id( $self->parallel_predict_effect() );
 }
 
 sub depth_coverage {
@@ -556,7 +557,7 @@ sub read_intervals {
 	my ( $self ) = @_;
 	my $file = $self->{'CONFIG'}->{'GATKGENOMEBED'};
 	my @data;
-	open IN, $file;
+	open IN, $file or die "Can't open $file\n";
 	while (<IN>) {
 		chomp;
 		next if m/GL/;

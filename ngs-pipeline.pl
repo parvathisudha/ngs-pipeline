@@ -80,8 +80,6 @@ merge_vcf($project);
 variant_recalibrator($project);
 apply_recalibration($project);
 
-parallel_call_indels($project);
-
 callable_loci($project);
 
 #depth_coverage($project);
@@ -422,7 +420,7 @@ sub parallel_predict_effect {
 		my $qsub_param =
 		  '-hold_jid '
 		  . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
-		$task_scheduler->submit( $project->parallel_gatk_vcf_id($chr),
+		$task_scheduler->submit( $project->parallel_predict_effect_id($chr),
 			$qsub_param, $program );
 	}
 }

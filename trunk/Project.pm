@@ -184,6 +184,86 @@ sub merged_sorted_id {
 	return 'sort_merged.' . $self->_get_id( $self->merged_sorted() );
 }
 
+sub mark_duplicates {
+	my ($self) = @_;
+	return $self->file_prefix() . ".dedup.bam";
+}
+
+sub mark_duplicates_id {
+	my ($self) = @_;
+	return 'mark_dup.' . $self->_get_id( $self->mark_duplicates() );
+}
+
+sub merge_vcf {
+	my ($self) = @_;
+	return $self->file_prefix() . ".merged.vcf";
+}
+
+sub merge_vcf_id {
+	my ($self) = @_;
+	return 'merge_vcf.' . $self->_get_id( $self->merge_vcf() );
+}
+
+sub indel_realigner {
+	my ($self) = @_;
+	return $self->file_prefix() . ".realigned.bam";
+}
+
+sub indel_realigner_id {
+	my ($self) = @_;
+	return 'indel_real.' . $self->_get_id( $self->indel_realigner() );
+}
+
+sub count_covariates {
+	my ($self) = @_;
+	return $self->file_prefix() . ".covar.csv";
+}
+
+sub count_covariates_id {
+	my ($self) = @_;
+	return 'covar.' . $self->_get_id( $self->count_covariates() );
+}
+
+sub table_recalibration {
+	my ($self) = @_;
+	return $self->file_prefix() . ".recal.bam";
+}
+
+sub table_recalibration_id {
+	my ($self) = @_;
+	return 'table_recal.' . $self->_get_id( $self->table_recalibration() );
+}
+
+sub realigner_target_creator {
+	my ($self) = @_;
+	return $self->file_prefix() . ".intervals";
+}
+
+sub realigner_target_creator_id {
+	my ($self) = @_;
+	return 'real_targ.' . $self->_get_id( $self->realigner_target_creator() );
+}
+
+sub variant_recalibrator {
+	my ($self) = @_;
+	return $self->file_prefix() . ".tranches";
+}
+
+sub variant_recalibrator_id {
+	my ($self) = @_;
+	return 'var_recal.' . $self->_get_id( $self->variant_recalibrator() );
+}
+
+sub apply_recalibration {
+	my ($self) = @_;
+	return $self->file_prefix() . ".recal.vcf";
+}
+
+sub variant_recalibrator_id {
+	my ($self) = @_;
+	return 'apply_vrecal.' . $self->_get_id( $self->apply_recalibration() );
+}
+
 sub gatk_vcf {
 	my ($self) = @_;
 	return $self->file_prefix() . ".vcf";
@@ -192,6 +272,26 @@ sub gatk_vcf {
 sub gatk_vcf_id {
 	my ($self) = @_;
 	return 'gatk_snps.' . $self->_get_id( $self->gatk_vcf() );
+}
+
+sub parallel_gatk_vcf {
+	my ($self,$chr) = @_;
+	return $self->file_prefix() . ".vcf.$chr";
+}
+
+sub parallel_gatk_vcf_id {
+	my ($self,$chr) = @_;
+	return 'gatk_snps.$chr.' . $self->_get_id( $self->parallel_gatk_vcf() );
+}
+
+sub parallel_predict_effect {
+	my ($self,$chr) = @_;
+	return $self->file_prefix() . ".eff.vcf.$chr";
+}
+
+sub parallel_predict_effect_id {
+	my ($self,$chr) = @_;
+	return 'eff.$chr.' . $self->_get_id( $self->parallel_predict_effect() );
 }
 
 sub depth_coverage {
@@ -324,6 +424,16 @@ sub all_indexed_ids {
 	return join( ',', @ids );
 }
 
+sub all_annotated {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->task_id( $self->parallel_predict_effect_id($chr) ) );
+	}
+	return join( ',', @ids );
+}
+
 sub sorted_id {
 	my ( $self, $lane ) = @_;
 	return 'sort.' . $self->_get_id( $self->sorted($lane) );
@@ -355,6 +465,16 @@ sub get_all_written_files {
 	my $dir = $self->{'CONFIG'}->{'DIR'};
 	my @array = <$dir/*>;
 	return @array;
+}
+
+sub get_all_eff_vcf{
+	my ($self) = @_;
+	my @chr = $self->read_intervals();
+	my @eff_files;
+	for my $chr(@chr){
+		push(@eff_files, $self->parallel_gatk_vcf_id($chr));
+	} 
+	return @chr;
 }
 
 sub get_garbage_files {
@@ -430,6 +550,20 @@ sub get_all_ids{
 		push (@ids, $self->get_sge_id($file));		
 	}
 	return \@ids;
+}
+
+sub read_intervals {
+	my ( $self ) = @_;
+	my $file = $self->{'CONFIG'}->{'GATKGENOMEBED'};
+	my @data;
+	open IN, $file;
+	while (<IN>) {
+		chomp;
+		next if m/GL/;
+		push( @data, "$1" ) if m/(.+)\t(\d+)\t(\d+)/;
+	}
+	close IN;
+	return @data;
 }
 
 return 1;

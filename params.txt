@@ -6,3 +6,5 @@ MPIRUN=/data/software/openmpi-1.4.3/bin
 GATK=/data/software/gatk_31March2011/Sting/dist
 BREAKDANCER=/data/software/breakdancer
 PICARD=/data/software/picard-tools-1.43
+HAPMAP=/data/genomes/bwa/human_g1k_v37/hapmap3.3.genotypes.b37_fwd.vcf
+OMNI=/data/genomes/bwa/human_g1k_v37/OMNI.764s.b37.annotated.vcf

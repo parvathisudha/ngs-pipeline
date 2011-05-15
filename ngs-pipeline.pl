@@ -42,6 +42,7 @@ my $view      = "$samtools view";
 my $gatk      = $config->{'GATK'} . "/GenomeAnalysisTK.jar";
 my $mark_dup      = $project->{'CONFIG'}->{'PICARD'} . '/' . "MarkDuplicates.jar";
 my $picard_sort_index      = $project->{'CONFIG'}->{'PICARD'} . '/' . "SortSam.jar";
+my $picard_index      = $project->{'CONFIG'}->{'PICARD'} . '/' . "BuildBamIndex.jar";
 my $call      = "";
 my $genome    = $config->{'GENOME'};
 my $gene_list = $config->{'GENELIST'};
@@ -77,6 +78,7 @@ indel_realigner($project);
 index_realigned($project);
 count_covariates($project);
 table_recalibration($project);
+index_recalibrated($project);
 parallel_call_SNPs($project);
 parallel_predict_effect($project);
 merge_vcf($project);
@@ -401,6 +403,27 @@ PROGRAM
 	$task_scheduler->submit( $project->table_recalibration_id(),
 		$qsub_param, $program );
 }
+
+sub index_recalibrated {
+	my ($project) = @_;
+	my $index_recal = $project->index_recalibrated();
+	sleep($sleep_time);
+	return 1 if ( -e $index_recal );
+	my $bam_recal = $project->table_recalibration();
+	my $tmp_dir = $project->dir;
+	my $program = <<PROGRAM;
+java -jar $picard_index \\
+INPUT=$bam_recal \\
+OUTPUT=$index_recal \\
+TMP_DIR=$tmp_dir
+PROGRAM
+
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->table_recalibration_id() );
+	$task_scheduler->submit( $project->index_recalibrated_id(),
+		$qsub_param, $program );
+}
+
 sub parallel_call_SNPs {
 	my ($project) = @_;
 	my @chr = $project->read_intervals();
@@ -426,7 +449,7 @@ java -Xmx4g -jar $gatk \\
 PROGRAM
 		my $qsub_param =
 		  '-hold_jid '
-		  . $project->task_id( $project->table_recalibration_id() );
+		  . $project->task_id( $project->index_recalibrated_id() );
 		$task_scheduler->submit( $project->parallel_gatk_vcf_id($chr),
 			$qsub_param, $program );
 	}

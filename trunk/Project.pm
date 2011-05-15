@@ -215,6 +215,17 @@ sub indel_realigner_id {
 	return 'indel_real.' . $self->_get_id( $self->indel_realigner() );
 }
 
+
+sub index_realigned {
+	my ($self) = @_;
+	return $self->file_prefix() . ".realigned.sorted.bam";
+}
+
+sub index_realigned_id {
+	my ($self) = @_;
+	return 'index_realigned.' . $self->_get_id( $self->index_realigned() );
+}
+
 sub count_covariates {
 	my ($self) = @_;
 	return $self->file_prefix() . ".covar.csv";
@@ -469,6 +480,7 @@ sub index_id {
 	my ( $self, $lane ) = @_;
 	return 'index.' . $self->_get_id( $self->bai($lane) );
 }
+
 
 
 sub get_all_written_files {

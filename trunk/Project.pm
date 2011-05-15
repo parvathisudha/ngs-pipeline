@@ -246,6 +246,16 @@ sub table_recalibration_id {
 	return 'table_recal.' . $self->_get_id( $self->table_recalibration() );
 }
 
+sub index_recalibrated {
+	my ($self) = @_;
+	return $self->file_prefix() . ".recal.bam.bai";
+}
+
+sub index_recalibrated_id {
+	my ($self) = @_;
+	return 'index_recal.' . $self->_get_id( $self->index_recalibrated() );
+}
+
 sub realigner_target_creator {
 	my ($self) = @_;
 	return $self->file_prefix() . ".intervals";
@@ -293,7 +303,7 @@ sub parallel_gatk_vcf {
 
 sub parallel_gatk_vcf_id {
 	my ($self,$chr) = @_;
-	return "gatk_snps.$chr." . $self->_get_id( $self->parallel_gatk_vcf() );
+	return "snps.$chr." . $self->_get_id( $self->parallel_gatk_vcf() );
 }
 
 sub parallel_predict_effect {

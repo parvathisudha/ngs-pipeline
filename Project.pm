@@ -332,7 +332,7 @@ sub eff_vcf_id {
 
 sub bgzip {
 	my ($self) = @_;
-	return $self->file_prefix() . ".eff.vcf.gz";
+	return $self->file_prefix() . ".recal.vcf.gz";
 }
 
 sub bgzip_id {
@@ -433,6 +433,16 @@ sub all_annotated {
 		push( @ids, $self->task_id( $self->parallel_predict_effect_id($chr) ) );
 	}
 	return join( ',', @ids );
+}
+
+sub all_gatk_vcf {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->task_id( $self->parallel_gatk_vcf($chr) ) );
+	}
+	return @ids;
 }
 
 sub sorted_id {

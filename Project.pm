@@ -461,7 +461,7 @@ sub all_gatk_vcf {
 	my @chr  = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $self->task_id( $self->parallel_gatk_vcf($chr) ) );
+		push( @ids, $self->parallel_gatk_vcf($chr) );
 	}
 	return @ids;
 }

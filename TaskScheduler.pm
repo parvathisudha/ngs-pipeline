@@ -30,7 +30,6 @@ sub run_script {
 	my $error_dir = $project->error_dir();
 	my $script_name = $self->_script_name($job_name);
 	my $task_id_file = $project->task_id_file($job_name);
-	print "TASKIDFILE: $task_id_file\n";
 	my $task_line_end = "$script_name > $task_id_file";
 	my $add_param = "$global_qsub_params -M $email -N $job_name -o $output_dir -e $error_dir";
 	if ($qsub_params) {

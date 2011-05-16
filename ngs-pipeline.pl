@@ -72,23 +72,22 @@ merge_bams($project);                #rewrite with picard
 #sort_merged($project);#to deletion
 index_merged($project);              #tested
 mark_duplicates($project);           #tested
-sub a { }
 my @chr = $project->read_intervals();
 for my $chr (@chr) {
-	realigner_target_creator($project, $chr);          #.
-	indel_realigner($project, $chr);                   #.
-	index_realigned($project, $chr);                   #.
-	count_covariates($project, $chr);                  #.
-	table_recalibration($project, $chr);               #.
-	index_recalibrated($project, $chr);                #.
-	parallel_call_SNPs($project, $chr);                #.
-	parallel_call_indels($project, $chr);              #.
-	parallel_predict_effect($project, $chr);           #.
-	parallel_predict_indels_effect($project, $chr);    #.
-	variant_annotator($project, $chr);                 #.
-	filter_snps($project, $chr);                       #.
-	variant_recalibrator($project, $chr);              #.
-	apply_recalibration($project, $chr);               #.
+	realigner_target_creator($project, $chr);          #..
+	indel_realigner($project, $chr);                   #..
+	index_realigned($project, $chr);                   #..
+	count_covariates($project, $chr);                  #..
+	table_recalibration($project, $chr);               #..
+	index_recalibrated($project, $chr);                #..
+	parallel_call_SNPs($project, $chr);                #..
+	parallel_call_indels($project, $chr);              #..
+	parallel_predict_effect($project, $chr);           #..
+	parallel_predict_indels_effect($project, $chr);    #..
+	variant_annotator($project, $chr);                 #..
+	filter_snps($project, $chr);                       #..
+	variant_recalibrator($project, $chr);              #..
+	apply_recalibration($project, $chr);               #..
 }
 
 #merge_vcf($project);#method to deletion

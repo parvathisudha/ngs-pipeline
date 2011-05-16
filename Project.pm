@@ -251,7 +251,7 @@ sub index_realigned {
 
 sub index_realigned_id {
 	my ($self,$chr) = @_;
-	return "idxre.$chr." . $self->_get_id( $self->index_realigned($chr) );
+	return "idxrea.$chr." . $self->_get_id( $self->index_realigned($chr) );
 }
 
 sub count_covariates {
@@ -281,7 +281,7 @@ sub index_recalibrated {
 
 sub index_recalibrated_id {
 	my ($self, $chr) = @_;
-	return "idxre.$chr." . $self->_get_id( $self->index_recalibrated($chr) );
+	return "idxrec.$chr." . $self->_get_id( $self->index_recalibrated($chr) );
 }
 
 
@@ -338,7 +338,7 @@ sub parallel_call_indels_id {
 
 sub parallel_predict_effect {
 	my ($self,$chr) = @_;
-	return $self->file_prefix() . ".$chr.eff.vcf";
+	return $self->file_prefix() . ".$chr.eff.snp.vcf";
 }
 
 sub parallel_predict_effect_id {
@@ -531,7 +531,7 @@ sub all_snps_eff_vcf {
 	my @chr  = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $self->apply_recalibration_id($chr) );
+		push( @ids, $self->apply_recalibration($chr) );
 	}
 	return \@ids;
 }

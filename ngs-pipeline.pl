@@ -59,15 +59,15 @@ my $BreakDancerMini  = "perl $break_dancer_dir/BreakDancerMini.pl";
 
 #define_done_jobs($project);
 
-for my $lane ( @{ $config->{LANES} } ) {
-	align( $project, $lane );#tested
-	sai_to_sam( $project, $lane );#tested
-
-	#import_sam( $project, $lane );#to deletion
-	sort_bam( $project, $lane );#rewrite with picard
-	index_bam( $project, $lane );#rewrite with picard
-
-}
+#for my $lane ( @{ $config->{LANES} } ) {
+#	align( $project, $lane );#tested
+#	sai_to_sam( $project, $lane );#tested
+#
+#	#import_sam( $project, $lane );#to deletion
+#	sort_bam( $project, $lane );#rewrite with picard
+#	index_bam( $project, $lane );#rewrite with picard
+#
+#}
 merge_bams($project);#rewrite with picard
 
 #sort_merged($project);#to deletion

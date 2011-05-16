@@ -480,7 +480,7 @@ sub parallel_call_indels {
 java -Xmx4g -jar $gatk \\
 -R $genome \\
 -T UnifiedGenotyper \\
--glm DINDEL \\
+-glm INDEL \\
 -I $bam_recal \\
 -B:dbsnp,VCF $dbSNP \\
 -o $gatk_vcf \\

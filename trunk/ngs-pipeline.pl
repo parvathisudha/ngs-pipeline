@@ -775,13 +775,13 @@ java -Xmx4g -jar $gatk \\
 -T VariantAnnotator \\
 -l INFO \\
 -R $genome \\
--I $bam_recal \
+-I $bam_recal \\
 -o $annotated \\
 --useAllAnnotations \\
 -B:variant,VCF $snps \\
 -B:comp1KG,VCF $snps_1KG \\
 -B:compHapMap,VCF $hapmap \\
--B:compOMNI,VCF $omni \\
+-B:compOMNI,VCF $omni
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id($project->merge_snps_id);

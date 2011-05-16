@@ -195,14 +195,34 @@ sub mark_duplicates_id {
 	return 'mark_dup.' . $self->_get_id( $self->mark_duplicates() );
 }
 
+sub merge_snps {
+	my ($self) = @_;
+	return $self->file_prefix() . ".snps.merged.vcf";
+}
+
+sub merge_snps_id {
+	my ($self) = @_;
+	return 'merge.snps.' . $self->_get_id( $self->merge_snps() );
+}
+
 sub merge_vcf {
 	my ($self) = @_;
-	return $self->file_prefix() . ".merged.vcf";
+	return $self->merge_snps;
 }
 
 sub merge_vcf_id {
 	my ($self) = @_;
-	return 'merge_vcf.' . $self->_get_id( $self->merge_vcf() );
+	return $self->merge_snps_id;
+}
+
+sub merge_indels {
+	my ($self) = @_;
+	return $self->file_prefix() . ".ind.merged.vcf";
+}
+
+sub merge_indels_id {
+	my ($self) = @_;
+	return 'merge.ind.' . $self->_get_id( $self->merge_indels() );
 }
 
 sub indel_realigner {
@@ -303,7 +323,17 @@ sub parallel_gatk_vcf {
 
 sub parallel_gatk_vcf_id {
 	my ($self,$chr) = @_;
-	return "snps.$chr." . $self->_get_id( $self->parallel_gatk_vcf() );
+	return "snps.$chr." . $self->_get_id( $self->parallel_gatk_vcf($chr) );
+}
+
+sub parallel_call_indels {
+	my ($self,$chr) = @_;
+	return $self->file_prefix() . ".dindel.vcf.$chr";
+}
+
+sub parallel_call_indels_id {
+	my ($self,$chr) = @_;
+	return "ind.$chr." . $self->_get_id( $self->parallel_call_indels($chr) );
 }
 
 sub parallel_predict_effect {
@@ -313,7 +343,17 @@ sub parallel_predict_effect {
 
 sub parallel_predict_effect_id {
 	my ($self,$chr) = @_;
-	return "eff.$chr." . $self->_get_id( $self->parallel_predict_effect() );
+	return "eff.snp.$chr." . $self->_get_id( $self->parallel_predict_effect($chr) );
+}
+
+sub parallel_predict_indels_effect {
+	my ($self,$chr) = @_;
+	return $self->file_prefix() . ".eff.ind.vcf.$chr";
+}
+
+sub parallel_predict_indels_effect_id {
+	my ($self,$chr) = @_;
+	return "eff.ind.$chr." . $self->_get_id( $self->parallel_predict_indels_effect($chr) );
 }
 
 sub depth_coverage {
@@ -401,14 +441,24 @@ sub breakdancer_mini_id {
 	return 'brd_mini' . $self->_get_id( $self->breakdancer_mini() );
 }
 
+sub variant_annotator {
+	my ($self) = @_;
+	return $self->file_prefix() . ".snps.merged.annot.vcf";
+}
+
+sub variant_annotator_id {
+	my ($self) = @_;
+	return 'ann.snps.' . $self->_get_id( $self->variant_annotator );
+}
+
 sub filter_snps {
 	my ($self) = @_;
-	return $self->file_prefix() . ".eff.filtered.vcf";
+	return $self->file_prefix() . ".snps.merged.annot.filt.vcf";
 }
 
 sub filter_snps_id {
 	my ($self) = @_;
-	return 'filter.' . $self->_get_id( $self->filter_snps() );
+	return 'filt.snps.' . $self->_get_id( $self->filter_snps() );
 }
 
 sub genome_coverage {
@@ -456,6 +506,16 @@ sub all_annotated {
 	return join( ',', @ids );
 }
 
+sub all_indels_annotated {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->task_id( $self->parallel_predict_indels_effect_id($chr) ) );
+	}
+	return join( ',', @ids );
+}
+
 sub all_gatk_vcf {
 	my ($self) = @_;
 	my @chr  = $self->read_intervals();
@@ -464,6 +524,26 @@ sub all_gatk_vcf {
 		push( @ids, $self->parallel_gatk_vcf($chr) );
 	}
 	return @ids;
+}
+
+sub all_snps_eff_vcf {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->parallel_predict_effect($chr) );
+	}
+	return \@ids;
+}
+
+sub all_indels_eff_vcf {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->parallel_predict_indels_effect($chr) );
+	}
+	return \@ids;
 }
 
 sub sorted_id {

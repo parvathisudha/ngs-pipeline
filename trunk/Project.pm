@@ -224,86 +224,86 @@ sub merge_indels_id {
 	my ($self) = @_;
 	return 'merge.ind.' . $self->_get_id( $self->merge_indels() );
 }
+sub realigner_target_creator {
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.intervals";
+}
 
+sub realigner_target_creator_id {
+	my ($self, $chr) = @_;
+	return "retar.$chr." . $self->_get_id( $self->realigner_target_creator($chr) );
+}
 sub indel_realigner {
-	my ($self) = @_;
-	return $self->file_prefix() . ".realigned.bam";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.realigned.bam";
 }
 
 sub indel_realigner_id {
-	my ($self) = @_;
-	return 'indel_real.' . $self->_get_id( $self->indel_realigner() );
+	my ($self,$chr) = @_;
+	return "indre.$chr." . $self->_get_id( $self->indel_realigner($chr) );
 }
 
 
 sub index_realigned {
-	my ($self) = @_;
-	return $self->file_prefix() . ".realigned.sorted.bam";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.realigned.sorted.bam";
 }
 
 sub index_realigned_id {
-	my ($self) = @_;
-	return 'index_realigned.' . $self->_get_id( $self->index_realigned() );
+	my ($self,$chr) = @_;
+	return "idxre.$chr." . $self->_get_id( $self->index_realigned($chr) );
 }
 
 sub count_covariates {
-	my ($self) = @_;
-	return $self->file_prefix() . ".covar.csv";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.covar.csv";
 }
 
 sub count_covariates_id {
-	my ($self) = @_;
-	return 'covar.' . $self->_get_id( $self->count_covariates() );
+	my ($self, $chr) = @_;
+	return "ccv.$chr." . $self->_get_id( $self->count_covariates($chr) );
 }
 
 sub table_recalibration {
-	my ($self) = @_;
-	return $self->file_prefix() . ".recal.bam";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.recal.bam";
 }
 
 sub table_recalibration_id {
-	my ($self) = @_;
-	return 'table_recal.' . $self->_get_id( $self->table_recalibration() );
+	my ($self, $chr) = @_;
+	return "tbre.$chr." . $self->_get_id( $self->table_recalibration($chr) );
 }
 
 sub index_recalibrated {
-	my ($self) = @_;
-	return $self->file_prefix() . ".recal.bam.bai";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.recal.bam.bai";
 }
 
 sub index_recalibrated_id {
-	my ($self) = @_;
-	return 'index_recal.' . $self->_get_id( $self->index_recalibrated() );
+	my ($self, $chr) = @_;
+	return "idxre.$chr." . $self->_get_id( $self->index_recalibrated($chr) );
 }
 
-sub realigner_target_creator {
-	my ($self) = @_;
-	return $self->file_prefix() . ".intervals";
-}
 
-sub realigner_target_creator_id {
-	my ($self) = @_;
-	return 'real_targ.' . $self->_get_id( $self->realigner_target_creator() );
-}
 
 sub variant_recalibrator {
-	my ($self) = @_;
-	return $self->file_prefix() . ".tranches";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.tranches";
 }
 
 sub variant_recalibrator_id {
-	my ($self) = @_;
-	return 'var_recal.' . $self->_get_id( $self->variant_recalibrator() );
+	my ($self, $chr) = @_;
+	return "vre.$chr." . $self->_get_id( $self->variant_recalibrator($chr) );
 }
 
 sub apply_recalibration {
-	my ($self) = @_;
-	return $self->file_prefix() . ".recal.vcf";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.recal.vcf";
 }
 
 sub apply_recalibration_id {
-	my ($self) = @_;
-	return 'apply_vrecal.' . $self->_get_id( $self->apply_recalibration() );
+	my ($self, $chr) = @_;
+	return "avre.$chr." . $self->_get_id( $self->apply_recalibration($chr) );
 }
 
 sub gatk_vcf {
@@ -318,7 +318,7 @@ sub gatk_vcf_id {
 
 sub parallel_gatk_vcf {
 	my ($self,$chr) = @_;
-	return $self->file_prefix() . ".vcf.$chr";
+	return $self->file_prefix() . ".$chr.vcf";
 }
 
 sub parallel_gatk_vcf_id {
@@ -328,7 +328,7 @@ sub parallel_gatk_vcf_id {
 
 sub parallel_call_indels {
 	my ($self,$chr) = @_;
-	return $self->file_prefix() . ".dindel.vcf.$chr";
+	return $self->file_prefix() . ".$chr.indel.vcf";
 }
 
 sub parallel_call_indels_id {
@@ -338,7 +338,7 @@ sub parallel_call_indels_id {
 
 sub parallel_predict_effect {
 	my ($self,$chr) = @_;
-	return $self->file_prefix() . ".eff.vcf.$chr";
+	return $self->file_prefix() . ".$chr.eff.vcf";
 }
 
 sub parallel_predict_effect_id {
@@ -348,12 +348,12 @@ sub parallel_predict_effect_id {
 
 sub parallel_predict_indels_effect {
 	my ($self,$chr) = @_;
-	return $self->file_prefix() . ".eff.ind.vcf.$chr";
+	return $self->file_prefix() . ".$chr.eff.ind.vcf";
 }
 
 sub parallel_predict_indels_effect_id {
 	my ($self,$chr) = @_;
-	return "eff.ind.$chr." . $self->_get_id( $self->parallel_predict_indels_effect($chr) );
+	return "e.ind.$chr." . $self->_get_id( $self->parallel_predict_indels_effect($chr) );
 }
 
 sub depth_coverage {
@@ -442,23 +442,23 @@ sub breakdancer_mini_id {
 }
 
 sub variant_annotator {
-	my ($self) = @_;
-	return $self->file_prefix() . ".snps.merged.annot.vcf";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.snps.annot.vcf";
 }
 
 sub variant_annotator_id {
-	my ($self) = @_;
-	return 'ann.snps.' . $self->_get_id( $self->variant_annotator );
+	my ($self, $chr) = @_;
+	return "a.snp.$chr." . $self->_get_id( $self->variant_annotator($chr) );
 }
 
 sub filter_snps {
-	my ($self) = @_;
-	return $self->file_prefix() . ".snps.merged.annot.filt.vcf";
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.snps.annot.filt.vcf";
 }
 
 sub filter_snps_id {
-	my ($self) = @_;
-	return 'filt.snps.' . $self->_get_id( $self->filter_snps() );
+	my ($self, $chr) = @_;
+	return "f.snp.$chr." . $self->_get_id( $self->filter_snps($chr) );
 }
 
 sub genome_coverage {
@@ -531,7 +531,7 @@ sub all_snps_eff_vcf {
 	my @chr  = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $self->parallel_predict_effect($chr) );
+		push( @ids, $self->apply_recalibration_id($chr) );
 	}
 	return \@ids;
 }

@@ -293,6 +293,7 @@ INPUT=$merged \\
 OUTPUT=$marked \\
 METRICS_FILE=$marked.metrics \\
 CREATE_INDEX=true \\
+VALIDATION_STRINGENCY=SILENT \\
 TMP_DIR=$tmp_dir
 PROGRAM
 	my $qsub_param =

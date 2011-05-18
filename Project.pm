@@ -501,7 +501,7 @@ sub all_annotated {
 	my @chr  = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $self->task_id( $self->parallel_predict_effect_id($chr) ) );
+		push( @ids, $self->task_id( $self->filter_snps($chr) ) );
 	}
 	return join( ',', @ids );
 }

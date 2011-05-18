@@ -59,43 +59,45 @@ my $BreakDancerMini  = "perl $break_dancer_dir/BreakDancerMini.pl";
 
 #define_done_jobs($project);
 
-for my $lane ( @{ $config->{LANES} } ) {
-	align( $project, $lane );    #tested
-	sai_to_sam( $project, $lane );   #tested
-	                                 #import_sam( $project, $lane );#to deletion
-	sort_bam( $project, $lane );     #rewrite with picard
-	index_bam( $project, $lane );    #rewrite with picard
-
+my $output_bam = $project->merged_sorted;
+unless ( -e $output_bam ) {
+	for my $lane ( @{ $config->{LANES} } ) {
+		align( $project, $lane );    #tested
+		sai_to_sam( $project, $lane );    #tested
+		     #import_sam( $project, $lane );#to deletion
+		sort_bam( $project, $lane );    #rewrite with picard
+		index_bam( $project, $lane );   #rewrite with picard
+	}
 }
-merge_bams($project);                #rewrite with picard
+
+merge_bams($project);                   #rewrite with picard
 
 #sort_merged($project);#to deletion
-index_merged($project);              #tested
-mark_duplicates($project);           #tested
+index_merged($project);                 #tested
+mark_duplicates($project);              #tested
 my @chr = $project->read_intervals();
 for my $chr (@chr) {
-	realigner_target_creator($project, $chr);          #..
-	indel_realigner($project, $chr);                   #..
-	index_realigned($project, $chr);                   #..
-	count_covariates($project, $chr);                  #..
-	table_recalibration($project, $chr);               #..
-	index_recalibrated($project, $chr);                #..
-	parallel_call_SNPs($project, $chr);                #..
-	parallel_call_indels($project, $chr);              #..
-	parallel_predict_effect($project, $chr);           #..
-	parallel_predict_indels_effect($project, $chr);    #..
-	variant_annotator($project, $chr);                 #..
-	filter_snps($project, $chr);                       #..
+	realigner_target_creator( $project, $chr );    #..
+	indel_realigner( $project, $chr );             #..
+	index_realigned( $project, $chr );             #..
+	count_covariates( $project, $chr );            #..
+	table_recalibration( $project, $chr );         #..
+	index_recalibrated( $project, $chr );          #..
+	parallel_call_SNPs( $project, $chr );          #..
+	parallel_call_indels( $project, $chr );        #..
+	parallel_predict_effect( $project, $chr );     #..
+	parallel_predict_indels_effect( $project, $chr );    #..
+	variant_annotator( $project, $chr );                 #..
+	filter_snps( $project, $chr );                       #..
 }
 
-merge_snps($project);                            #!!
-merge_indels($project);                          #!!
+merge_snps($project);                                    #!!
+merge_indels($project);                                  #!!
 
-variant_recalibrator($project);              #
-apply_recalibration($project);               #
+variant_recalibrator($project);                          #
+apply_recalibration($project);                           #
+
 #merge_vcf($project);#method to deletion
-
-
 
 callable_loci($project);    #rewrite to use recalibrated bam
 
@@ -305,7 +307,7 @@ PROGRAM
 }
 
 sub realigner_target_creator {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
 	my $realigner_target_created = $project->realigner_target_creator($chr);
 	return 1 if ( -e $realigner_target_created );
@@ -325,7 +327,7 @@ PROGRAM
 }
 
 sub indel_realigner {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
 	my $indel_realigned = $project->indel_realigner($chr);
 
@@ -350,7 +352,7 @@ PROGRAM
 }
 
 sub index_realigned {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	my $sorted = $project->index_realigned($chr);
 	return 1 if ( -e $sorted );
 	sleep($sleep_time);
@@ -373,7 +375,7 @@ PROGRAM
 }
 
 sub count_covariates {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	my $recal_file = $project->count_covariates($chr);
 	sleep($sleep_time);
 	return 1 if ( -e $recal_file );
@@ -401,7 +403,7 @@ PROGRAM
 }
 
 sub table_recalibration {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	my $bam_recal = $project->table_recalibration($chr);
 	sleep($sleep_time);
 	return 1 if ( -e $bam_recal );
@@ -424,7 +426,7 @@ PROGRAM
 }
 
 sub index_recalibrated {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	my $index_recal = $project->index_recalibrated($chr);
 	sleep($sleep_time);
 	return 1 if ( -e $index_recal );
@@ -438,23 +440,24 @@ TMP_DIR=$tmp_dir
 PROGRAM
 
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->table_recalibration_id($chr) );
+	  '-hold_jid '
+	  . $project->task_id( $project->table_recalibration_id($chr) );
 	$task_scheduler->submit( $project->index_recalibrated_id($chr),
 		$qsub_param, $program );
 }
 
 sub parallel_call_SNPs {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	my $bam_recal = $project->table_recalibration($chr);
-		sleep($sleep_time);
-		my $recal_file = $project->count_covariates($chr);
-		my $gatk_vcf   = $project->parallel_gatk_vcf($chr);
-		next if ( -e $gatk_vcf );
-		my $id              = $project->{'CONFIG'}->{'PROJECT'};
-		my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
-		my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
-		my $stand_emit_conf = $project->{'CONFIG'}->{'GATK_stand_emit_conf'};
-		my $program         = <<PROGRAM;
+	sleep($sleep_time);
+	my $recal_file = $project->count_covariates($chr);
+	my $gatk_vcf   = $project->parallel_gatk_vcf($chr);
+	next if ( -e $gatk_vcf );
+	my $id              = $project->{'CONFIG'}->{'PROJECT'};
+	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
+	my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
+	my $stand_emit_conf = $project->{'CONFIG'}->{'GATK_stand_emit_conf'};
+	my $program         = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -R $genome \\
 -T UnifiedGenotyper \\
@@ -466,23 +469,23 @@ java -Xmx4g -jar $gatk \\
 -dcov 80 -U \\
 -L $chr
 PROGRAM
-		my $qsub_param =
-		  '-hold_jid ' . $project->task_id( $project->index_recalibrated_id($chr) );
-		$task_scheduler->submit( $project->parallel_gatk_vcf_id($chr),
-			$qsub_param, $program );
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->index_recalibrated_id($chr) );
+	$task_scheduler->submit( $project->parallel_gatk_vcf_id($chr),
+		$qsub_param, $program );
 }
 
 sub parallel_call_indels {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	my $bam_recal = $project->table_recalibration($chr);
-		sleep($sleep_time);
-		my $gatk_vcf   = $project->parallel_call_indels($chr);
-		next if ( -e $gatk_vcf );
-		my $id              = $project->{'CONFIG'}->{'PROJECT'};
-		my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
-		my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
-		my $stand_emit_conf = $project->{'CONFIG'}->{'GATK_stand_emit_conf'};
-		my $program         = <<PROGRAM;
+	sleep($sleep_time);
+	my $gatk_vcf = $project->parallel_call_indels($chr);
+	next if ( -e $gatk_vcf );
+	my $id              = $project->{'CONFIG'}->{'PROJECT'};
+	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
+	my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
+	my $stand_emit_conf = $project->{'CONFIG'}->{'GATK_stand_emit_conf'};
+	my $program         = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -R $genome \\
 -T UnifiedGenotyper \\
@@ -495,39 +498,37 @@ java -Xmx4g -jar $gatk \\
 -dcov 80 -U \\
 -L $chr
 PROGRAM
-		my $qsub_param =
-		  '-hold_jid ' . $project->task_id( $project->index_recalibrated_id($chr) );
-		$task_scheduler->submit( $project->parallel_call_indels_id($chr),
-			$qsub_param, $program );
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->index_recalibrated_id($chr) );
+	$task_scheduler->submit( $project->parallel_call_indels_id($chr),
+		$qsub_param, $program );
 }
 
 sub parallel_predict_effect {
-	my ($project, $chr) = @_;
-		sleep($sleep_time);
-		my $eff_vcf  = $project->parallel_predict_effect($chr);
-		my $gatk_vcf = $project->parallel_gatk_vcf($chr);
-		next if ( -e $eff_vcf );
-		my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
-		my $qsub_param =
-		  '-hold_jid '
-		  . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
-		$task_scheduler->submit( $project->parallel_predict_effect_id($chr),
-			$qsub_param, $program );
+	my ( $project, $chr ) = @_;
+	sleep($sleep_time);
+	my $eff_vcf  = $project->parallel_predict_effect($chr);
+	my $gatk_vcf = $project->parallel_gatk_vcf($chr);
+	next if ( -e $eff_vcf );
+	my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
+	$task_scheduler->submit( $project->parallel_predict_effect_id($chr),
+		$qsub_param, $program );
 }
 
 sub parallel_predict_indels_effect {
-	my ($project, $chr) = @_;
-		sleep($sleep_time);
-		my $eff_vcf  = $project->parallel_predict_indels_effect($chr);    #
-		my $gatk_vcf = $project->parallel_call_indels($chr);
-		next if ( -e $eff_vcf );
-		my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
-		my $qsub_param =
-		  '-hold_jid '
-		  . $project->task_id( $project->parallel_call_indels_id($chr) );
-		$task_scheduler->submit(
-			$project->parallel_predict_indels_effect_id($chr),
-			$qsub_param, $program );
+	my ( $project, $chr ) = @_;
+	sleep($sleep_time);
+	my $eff_vcf  = $project->parallel_predict_indels_effect($chr);    #
+	my $gatk_vcf = $project->parallel_call_indels($chr);
+	next if ( -e $eff_vcf );
+	my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
+	my $qsub_param =
+	  '-hold_jid '
+	  . $project->task_id( $project->parallel_call_indels_id($chr) );
+	$task_scheduler->submit( $project->parallel_predict_indels_effect_id($chr),
+		$qsub_param, $program );
 }
 
 sub merge_parallel_vcf {
@@ -592,11 +593,11 @@ sub variant_recalibrator {
 	sleep($sleep_time);
 	my $variant_recalibrator = $project->variant_recalibrator();
 	return 1 if ( -e $variant_recalibrator );
-	my $dbSNP         = $project->{'CONFIG'}->{'DBSNP'};
-	my $hapmap        = $project->{'CONFIG'}->{'HAPMAP'};
-	my $omni          = $project->{'CONFIG'}->{'OMNI'};
+	my $dbSNP       = $project->{'CONFIG'}->{'DBSNP'};
+	my $hapmap      = $project->{'CONFIG'}->{'HAPMAP'};
+	my $omni        = $project->{'CONFIG'}->{'OMNI'};
 	my $merged_snps = $project->merge_snps();
-	my $program       = <<PROGRAM;
+	my $program     = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
 -R $genome \\
@@ -620,7 +621,7 @@ sub apply_recalibration {
 	sleep($sleep_time);
 	my $recalibrated_vcf = $project->apply_recalibration();
 	return 1 if ( -e $recalibrated_vcf );
-	my $merged_snps = $project->merge_snps();
+	my $merged_snps          = $project->merge_snps();
 	my $variant_recalibrator = $project->variant_recalibrator();
 	my $program              = <<PROGRAM;
 java -Xmx3g -jar $gatk \\
@@ -756,7 +757,7 @@ sub tabix {
 }
 
 sub variant_annotator {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
 	my $annotated = $project->variant_annotator($chr);
 	return 1 if ( -e $annotated );
@@ -765,7 +766,7 @@ sub variant_annotator {
 	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
 	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
 	my $omni      = $project->{'CONFIG'}->{'OMNI'};
-	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
+	my $dbSNP     = $project->{'CONFIG'}->{'DBSNP'};
 	my $program   = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantAnnotator \\
@@ -782,13 +783,14 @@ java -Xmx4g -jar $gatk \\
 -L $chr
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->parallel_predict_effect_id($chr) );
+	  '-hold_jid '
+	  . $project->task_id( $project->parallel_predict_effect_id($chr) );
 	$task_scheduler->submit( $project->variant_annotator_id($chr),
 		$qsub_param, $program );
 }
 
 sub filter_snps {
-	my ($project, $chr) = @_;
+	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
 	my $filtered = $project->filter_snps($chr);
 	return 1 if ( -e $filtered );
@@ -811,8 +813,8 @@ PROGRAM
 	    $project->task_id( $project->variant_annotator_id($chr) ) . ","
 	  . $project->task_id( $project->parallel_predict_indels_effect_id($chr) );
 	my $qsub_param = '-hold_jid ' . $after;
-	$task_scheduler->submit( $project->filter_snps_id($chr), $qsub_param,
-		$program );
+	$task_scheduler->submit( $project->filter_snps_id($chr),
+		$qsub_param, $program );
 }
 
 sub calculate_genome_coverage {

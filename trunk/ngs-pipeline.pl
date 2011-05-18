@@ -452,7 +452,6 @@ sub parallel_call_SNPs {
 	sleep($sleep_time);
 	my $recal_file = $project->count_covariates($chr);
 	my $gatk_vcf   = $project->parallel_gatk_vcf($chr);
-	next if ( -e $gatk_vcf );
 	my $id              = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 	my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
@@ -480,7 +479,6 @@ sub parallel_call_indels {
 	my $bam_recal = $project->table_recalibration($chr);
 	sleep($sleep_time);
 	my $gatk_vcf = $project->parallel_call_indels($chr);
-	next if ( -e $gatk_vcf );
 	my $id              = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 	my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
@@ -787,6 +785,7 @@ PROGRAM
 	  . $project->task_id( $project->parallel_predict_effect_id($chr) );
 	$task_scheduler->submit( $project->variant_annotator_id($chr),
 		$qsub_param, $program );
+
 }
 
 sub filter_snps {

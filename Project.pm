@@ -501,7 +501,7 @@ sub all_annotated {
 	my @chr  = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $self->task_id( $self->filter_snps($chr) ) );
+		push( @ids, $self->task_id( $self->filter_snps_id($chr) ) );
 	}
 	return join( ',', @ids );
 }

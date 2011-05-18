@@ -86,14 +86,16 @@ for my $chr (@chr) {
 	parallel_predict_indels_effect($project, $chr);    #..
 	variant_annotator($project, $chr);                 #..
 	filter_snps($project, $chr);                       #..
-	variant_recalibrator($project, $chr);              #..
-	apply_recalibration($project, $chr);               #..
 }
-
-#merge_vcf($project);#method to deletion
 
 merge_snps($project);                            #!!
 merge_indels($project);                          #!!
+
+variant_recalibrator($project);              #
+apply_recalibration($project);               #
+#merge_vcf($project);#method to deletion
+
+
 
 callable_loci($project);    #rewrite to use recalibrated bam
 
@@ -586,55 +588,53 @@ PROGRAM
 }
 
 sub variant_recalibrator {
-	my ($project, $chr) = @_;
+	my ($project) = @_;
 	sleep($sleep_time);
-	my $variant_recalibrator = $project->variant_recalibrator($chr);
+	my $variant_recalibrator = $project->variant_recalibrator();
 	return 1 if ( -e $variant_recalibrator );
-	my $filtered_snps = $project->filter_snps($chr);
 	my $dbSNP         = $project->{'CONFIG'}->{'DBSNP'};
 	my $hapmap        = $project->{'CONFIG'}->{'HAPMAP'};
 	my $omni          = $project->{'CONFIG'}->{'OMNI'};
+	my $merged_snps = $project->merge_snps();
 	my $program       = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
 -R $genome \\
--B:input,VCF $filtered_snps \\
+-B:input,VCF $merged_snps \\
 -B:hapmap,VCF,known=false,training=true,truth=true,prior=15.0 $hapmap \\
 -B:omni,VCF,known=false,training=true,truth=false,prior=12.0 $omni \\
 -B:dbsnp,VCF,known=true,training=false,truth=false,prior=8.0 $dbSNP \\
 -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an HRun \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
--rscriptFile $variant_recalibrator.plots.R \\
--L $chr
+-rscriptFile $variant_recalibrator.plots.R
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->filter_snps_id($chr) );
-	$task_scheduler->submit( $project->variant_recalibrator_id($chr),
+	  '-hold_jid ' . $project->task_id( $project->merge_snps_id() );
+	$task_scheduler->submit( $project->variant_recalibrator_id(),
 		$qsub_param, $program );
 }
 
 sub apply_recalibration {
-	my ($project, $chr) = @_;
+	my ($project) = @_;
 	sleep($sleep_time);
-	my $recalibrated_vcf = $project->apply_recalibration($chr);
+	my $recalibrated_vcf = $project->apply_recalibration();
 	return 1 if ( -e $recalibrated_vcf );
-	my $filtered_snps        = $project->filter_snps($chr);
-	my $variant_recalibrator = $project->variant_recalibrator($chr);
+	my $merged_snps = $project->merge_snps();
+	my $variant_recalibrator = $project->variant_recalibrator();
 	my $program              = <<PROGRAM;
 java -Xmx3g -jar $gatk \\
 -T ApplyRecalibration  \\
 -R $genome \\
--B:input,VCF $filtered_snps \\
---ts_filter_level 99.0 \
+-B:input,VCF $merged_snps \\
+--ts_filter_level 99.0 \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
--o $recalibrated_vcf \\
--L $chr
+-o $recalibrated_vcf
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->variant_recalibrator_id($chr) );
-	$task_scheduler->submit( $project->apply_recalibration_id($chr),
+	  '-hold_jid ' . $project->task_id( $project->variant_recalibrator_id() );
+	$task_scheduler->submit( $project->apply_recalibration_id(),
 		$qsub_param, $program );
 }
 
@@ -765,6 +765,7 @@ sub variant_annotator {
 	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
 	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
 	my $omni      = $project->{'CONFIG'}->{'OMNI'};
+	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 	my $program   = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantAnnotator \\
@@ -777,6 +778,7 @@ java -Xmx4g -jar $gatk \\
 -B:comp1KG,VCF $snps_1KG \\
 -B:compHapMap,VCF $hapmap \\
 -B:compOMNI,VCF $omni \\
+-B:compDBSNP,VCF $dbSNP \\
 -L $chr
 PROGRAM
 	my $qsub_param =

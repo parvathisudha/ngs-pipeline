@@ -287,23 +287,23 @@ sub index_recalibrated_id {
 
 
 sub variant_recalibrator {
-	my ($self, $chr) = @_;
-	return $self->file_prefix() . ".$chr.tranches";
+	my ($self) = @_;
+	return $self->file_prefix() . ".tranches";
 }
 
 sub variant_recalibrator_id {
 	my ($self, $chr) = @_;
-	return "vre.$chr." . $self->_get_id( $self->variant_recalibrator($chr) );
+	return "vre." . $self->_get_id( $self->variant_recalibrator() );
 }
 
 sub apply_recalibration {
-	my ($self, $chr) = @_;
-	return $self->file_prefix() . ".$chr.recal.vcf";
+	my ($self) = @_;
+	return $self->file_prefix() . ".recal.vcf";
 }
 
 sub apply_recalibration_id {
-	my ($self, $chr) = @_;
-	return "avre.$chr." . $self->_get_id( $self->apply_recalibration($chr) );
+	my ($self) = @_;
+	return "avre." . $self->_get_id( $self->apply_recalibration() );
 }
 
 sub gatk_vcf {
@@ -393,7 +393,7 @@ sub eff_vcf_id {
 
 sub bgzip {
 	my ($self) = @_;
-	return $self->file_prefix() . ".recal.vcf.gz";
+	return $self->apply_recalibration() . ".gz";
 }
 
 sub bgzip_id {
@@ -531,7 +531,7 @@ sub all_snps_eff_vcf {
 	my @chr  = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $self->apply_recalibration($chr) );
+		push( @ids, $self->filter_snps($chr) );
 	}
 	return \@ids;
 }

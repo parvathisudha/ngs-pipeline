@@ -452,6 +452,7 @@ sub parallel_call_SNPs {
 	sleep($sleep_time);
 	my $recal_file = $project->count_covariates($chr);
 	my $gatk_vcf   = $project->parallel_gatk_vcf($chr);
+	return 1 if ( -e $gatk_vcf );
 	my $id              = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 	my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
@@ -479,6 +480,7 @@ sub parallel_call_indels {
 	my $bam_recal = $project->table_recalibration($chr);
 	sleep($sleep_time);
 	my $gatk_vcf = $project->parallel_call_indels($chr);
+	return 1 if ( -e $gatk_vcf );
 	my $id              = $project->{'CONFIG'}->{'PROJECT'};
 	my $dbSNP           = $project->{'CONFIG'}->{'DBSNP'};
 	my $stand_call_conf = $project->{'CONFIG'}->{'GATK_stand_call_conf'};
@@ -507,7 +509,7 @@ sub parallel_predict_effect {
 	sleep($sleep_time);
 	my $eff_vcf  = $project->parallel_predict_effect($chr);
 	my $gatk_vcf = $project->parallel_gatk_vcf($chr);
-	next if ( -e $eff_vcf );
+	return 1 if ( -e $eff_vcf );
 	my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
@@ -520,7 +522,7 @@ sub parallel_predict_indels_effect {
 	sleep($sleep_time);
 	my $eff_vcf  = $project->parallel_predict_indels_effect($chr);    #
 	my $gatk_vcf = $project->parallel_call_indels($chr);
-	next if ( -e $eff_vcf );
+	return 1 if ( -e $eff_vcf );
 	my $program    = "$effect -s $gatk_vcf -o $eff_vcf -l $eff_vcf.log";
 	my $qsub_param =
 	  '-hold_jid '

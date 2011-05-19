@@ -107,6 +107,19 @@ calculate_bga_coverage($project);       #rewrite to use recalibrated bam
 
 bgzip($project);
 tabix($project);
+################################################
+#FUNCTION TEMPLATE
+#name($project, $input_file1, ..., $ouput_file2,..., $id, $after);
+################################################
+#sub bgzip_file {
+#	my ($project, $vcf, ..., $zipped,..., $id, $after) = @_;
+#	sleep($sleep_time);
+#	return 1 if ( -e "$vcf.gz" );
+#	my $program    = "bgzip $vcf";
+#	$task_scheduler->submit( $id, "", $program, $after);
+#}
+
+
 
 #breakdancer_cfg($project);#install on cluster
 #breakdancer_mini($project);#install on cluster
@@ -237,7 +250,7 @@ sub merge_bams {
 	  . " OUTPUT=$output_bam VALIDATION_STRINGENCY=SILENT TMP_DIR=$tmp_dir MAX_RECORDS_IN_RAM=2500000";
 
 	my $qsub_param = '-hold_jid ' . $project->all_indexed_ids();
-	$task_scheduler->submit( $project->merged_id(), $qsub_param, $program );
+	$task_scheduler->submit( $project->merged_id(), $qsub_param, $program , 10);
 }
 
 #old vesrion
@@ -303,7 +316,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
 	$task_scheduler->submit( $project->mark_duplicates_id(),
-		$qsub_param, $program );
+		$qsub_param, $program , 1);
 }
 
 sub realigner_target_creator {
@@ -323,7 +336,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->mark_duplicates_id() );
 	$task_scheduler->submit( $project->realigner_target_creator_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 1);
 }
 
 sub indel_realigner {
@@ -348,7 +361,7 @@ PROGRAM
 	  '-hold_jid '
 	  . $project->task_id( $project->realigner_target_creator_id($chr) );
 	$task_scheduler->submit( $project->indel_realigner_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub index_realigned {
@@ -359,19 +372,19 @@ sub index_realigned {
 	my $indel_realigned = $project->indel_realigner($chr);
 	my $tmp_dir         = $project->dir;
 	my $program         = <<PROGRAM;
-java -Xmx10g -jar $picard_sort_index \\
+java -Xmx5g -jar $picard_sort_index \\
 INPUT=$indel_realigned \\
 OUTPUT=$sorted \\
 CREATE_INDEX=true \\
 SORT_ORDER=coordinate \\
 TMP_DIR=$tmp_dir \\
 VALIDATION_STRINGENCY=SILENT \\
-MAX_RECORDS_IN_RAM=2500000
+MAX_RECORDS_IN_RAM=1250000
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->indel_realigner_id($chr) );
 	$task_scheduler->submit( $project->index_realigned_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 5);
 }
 
 sub count_covariates {
@@ -399,7 +412,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->index_realigned_id($chr) );
 	$task_scheduler->submit( $project->count_covariates_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub table_recalibration {
@@ -422,7 +435,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->count_covariates_id($chr) );
 	$task_scheduler->submit( $project->table_recalibration_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub index_recalibrated {
@@ -443,7 +456,7 @@ PROGRAM
 	  '-hold_jid '
 	  . $project->task_id( $project->table_recalibration_id($chr) );
 	$task_scheduler->submit( $project->index_recalibrated_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 1);
 }
 
 sub parallel_call_SNPs {
@@ -472,7 +485,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->index_recalibrated_id($chr) );
 	$task_scheduler->submit( $project->parallel_gatk_vcf_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub parallel_call_indels {
@@ -501,7 +514,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->index_recalibrated_id($chr) );
 	$task_scheduler->submit( $project->parallel_call_indels_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub parallel_predict_effect {
@@ -548,7 +561,7 @@ $all_vcf \\
 --assumeIdenticalSamples
 PROGRAM
 	my $qsub_param = '-hold_jid ' . $after_id;
-	$task_scheduler->submit( $id, $qsub_param, $program );
+	$task_scheduler->submit( $id, $qsub_param, $program , 4);
 }
 
 sub merge_snps {
@@ -585,7 +598,7 @@ $all_vcf \\
 --assumeIdenticalSamples
 PROGRAM
 	my $qsub_param = '-hold_jid ' . $project->all_annotated();
-	$task_scheduler->submit( $project->merge_vcf_id(), $qsub_param, $program );
+	$task_scheduler->submit( $project->merge_vcf_id(), $qsub_param, $program , 4);
 }
 
 sub variant_recalibrator {
@@ -613,7 +626,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merge_snps_id() );
 	$task_scheduler->submit( $project->variant_recalibrator_id(),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub apply_recalibration {
@@ -636,7 +649,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->variant_recalibrator_id() );
 	$task_scheduler->submit( $project->apply_recalibration_id(),
-		$qsub_param, $program );
+		$qsub_param, $program , 3);
 }
 
 sub breakdancer_cfg {
@@ -704,7 +717,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
 	$task_scheduler->submit( $project->callable_loci_id(),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub depth_coverage {
@@ -720,7 +733,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
 	$task_scheduler->submit( $project->depth_coverage_id(),
-		$qsub_param, $program );
+		$qsub_param, $program , 1);
 }
 
 sub predict_effect {
@@ -786,7 +799,7 @@ PROGRAM
 	  '-hold_jid '
 	  . $project->task_id( $project->parallel_predict_effect_id($chr) );
 	$task_scheduler->submit( $project->variant_annotator_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 
 }
 
@@ -815,7 +828,7 @@ PROGRAM
 	  . $project->task_id( $project->parallel_predict_indels_effect_id($chr) );
 	my $qsub_param = '-hold_jid ' . $after;
 	$task_scheduler->submit( $project->filter_snps_id($chr),
-		$qsub_param, $program );
+		$qsub_param, $program , 4);
 }
 
 sub calculate_genome_coverage {

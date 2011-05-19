@@ -15,7 +15,19 @@ sub new {
 
 sub submit {
 	#my ( $self, $user_id, $job_id, $qsub_params, $program, $email, $dir) = @_;
-	my ( $self, $job_name, $qsub_params, $program) = @_;
+	my ( $self, $job_name, $qsub_params, $program, $memory) = @_;
+	my $memory_qs  = 'mem_total=' . $memory . 'G';
+	my $memstr = " -l $memory_qs";
+	$qsub_params .= $memstr if $memory;
+	$self->make_script( $job_name, $program);
+	$self->run_script( $job_name, $qsub_params);
+}
+
+sub submit_after {
+	my ( $self, $job_name, $qsub_params, $program, $after) = @_;
+	my $project = $self->{'PROJECT'};
+	my @ids = map {$project->task_id($_)} @$after;
+	$qsub_params .= " -hold_jid " . join(",", @ids);
 	$self->make_script( $job_name, $program);
 	$self->run_script( $job_name, $qsub_params);
 }

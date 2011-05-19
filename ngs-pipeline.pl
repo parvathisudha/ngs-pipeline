@@ -108,20 +108,34 @@ calculate_bga_coverage($project);       #rewrite to use recalibrated bam
 bgzip($project);
 tabix($project);
 
-#zipping file with merged indels
+#zipping and indexing file with merged snps
+my $merged_snps = $project->merge_snps;
+my $merging_snps_job = $project->merge_snps_id();
+my $zipped_snps = $merged_snps . '.gz';
+my $indexed_snps = $zipped_snps . '.tbi';
+my $zipping_snps_job = 'bgzip.' . $project->_get_id($zipped_snps);
+my $tabix_snps_job = 'tabix.' . $project->_get_id($indexed_snps);
+bgzip_file( $merged_snps, $zipping_snps_job, [$merging_snps_job] );
+tabix_file( $zipped_snps, $tabix_snps_job, [$zipping_snps_job] );
+
+#zipping and indexing file with merged indels
 my $merged_indels           = $project->merge_indels;
 my $zipped_indels           = $merged_indels . '.gz';
 my $indexed_indels          = $zipped_indels . '.tbi';
-my $merged_recalibrated_bam = $project->file_prefix() . ".recal.bam";
-
 my $merging_indels_job          = $project->merge_indels_id();
 my $zipping_indels_job          = 'bgzip.' . $project->_get_id($zipped_indels);
 my $tabix_indels_job            = 'tabix.' . $project->_get_id($indexed_indels);
+bgzip_file( $merged_indels, $zipping_indels_job, [$merging_indels_job] );
+tabix_file( $zipped_indels, $tabix_indels_job, [$zipping_indels_job] );
+
+
+#merging recalibrated bams
+my $merged_recalibrated_bam = $project->file_prefix() . ".recal.bam";
 my $merge_recalibrated_bams_job =
   'merge.r.' . $project->_get_id($merged_recalibrated_bam);
 
-bgzip_file( $merged_indels, $zipping_indels_job, [$merging_indels_job] );
-tabix_file( $zipped_indels, $tabix_indels_job, [$zipping_indels_job] );
+
+tabix_file( $zipped_snps, $tabix_snps_job, [$zipping_snps_job] );
 
 merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
 	$merge_recalibrated_bams_job,

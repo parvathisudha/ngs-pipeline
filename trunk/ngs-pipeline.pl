@@ -136,7 +136,7 @@ sub bgzip_file {
 	return 1 if ( -e "$vcf.gz" );
 	my $program = "bgzip $vcf";
 my $program = <<PROGRAM;
-bgzip -c $vcf > $vcf,gz
+bgzip -c $vcf > $vcf.gz
 PROGRAM
 	$task_scheduler->submit_after(
 		job_name => $job_name,

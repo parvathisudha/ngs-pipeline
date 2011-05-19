@@ -24,12 +24,17 @@ sub submit {
 }
 
 sub submit_after {
-	my ( $self, $job_name, $qsub_params, $program, $after) = @_;
+	my %params;
+	#my ( $self, $job_name, $qsub_params, $program, $memory, $after) = @_;
+	my ( $self, %params) = @_;
 	my $project = $self->{'PROJECT'};
-	my @ids = map {$project->task_id($_)} @$after;
-	$qsub_params .= " -hold_jid " . join(",", @ids);
-	$self->make_script( $job_name, $program);
-	$self->run_script( $job_name, $qsub_params);
+	my @ids = map {$project->task_id($_)} @{$params{after}};
+	$params{qsub_params} .= " -hold_jid " . join(",", @ids);
+	my $memory_qs  = 'mem_total=' . $params{memory} . 'G';
+	my $memstr = " -l $memory_qs";
+	$params{qsub_params} .= $memstr if $params{memory};
+	$self->make_script( $params{job_name}, $params{program});
+	$self->run_script( $params{job_name}, $params{qsub_params});
 }
 
 sub run_script {

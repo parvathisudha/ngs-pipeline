@@ -130,10 +130,6 @@ tabix_file( $zipped_indels, $tabix_indels_job, [$zipping_indels_job] );
 my $merged_recalibrated_bam = $project->file_prefix() . ".recal.bam";
 my $merge_recalibrated_bams_job =
   'merge.r.' . $project->_get_id($merged_recalibrated_bam);
-
-
-tabix_file( $zipped_snps, $tabix_snps_job, [$zipping_snps_job] );
-
 merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
 	$merge_recalibrated_bams_job,
 	indexed_recalibrated_bams_job_names() );
@@ -223,7 +219,7 @@ sub indexed_recalibrated_bams_job_names {
 	my @chr = $project->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
-		push( @ids, $project->index_recalibrated($chr) );
+		push( @ids, $project->index_recalibrated_id($chr) );
 	}
 	return \@ids;
 }

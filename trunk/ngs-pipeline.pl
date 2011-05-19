@@ -105,9 +105,6 @@ callable_loci($project);    #rewrite to use recalibrated bam
 calculate_genome_coverage($project);    #rewrite to use recalibrated bam
 calculate_bga_coverage($project);       #rewrite to use recalibrated bam
 
-bgzip($project);
-tabix($project);
-
 #zipping and indexing file with merged snps
 my $merged_snps = $project->merge_snps;
 my $merging_snps_job = $project->merge_snps_id();

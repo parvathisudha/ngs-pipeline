@@ -96,6 +96,7 @@ COMMAND
 	open( OUT, ">$script_name" )
 	  or die "Can't open $script_name for writting\n";
 	print OUT $command;
+	print OUT "\n" . "echo 'done' > $script_name.done\n";
 	close OUT;
 }
 

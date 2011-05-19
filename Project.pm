@@ -411,6 +411,11 @@ sub tabix_id {
 	return 'tabix.' . $self->_get_id( $self->tabix() );
 }
 
+sub tmp_dir{
+	my ($self) = @_;
+	return $self->dir;
+}
+
 sub breakdancer_cfg {
 	my ($self) = @_;
 	return $self->file_prefix() . ".cfg";
@@ -528,7 +533,7 @@ sub all_gatk_vcf {
 
 sub all_snps_eff_vcf {
 	my ($self) = @_;
-	my @chr  = $self->read_intervals();
+	my @chr = $self->read_intervals();
 	my @ids;
 	for my $chr (@chr) {
 		push( @ids, $self->filter_snps($chr) );

@@ -108,18 +108,24 @@ calculate_bga_coverage($project);       #rewrite to use recalibrated bam
 bgzip($project);
 tabix($project);
 
-
 #zipping file with merged indels
-my $merged_indels = $project->merge_indels;
-my $zipped_indels = $merged_indels . '.gz';
-my $indexed_indels = $zipped_indels . '.tbi';
+my $merged_indels           = $project->merge_indels;
+my $zipped_indels           = $merged_indels . '.gz';
+my $indexed_indels          = $zipped_indels . '.tbi';
+my $merged_recalibrated_bam = $project->file_prefix() . ".recal.bam";
 
-my $merging_indels_job = $project->merge_indels_id();
-my $zipping_indels_job = 'bgzip.' . $project->_get_id( $zipped_indels);
-my $tabix_indels_job = 'tabix.' . $project->_get_id( $indexed_indels);
+my $merging_indels_job          = $project->merge_indels_id();
+my $zipping_indels_job          = 'bgzip.' . $project->_get_id($zipped_indels);
+my $tabix_indels_job            = 'tabix.' . $project->_get_id($indexed_indels);
+my $merge_recalibrated_bams_job =
+  'merge.r.' . $project->_get_id($merged_recalibrated_bam);
 
-bgzip_file($merged_indels, $zipping_indels_job, [$merging_indels_job]);
-tabix_file($zipped_indels, $tabix_indels_job, [$zipping_indels_job]);
+bgzip_file( $merged_indels, $zipping_indels_job, [$merging_indels_job] );
+tabix_file( $zipped_indels, $tabix_indels_job, [$zipping_indels_job] );
+
+merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
+	$merge_recalibrated_bams_job,
+	indexed_recalibrated_bams_job_names() );
 
 ################################################
 #FUNCTION TEMPLATE
@@ -135,7 +141,7 @@ sub bgzip_file {
 	sleep($sleep_time);
 	return 1 if ( -e "$vcf.gz" );
 	my $program = "bgzip $vcf";
-my $program = <<PROGRAM;
+	my $program = <<PROGRAM;
 bgzip -c $vcf > $vcf.gz
 PROGRAM
 	$task_scheduler->submit_after(
@@ -144,18 +150,45 @@ PROGRAM
 		after    => $after,
 	);
 }
+
 sub tabix_file {
 	my ( $vcf, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e "$vcf.tbi" );
-	my $program    = "tabix -p vcf $vcf";
-	
+	my $program = "tabix -p vcf $vcf";
+
 	$task_scheduler->submit_after(
 		job_name => $job_name,
 		program  => $program,
 		after    => $after,
 	);
 }
+
+sub merge_bam_files {
+	my ( $bams, $bam, $job_name, $after ) = @_;
+	sleep($sleep_time);
+	return 1 if ( -e "$bam" );
+	my $picard_merge  = $project->{'CONFIG'}->{'PICARD'} . "/MergeSamFiles.jar";
+	my @input_bams    = map( "INPUT=$_", @$bams );
+	my $input_bam_str = join( " ", @input_bams );
+	my $tmp_dir       = $project->tmp_dir;
+	my $program       = <<PROGRAM;
+java -jar -Xmx5g $picard_merge \\
+$input_bam_str \\
+OUTPUT=$bam \\
+TMP_DIR=$tmp_dir \\
+CREATE_INDEX=true \\
+VALIDATION_STRINGENCY=SILENT \\
+MAX_RECORDS_IN_RAM=2500000
+PROGRAM
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory   => 5,
+	);
+}
+
 #breakdancer_cfg($project);#install on cluster
 #breakdancer_mini($project);#install on cluster
 #breakdancer_max($project);#install on cluster
@@ -165,6 +198,25 @@ sub tabix_file {
 #get_target_SNPs($project);
 #calculate_coverage($project);
 #write_report($project);
+
+sub recalibrated_bams {
+	my @chr = $project->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $project->table_recalibration($chr) );
+	}
+	return \@ids;
+}
+
+sub indexed_recalibrated_bams_job_names {
+	my @chr = $project->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $project->index_recalibrated($chr) );
+	}
+	return \@ids;
+}
+
 
 sub align {
 	my ( $project, $lane ) = @_;

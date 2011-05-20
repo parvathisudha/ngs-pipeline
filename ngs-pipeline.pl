@@ -405,6 +405,7 @@ OUTPUT=$marked \\
 METRICS_FILE=$marked.metrics \\
 CREATE_INDEX=true \\
 VALIDATION_STRINGENCY=SILENT \\
+MAX_RECORDS_IN_RAM=1250000 \\
 TMP_DIR=$tmp_dir
 PROGRAM
 	my $qsub_param =
@@ -543,7 +544,9 @@ sub index_recalibrated {
 java -jar $picard_index \\
 INPUT=$bam_recal \\
 OUTPUT=$index_recal \\
-TMP_DIR=$tmp_dir
+TMP_DIR=$tmp_dir \\
+VALIDATION_STRINGENCY=SILENT \\
+MAX_RECORDS_IN_RAM=1250000
 PROGRAM
 
 	my $qsub_param =

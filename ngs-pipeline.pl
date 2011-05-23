@@ -219,7 +219,7 @@ java -Xmx2g -jar $gatk \\
 -T VariantEval \\
 -l INFO \\
 -R $genome \\
--B:eval,VCF S000006.20110512.recal.vcf \\
+-B:eval,VCF $vcf \\
 -o $stat \\
 -B:comp1KG,VCF $snps_1KG \\
 -B:compHapMap,VCF $hapmap \\

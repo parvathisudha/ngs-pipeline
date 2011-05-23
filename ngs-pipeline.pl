@@ -106,13 +106,13 @@ calculate_genome_coverage($project);    #rewrite to use recalibrated bam
 calculate_bga_coverage($project);       #rewrite to use recalibrated bam
 
 #zipping and indexing file with merged snps
-my $merged_snps = $project->merge_snps;
-my $merging_snps_job = $project->merge_snps_id();
-my $zipped_snps = $merged_snps . '.gz';
-my $indexed_snps = $zipped_snps . '.tbi';
+my $recalibrated_snps = $project->variant_recalibrator();
+my $recalibrated_snps_job = $project->variant_recalibrator_id();
+my $zipped_snps = $recalibrated_snps . '.gz';
+my $indexed_snps = $recalibrated_snps . '.tbi';
 my $zipping_snps_job = 'bgzip.' . $project->_get_id($zipped_snps);
 my $tabix_snps_job = 'tabix.' . $project->_get_id($indexed_snps);
-bgzip_file( $merged_snps, $zipping_snps_job, [$merging_snps_job] );
+bgzip_file( $recalibrated_snps, $zipping_snps_job, [$recalibrated_snps_job] );
 tabix_file( $zipped_snps, $tabix_snps_job, [$zipping_snps_job] );
 
 #zipping and indexing file with merged indels
@@ -135,9 +135,9 @@ merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
 	indexed_recalibrated_bams_job_names() );
 
 #snps evaluation
-my $snp_stat = $merged_snps . ".stat";
+my $snp_stat = $recalibrated_snps . ".stat";
 my $snp_evaluation_job = 'snp_eval.' . $project->_get_id($snp_stat);
-variant_evaluation ( $merged_snps, $snp_stat, $snp_evaluation_job, [$merging_snps_job] ); 
+variant_evaluation ( $recalibrated_snps, $snp_stat, $snp_evaluation_job, [$recalibrated_snps_job] ); 
 
 #indels evaluation
 my $indel_stat = $merged_indels . ".stat";

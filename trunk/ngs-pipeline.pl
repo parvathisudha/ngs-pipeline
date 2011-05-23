@@ -134,6 +134,16 @@ merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
 	$merge_recalibrated_bams_job,
 	indexed_recalibrated_bams_job_names() );
 
+#snps evaluation
+my $snp_stat = $merged_snps . ".stat";
+my $snp_evaluation_job = 'snp_eval.' . $project->_get_id($snp_stat);
+variant_evaluation ( $merged_snps, $snp_stat, $snp_evaluation_job, [$merging_snps_job] ); 
+
+#indels evaluation
+my $indel_stat = $merged_indels . ".stat";
+my $indel_evaluation_job = 'indel_eval.' . $project->_get_id($indel_stat);
+variant_evaluation ( $merged_indels, $indel_stat, $indel_evaluation_job, [$merging_indels_job] ); 
+
 ################################################
 #FUNCTION TEMPLATE
 ##name($project, $input_file1, ..., $ouput_file2,..., $id, $after);
@@ -193,6 +203,34 @@ PROGRAM
 		program  => $program,
 		after    => $after,
 		memory   => 5,
+	);
+}
+
+sub variant_evaluation {
+	my ( $vcf, $stat, $job_name, $after ) = @_;
+	sleep($sleep_time);
+	return 1 if ( -e "$stat" );
+	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
+	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
+	my $omni      = $project->{'CONFIG'}->{'OMNI'};
+	my $dbSNP     = $project->{'CONFIG'}->{'DBSNP'};
+	my $program   = <<PROGRAM;
+java -Xmx2g -jar $gatk \\
+-T VariantEval \\
+-l INFO \\
+-R $genome \\
+-B:eval,VCF S000006.20110512.recal.vcf \\
+-o $stat \\
+-B:comp1KG,VCF $snps_1KG \\
+-B:compHapMap,VCF $hapmap \\
+-B:compOMNI,VCF $omni \\
+-B:dbsnp,VCF $dbSNP
+PROGRAM
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory   => 2,
 	);
 }
 

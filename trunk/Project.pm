@@ -284,8 +284,6 @@ sub index_recalibrated_id {
 	return "idxrec.$chr." . $self->_get_id( $self->index_recalibrated($chr) );
 }
 
-
-
 sub variant_recalibrator {
 	my ($self) = @_;
 	return $self->file_prefix() . ".tranches";

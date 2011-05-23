@@ -106,8 +106,8 @@ calculate_genome_coverage($project);    #rewrite to use recalibrated bam
 calculate_bga_coverage($project);       #rewrite to use recalibrated bam
 
 #zipping and indexing file with merged snps
-my $recalibrated_snps = $project->variant_recalibrator();
-my $recalibrated_snps_job = $project->variant_recalibrator_id();
+my $recalibrated_snps = $project->apply_recalibration();
+my $recalibrated_snps_job = $project->apply_recalibration_id();
 my $zipped_snps = $recalibrated_snps . '.gz';
 my $indexed_snps = $recalibrated_snps . '.tbi';
 my $zipping_snps_job = 'bgzip.' . $project->_get_id($zipped_snps);

@@ -1052,7 +1052,7 @@ java -Xmx4g -jar $gatk \\
 PROGRAM
 	my $after =
 	    $project->task_id( $project->variant_annotator_id($chr) ) . ","
-	  . $project->task_id( $project->parallel_predict_indels_effect_id($chr) );
+	  . $project->task_id( $project->parallel_call_indels_id($chr) );
 	my $qsub_param = '-hold_jid ' . $after;
 	$task_scheduler->submit( $project->filter_snps_id($chr),
 		$qsub_param, $program, 4 );

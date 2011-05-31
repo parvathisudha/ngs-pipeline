@@ -648,7 +648,7 @@ sub get_sge_id {
 	if ( $self->{'DEBUG'} ) {
 		$file = "id.txt";
 	}
-	open IN, "<$file" or die "Can't open file: $file for reading task id!\n";
+	open IN, "<$file" or return '0000';
 	while (<IN>) {
 		return $1 if m/Your job\s(\d+)\s/;
 	}

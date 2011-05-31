@@ -106,7 +106,7 @@ for my $chr (@chr) {
 		$project->_get_id( $project->parallel_gatk_vcf($chr) ) );
 }
 my $merged_snps    = $project->merge_snps();
-my $merge_snps_job = 'merge.snps.' . $project->_get_id($merged_snps);
+my $merge_snps_job = $project->merge_snps_id();
 
 merge_parallel_vcf( $project, \@snps_to_merge, $sample_id, $merged_snps, $merge_snps_job,
 	\@before_snps_merge );
@@ -122,7 +122,7 @@ for my $chr (@chr) {
 		$project->_get_id( $project->parallel_call_indels($chr) ) );
 }
 my $merged_indels    = $project->merge_indels();
-my $merge_indels_job = 'merge.indels.' . $project->_get_id($merged_indels);
+my $merge_indels_job = $project->merge_indels_id();
 
 merge_parallel_vcf( $project, \@indels_to_merge, $sample_id, $merged_indels, $merge_indels_job,
 	\@before_indels_merge );

@@ -1046,7 +1046,7 @@ java -Xmx4g -jar $gatk \\
 -B:mask,VCF $indels \\
 --maskName InDel \\
 --clusterWindowSize 10 \\
---filterExpression "AB < 0.2 || MQ0 > 50" \\
+--filterExpression "MQ0 > 50" \\
 --filterName "20110516" \\
 -L $chr
 PROGRAM

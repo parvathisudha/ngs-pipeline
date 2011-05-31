@@ -509,6 +509,16 @@ sub all_annotated {
 	return join( ',', @ids );
 }
 
+sub all_filtered {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->task_id( $self->filter_snps_id($chr) ) );
+	}
+	return join( ',', @ids );
+}
+
 sub all_indels_annotated {
 	my ($self) = @_;
 	my @chr  = $self->read_intervals();
@@ -527,6 +537,16 @@ sub all_gatk_vcf {
 		push( @ids, $self->parallel_gatk_vcf($chr) );
 	}
 	return @ids;
+}
+
+sub all_filtered_snps {
+	my ($self) = @_;
+	my @chr  = $self->read_intervals();
+	my @ids;
+	for my $chr (@chr) {
+		push( @ids, $self->filter_snps($chr) );
+	}
+	return \@ids;
 }
 
 sub all_snps_eff_vcf {

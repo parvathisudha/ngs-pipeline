@@ -32,6 +32,8 @@ my $align  = "$bwa aln -t $proc";
 my $sampe  = "$bwa sampe";
 my $samse  = "$bwa samse";
 
+my $sample_id = $project->{CONFIG}->{PROJECT};
+
 #samtools commands
 my $samtools = $config->{'SAMTOOLS'} . "/samtools";
 my $import   = "$samtools import";
@@ -85,86 +87,130 @@ for my $chr (@chr) {
 	index_recalibrated( $project, $chr );          #..
 	parallel_call_SNPs( $project, $chr );          #..
 	parallel_call_indels( $project, $chr );        #..
-#	parallel_predict_effect( $project, $chr );     #..
-#	parallel_predict_indels_effect( $project, $chr );    #..
-	variant_annotator( $project, $chr );                 #..
-	filter_snps( $project, $chr );                       #..
+
+	#	parallel_predict_effect( $project, $chr );     #..
+	#	parallel_predict_indels_effect( $project, $chr );    #..
+	variant_annotator( $project, $chr );           #..
+	filter_snps( $project, $chr );                 #tested
 }
 
-merge_snps($project);                                    #!!
-merge_indels($project);                                  #!!
+my @chr = $project->read_intervals();
+#merge SNPs after GATK filtration
+my @snps_to_merge;
+for my $chr (@chr) {
+	push( @snps_to_merge, $project->filter_snps($chr) );
+}
+my @before_snps_merge;
+for my $chr (@chr) {
+	push( @before_snps_merge,
+		$project->_get_id( $project->parallel_gatk_vcf($chr) ) );
+}
+my $merged_snps    = $project->merge_snps();
+my $merge_snps_job = 'merge.snps.' . $project->_get_id($merged_snps);
 
-variant_recalibrator($project);                          #
-apply_recalibration($project);                           #
+merge_parallel_vcf( $project, \@snps_to_merge, $sample_id, $merged_snps, $merge_snps_job,
+	\@before_snps_merge );
+
+#merge indels after calling
+my @indels_to_merge;
+for my $chr (@chr) {
+	push( @indels_to_merge, $project->parallel_call_indels($chr) );
+}
+my @before_indels_merge;
+for my $chr (@chr) {
+	push( @before_indels_merge,
+		$project->_get_id( $project->parallel_call_indels($chr) ) );
+}
+my $merged_indels    = $project->merge_indels();
+my $merge_indels_job = 'merge.indels.' . $project->_get_id($merged_indels);
+
+merge_parallel_vcf( $project, \@indels_to_merge, $sample_id, $merged_indels, $merge_indels_job,
+	\@before_indels_merge );
 
 
-my $recalibrated_snps = $project->apply_recalibration();
+
+variant_recalibrator($project);    #
+apply_recalibration($project);     #
+
+my $recalibrated_snps     = $project->apply_recalibration();
 my $recalibrated_snps_job = $project->apply_recalibration_id();
 
 #merging recalibrated bams
-my $merged_recalibrated_bam = $project->file_prefix() . ".recal.bam";
+my $merged_recalibrated_bam     = $project->file_prefix() . ".recal.bam";
 my $merge_recalibrated_bams_job =
   'merge.r.' . $project->_get_id($merged_recalibrated_bam);
 merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
-	$merge_recalibrated_bams_job,
-	indexed_recalibrated_bams_job_names() );
-
+	$merge_recalibrated_bams_job, indexed_recalibrated_bams_job_names() );
 
 #depth_coverage - TESTED
 my $genome_coverage_file = $project->file_prefix() . ".cov";
-my $genome_coverage_job = 'coverage.' . $project->_get_id($genome_coverage_file);
-calculate_genome_coverage( $merged_recalibrated_bam, $genome_coverage_file, $genome_coverage_job, [$merge_recalibrated_bams_job] );
+my $genome_coverage_job  =
+  'coverage.' . $project->_get_id($genome_coverage_file);
+calculate_genome_coverage(
+	$merged_recalibrated_bam, $genome_coverage_file,
+	$genome_coverage_job, [$merge_recalibrated_bams_job]
+);
 
 my $b_genome_coverage_file = $project->file_prefix() . ".bcov";
-my $b_genome_coverage_job = 'b.coverage.' . $project->_get_id($b_genome_coverage_file);
-calculate_bga_coverage( $merged_recalibrated_bam, $b_genome_coverage_file, $b_genome_coverage_job, [$merge_recalibrated_bams_job] );
-
+my $b_genome_coverage_job  =
+  'b.coverage.' . $project->_get_id($b_genome_coverage_file);
+calculate_bga_coverage(
+	$merged_recalibrated_bam, $b_genome_coverage_file,
+	$b_genome_coverage_job, [$merge_recalibrated_bams_job]
+);
 
 #callable_loci - TESTED
-my $genome_callable_file = $project->file_prefix() . ".callable";
+my $genome_callable_file    = $project->file_prefix() . ".callable";
 my $genome_callable_summary = $project->file_prefix() . ".callable_s";
-my $genome_bed = $project->{CONFIG}->{GATKGENOMEBED};
-my $genome_callable_job = 'callable.' . $project->_get_id($genome_callable_file);
-callable_loci( $merged_recalibrated_bam, $genome_bed, $genome_callable_file, $genome_callable_summary, $genome_callable_job, [$merge_recalibrated_bams_job] );
+my $genome_bed              = $project->{CONFIG}->{GATKGENOMEBED};
+my $genome_callable_job     =
+  'callable.' . $project->_get_id($genome_callable_file);
+callable_loci( $merged_recalibrated_bam, $genome_bed, $genome_callable_file,
+	$genome_callable_summary, $genome_callable_job,
+	[$merge_recalibrated_bams_job] );
 
 #gatk depth_coverage - TESTED
-my $gatk_cov = $project->file_prefix() . ".gatkcov";
+my $gatk_cov           = $project->file_prefix() . ".gatkcov";
 my $depth_coverage_job = 'gcov.' . $project->_get_id($gatk_cov);
-depth_coverage( $merged_recalibrated_bam, $genome_bed, $gatk_cov, $depth_coverage_job, [$merge_recalibrated_bams_job] );
+depth_coverage( $merged_recalibrated_bam, $genome_bed, $gatk_cov,
+	$depth_coverage_job, [$merge_recalibrated_bams_job] );
 
 #merging snps with indels - TESTED
-my $sample_id = $project->{CONFIG}->{PROJECT};
-my $merged_indels           = $project->merge_indels;
-my $merging_indels_job          = $project->merge_indels_id();
-my $snps_with_indels = $project->file_prefix() . ".variants.vcf";
+
+my $snps_with_indels     = $project->file_prefix() . ".variants.vcf";
 my $snps_with_indels_job = 'merg.var.' . $project->_get_id($snps_with_indels);
-my $before_merge = $project->task_id($merging_indels_job) . ',' . $project->task_id($recalibrated_snps_job); 
-merge_parallel_vcf( $project, [$recalibrated_snps, $merged_indels], $sample_id, $snps_with_indels, $before_merge, $snps_with_indels_job );
-			
+my $before_merge         = [ $merge_indels_job, $recalibrated_snps_job ];
+merge_parallel_vcf( $project, [ $recalibrated_snps, $merged_indels ],
+	$sample_id, $snps_with_indels, $snps_with_indels_job, $before_merge,
+	$snps_with_indels_job );
+
 #selecting PASS variants - TESTED
-my $snps_with_indels_pass = $project->file_prefix() . ".variants.pass.vcf";
-my $snps_with_indels_pass_job = 'pass.var.' . $project->_get_id($snps_with_indels_pass);
-filter_pass($snps_with_indels, $sample_id, $snps_with_indels_pass, $snps_with_indels_pass_job, [$snps_with_indels_job]);	
-	
+my $snps_with_indels_pass     = $project->file_prefix() . ".variants.pass.vcf";
+my $snps_with_indels_pass_job =
+  'pass.var.' . $project->_get_id($snps_with_indels_pass);
+filter_pass( $snps_with_indels, $sample_id, $snps_with_indels_pass,
+	$snps_with_indels_pass_job, [$snps_with_indels_job] );
+
 #variant evaluation - TESTED
-my $var_stat = $project->file_prefix() . ".stat";
+my $var_stat           = $project->file_prefix() . ".stat";
 my $var_evaluation_job = 'var_eval.' . $project->_get_id($var_stat);
-variant_evaluation ( $snps_with_indels_pass, $var_stat, $var_evaluation_job, [$snps_with_indels_pass_job] ); 
+variant_evaluation( $snps_with_indels_pass, $var_stat, $var_evaluation_job,
+	[$snps_with_indels_pass_job] );
 
 #effect prediction - TESTED
-my $eff_html = $project->file_prefix() . ".eff.html";
-my $eff_vcf = $project->file_prefix() . ".eff.vcf";
+my $eff_html    = $project->file_prefix() . ".eff.html";
+my $eff_vcf     = $project->file_prefix() . ".eff.vcf";
 my $var_eff_job = 'var_eff.' . $project->_get_id($eff_vcf);
-snpeff($snps_with_indels_pass, $eff_html, $eff_vcf, $var_eff_job, [$snps_with_indels_pass_job]);	
+snpeff( $snps_with_indels_pass, $eff_html, $eff_vcf, $var_eff_job,
+	[$snps_with_indels_pass_job] );
 
-#zipping and indexing file with annotated variations
-my $zipped_vars = $eff_vcf . '.gz';
-my $indexed_vars = $zipped_vars . '.tbi';
+#zipping and indexing file with annotated variations - TESTED
+my $zipped_vars      = $eff_vcf . '.gz';
+my $indexed_vars     = $zipped_vars . '.tbi';
 my $zipping_vars_job = 'bgzip.' . $project->_get_id($zipped_vars);
-my $tabix_vars_job = 'tabix.' . $project->_get_id($indexed_vars);
+my $tabix_vars_job   = 'tabix.' . $project->_get_id($indexed_vars);
 bgzip_file( $eff_vcf, $zipping_vars_job, [$var_eff_job] );
 tabix_file( $zipped_vars, $tabix_vars_job, [$zipping_vars_job] );
-
 
 sub bgzip_file {
 	my ( $vcf, $job_name, $after ) = @_;
@@ -220,10 +266,10 @@ PROGRAM
 }
 
 sub snpeff {
-	my ( $vcf, $html, $effect, $job_name, $after  ) = @_;
+	my ( $vcf, $html, $effect, $job_name, $after ) = @_;
 	sleep($sleep_time);
-	return 1 if ( -e "$effect" && -e "$html");
-	my $snpeff = $project->{CONFIG}->{SNPEFF};
+	return 1 if ( -e "$effect" && -e "$html" );
+	my $snpeff        = $project->{CONFIG}->{SNPEFF};
 	my $snpeff_genome = $project->{CONFIG}->{SNPEFF_GENOME};
 	my $program       = <<PROGRAM;
 java -jar -Xmx4g $snpeff/snpEff.jar \\
@@ -244,11 +290,11 @@ sub variant_evaluation {
 	my ( $vcf, $stat, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e "$stat" );
-	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
-	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
-	my $omni      = $project->{'CONFIG'}->{'OMNI'};
-	my $dbSNP     = $project->{'CONFIG'}->{'DBSNP'};
-	my $program   = <<PROGRAM;
+	my $snps_1KG = $project->{'CONFIG'}->{'1KG'};
+	my $hapmap   = $project->{'CONFIG'}->{'HAPMAP'};
+	my $omni     = $project->{'CONFIG'}->{'OMNI'};
+	my $dbSNP    = $project->{'CONFIG'}->{'DBSNP'};
+	my $program  = <<PROGRAM;
 java -Xmx2g -jar $gatk \\
 -T VariantEval \\
 -l INFO \\
@@ -272,7 +318,7 @@ sub filter_pass {
 	my ( $vcf, $id, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e "$out" );
-	my $program   = <<PROGRAM;
+	my $program = <<PROGRAM;
 java -Xmx2g -jar $gatk \\
 -T SelectVariants \\
 -R $genome \\
@@ -315,7 +361,6 @@ sub indexed_recalibrated_bams_job_names {
 	}
 	return \@ids;
 }
-
 
 sub align {
 	my ( $project, $lane ) = @_;
@@ -734,7 +779,7 @@ sub parallel_predict_indels_effect {
 }
 
 sub merge_parallel_vcf {
-	my ( $project, $vcfs, $sample_id, $merged_name, $after_id, $id ) = @_;
+	my ( $project, $vcfs, $sample_id, $merged_name, $job_name, $after ) = @_;
 	my $merged_vcf = $merged_name;
 	return 1 if ( -e $merged_vcf );
 	sleep($sleep_time);
@@ -749,24 +794,15 @@ $all_vcf \\
 -variantMergeOptions UNION \\
 --assumeIdenticalSamples
 PROGRAM
-	my $qsub_param = '-hold_jid ' . $after_id;
-	$task_scheduler->submit( $id, $qsub_param, $program, 4 );
-}
 
-sub merge_snps {
-	my ($project) = @_;
-	my $merged_vcf = $project->merge_vcf;
-	merge_parallel_vcf( $project, $project->all_snps_eff_vcf,
-		$project->merge_vcf, $project->all_annotated, $project->merge_vcf_id );
-}
+	#	my $qsub_param = '-hold_jid ' . $after_id;
+	#	$task_scheduler->submit( $id, $qsub_param, $program, 4 );
 
-sub merge_indels {
-	my ($project) = @_;
-	my $merged_vcf = $project->merge_indels;
-	merge_parallel_vcf(
-		$project, $project->all_indels_eff_vcf,
-		$project->merge_indels, $project->all_indels_annotated,
-		$project->merge_indels_id
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory   => 4,
 	);
 }
 
@@ -896,7 +932,7 @@ sub callable_loci {
 	my ( $bam, $genome_bed, $out, $summary, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e $out );
-	
+
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk -R $genome -T CallableLoci -I $bam -o $out -l INFO -format BED -maxDepth 160 -L $genome_bed -summary $summary
 PROGRAM
@@ -905,7 +941,7 @@ PROGRAM
 		job_name => $job_name,
 		program  => $program,
 		after    => $after,
-		memory	=> 4,
+		memory   => 4,
 	);
 }
 
@@ -913,7 +949,7 @@ sub depth_coverage {
 	my ( $bam, $genome_bed, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e $out );
-	
+
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk -R $genome -T DepthOfCoverage -I $bam -L $genome_bed -o $out
 PROGRAM
@@ -922,10 +958,9 @@ PROGRAM
 		job_name => $job_name,
 		program  => $program,
 		after    => $after,
-		memory	=> 4,
+		memory   => 4,
 	);
 }
-
 
 sub predict_effect {
 	my ($project) = @_;
@@ -963,6 +998,7 @@ sub tabix {
 sub variant_annotator {
 	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
+
 	#$project->parallel_gatk_vcf($chr);
 	my $annotated = $project->variant_annotator($chr);
 	return 1 if ( -e $annotated );
@@ -988,8 +1024,7 @@ java -Xmx4g -jar $gatk \\
 -L $chr
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid '
-	  . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
+	  '-hold_jid ' . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
 	$task_scheduler->submit( $project->variant_annotator_id($chr),
 		$qsub_param, $program, 4 );
 
@@ -1001,7 +1036,7 @@ sub filter_snps {
 	my $filtered = $project->filter_snps($chr);
 	return 1 if ( -e $filtered );
 	my $annotated = $project->variant_annotator($chr);
-	my $indels    = $project->parallel_predict_indels_effect($chr);
+	my $indels    = $project->parallel_call_indels($chr);
 	my $program   = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantFiltration \\
@@ -1027,7 +1062,7 @@ sub calculate_genome_coverage {
 	my ( $bam, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e $out );
-	my $program       =
+	my $program =
 	    "$genome_coverage -ibam $bam -g "
 	  . $project->{'CONFIG'}->{'BEDGENOME'}
 	  . " > $out";
@@ -1043,7 +1078,7 @@ sub calculate_bga_coverage {
 	my ( $bam, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e $out );
-	my $program       =
+	my $program =
 	    "$genome_coverage -bga -ibam $bam -g "
 	  . $project->{'CONFIG'}->{'BEDGENOME'}
 	  . " > $out";

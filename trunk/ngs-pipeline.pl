@@ -85,8 +85,8 @@ for my $chr (@chr) {
 	index_recalibrated( $project, $chr );          #..
 	parallel_call_SNPs( $project, $chr );          #..
 	parallel_call_indels( $project, $chr );        #..
-	parallel_predict_effect( $project, $chr );     #..
-	parallel_predict_indels_effect( $project, $chr );    #..
+#	parallel_predict_effect( $project, $chr );     #..
+#	parallel_predict_indels_effect( $project, $chr );    #..
 	variant_annotator( $project, $chr );                 #..
 	filter_snps( $project, $chr );                       #..
 }
@@ -97,34 +97,9 @@ merge_indels($project);                                  #!!
 variant_recalibrator($project);                          #
 apply_recalibration($project);                           #
 
-#merge_vcf($project);#method to deletion
 
-callable_loci($project);    #rewrite to use recalibrated bam
-
-#depth_coverage($project);#rewrite to use recalibrated bam
-calculate_genome_coverage($project);    #rewrite to use recalibrated bam
-calculate_bga_coverage($project);       #rewrite to use recalibrated bam
-
-#zipping and indexing file with merged snps
 my $recalibrated_snps = $project->apply_recalibration();
 my $recalibrated_snps_job = $project->apply_recalibration_id();
-my $zipped_snps = $recalibrated_snps . '.gz';
-my $indexed_snps = $recalibrated_snps . '.tbi';
-my $zipping_snps_job = 'bgzip.' . $project->_get_id($zipped_snps);
-my $tabix_snps_job = 'tabix.' . $project->_get_id($indexed_snps);
-bgzip_file( $recalibrated_snps, $zipping_snps_job, [$recalibrated_snps_job] );
-tabix_file( $zipped_snps, $tabix_snps_job, [$zipping_snps_job] );
-
-#zipping and indexing file with merged indels
-my $merged_indels           = $project->merge_indels;
-my $zipped_indels           = $merged_indels . '.gz';
-my $indexed_indels          = $zipped_indels . '.tbi';
-my $merging_indels_job          = $project->merge_indels_id();
-my $zipping_indels_job          = 'bgzip.' . $project->_get_id($zipped_indels);
-my $tabix_indels_job            = 'tabix.' . $project->_get_id($indexed_indels);
-bgzip_file( $merged_indels, $zipping_indels_job, [$merging_indels_job] );
-tabix_file( $zipped_indels, $tabix_indels_job, [$zipping_indels_job] );
-
 
 #merging recalibrated bams
 my $merged_recalibrated_bam = $project->file_prefix() . ".recal.bam";
@@ -134,25 +109,63 @@ merge_bam_files( recalibrated_bams(), $merged_recalibrated_bam,
 	$merge_recalibrated_bams_job,
 	indexed_recalibrated_bams_job_names() );
 
-#snps evaluation
-my $snp_stat = $recalibrated_snps . ".stat";
-my $snp_evaluation_job = 'snp_eval.' . $project->_get_id($snp_stat);
-variant_evaluation ( $recalibrated_snps, $snp_stat, $snp_evaluation_job, [$recalibrated_snps_job] ); 
 
-#indels evaluation
-my $indel_stat = $merged_indels . ".stat";
-my $indel_evaluation_job = 'indel_eval.' . $project->_get_id($indel_stat);
-variant_evaluation ( $merged_indels, $indel_stat, $indel_evaluation_job, [$merging_indels_job] ); 
+#depth_coverage - TESTED
+my $genome_coverage_file = $project->file_prefix() . ".cov";
+my $genome_coverage_job = 'coverage.' . $project->_get_id($genome_coverage_file);
+calculate_genome_coverage( $merged_recalibrated_bam, $genome_coverage_file, $genome_coverage_job, [$merge_recalibrated_bams_job] );
 
-################################################
-#FUNCTION TEMPLATE
-##name($project, $input_file1, ..., $ouput_file2,..., $id, $after);
-#	qsub_params
-#	job_name
-#	program
-#	memory
-#	after
-################################################
+my $b_genome_coverage_file = $project->file_prefix() . ".bcov";
+my $b_genome_coverage_job = 'b.coverage.' . $project->_get_id($b_genome_coverage_file);
+calculate_bga_coverage( $merged_recalibrated_bam, $b_genome_coverage_file, $b_genome_coverage_job, [$merge_recalibrated_bams_job] );
+
+
+#callable_loci - TESTED
+my $genome_callable_file = $project->file_prefix() . ".callable";
+my $genome_callable_summary = $project->file_prefix() . ".callable_s";
+my $genome_bed = $project->{CONFIG}->{GATKGENOMEBED};
+my $genome_callable_job = 'callable.' . $project->_get_id($genome_callable_file);
+callable_loci( $merged_recalibrated_bam, $genome_bed, $genome_callable_file, $genome_callable_summary, $genome_callable_job, [$merge_recalibrated_bams_job] );
+
+#gatk depth_coverage - TESTED
+my $gatk_cov = $project->file_prefix() . ".gatkcov";
+my $depth_coverage_job = 'gcov.' . $project->_get_id($gatk_cov);
+depth_coverage( $merged_recalibrated_bam, $genome_bed, $gatk_cov, $depth_coverage_job, [$merge_recalibrated_bams_job] );
+
+#merging snps with indels - TESTED
+my $sample_id = $project->{CONFIG}->{PROJECT};
+my $merged_indels           = $project->merge_indels;
+my $merging_indels_job          = $project->merge_indels_id();
+my $snps_with_indels = $project->file_prefix() . ".variants.vcf";
+my $snps_with_indels_job = 'merg.var.' . $project->_get_id($snps_with_indels);
+my $before_merge = $project->task_id($merging_indels_job) . ',' . $project->task_id($recalibrated_snps_job); 
+merge_parallel_vcf( $project, [$recalibrated_snps, $merged_indels], $sample_id, $snps_with_indels, $before_merge, $snps_with_indels_job );
+			
+#selecting PASS variants - TESTED
+my $snps_with_indels_pass = $project->file_prefix() . ".variants.pass.vcf";
+my $snps_with_indels_pass_job = 'pass.var.' . $project->_get_id($snps_with_indels_pass);
+filter_pass($snps_with_indels, $sample_id, $snps_with_indels_pass, $snps_with_indels_pass_job, [$snps_with_indels_job]);	
+	
+#variant evaluation - TESTED
+my $var_stat = $project->file_prefix() . ".stat";
+my $var_evaluation_job = 'var_eval.' . $project->_get_id($var_stat);
+variant_evaluation ( $snps_with_indels_pass, $var_stat, $var_evaluation_job, [$snps_with_indels_pass_job] ); 
+
+#effect prediction - TESTED
+my $eff_html = $project->file_prefix() . ".eff.html";
+my $eff_vcf = $project->file_prefix() . ".eff.vcf";
+my $var_eff_job = 'var_eff.' . $project->_get_id($eff_vcf);
+snpeff($snps_with_indels_pass, $eff_html, $eff_vcf, $var_eff_job, [$snps_with_indels_pass_job]);	
+
+#zipping and indexing file with annotated variations
+my $zipped_vars = $eff_vcf . '.gz';
+my $indexed_vars = $zipped_vars . '.tbi';
+my $zipping_vars_job = 'bgzip.' . $project->_get_id($zipped_vars);
+my $tabix_vars_job = 'tabix.' . $project->_get_id($indexed_vars);
+bgzip_file( $eff_vcf, $zipping_vars_job, [$var_eff_job] );
+tabix_file( $zipped_vars, $tabix_vars_job, [$zipping_vars_job] );
+
+
 sub bgzip_file {
 	my ( $vcf, $job_name, $after ) = @_;
 	sleep($sleep_time);
@@ -206,6 +219,27 @@ PROGRAM
 	);
 }
 
+sub snpeff {
+	my ( $vcf, $html, $effect, $job_name, $after  ) = @_;
+	sleep($sleep_time);
+	return 1 if ( -e "$effect" && -e "$html");
+	my $snpeff = $project->{CONFIG}->{SNPEFF};
+	my $snpeff_genome = $project->{CONFIG}->{SNPEFF_GENOME};
+	my $program       = <<PROGRAM;
+java -jar -Xmx4g $snpeff/snpEff.jar \\
+-config $snpeff/snpEff.config \\
+-stats $html \\
+-vcf4 $snpeff_genome \\
+$vcf > $effect
+PROGRAM
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory   => 4,
+	);
+}
+
 sub variant_evaluation {
 	my ( $vcf, $stat, $job_name, $after ) = @_;
 	sleep($sleep_time);
@@ -225,6 +259,26 @@ java -Xmx2g -jar $gatk \\
 -B:compHapMap,VCF $hapmap \\
 -B:compOMNI,VCF $omni \\
 -B:dbsnp,VCF $dbSNP
+PROGRAM
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory   => 2,
+	);
+}
+
+sub filter_pass {
+	my ( $vcf, $id, $out, $job_name, $after ) = @_;
+	sleep($sleep_time);
+	return 1 if ( -e "$out" );
+	my $program   = <<PROGRAM;
+java -Xmx2g -jar $gatk \\
+-T SelectVariants \\
+-R $genome \\
+-B:$id,VCF $vcf \\
+-o $out \\
+-ef
 PROGRAM
 	$task_scheduler->submit_after(
 		job_name => $job_name,
@@ -680,11 +734,11 @@ sub parallel_predict_indels_effect {
 }
 
 sub merge_parallel_vcf {
-	my ( $project, $vcfs, $merged_name, $after_id, $id ) = @_;
+	my ( $project, $vcfs, $sample_id, $merged_name, $after_id, $id ) = @_;
 	my $merged_vcf = $merged_name;
 	return 1 if ( -e $merged_vcf );
 	sleep($sleep_time);
-	my @vcfs = map { "-B:sample,VCF $_" } @$vcfs;
+	my @vcfs = map { "-B:$sample_id,VCF $_" } @$vcfs;
 	my $all_vcf = join( ' ', @vcfs );
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
@@ -839,38 +893,39 @@ sub define_done_jobs {
 }
 
 sub callable_loci {
-	my ($project) = @_;
+	my ( $bam, $genome_bed, $out, $summary, $job_name, $after ) = @_;
 	sleep($sleep_time);
-	my $bam_recal    = $project->table_recalibration();
-	my $loci         = $project->callable_loci();
-	my $loci_summary = $project->callable_loci_summary();
-	my $id           = $project->{'CONFIG'}->{'PROJECT'};
-	my $genome_bed   = $project->{'CONFIG'}->{'GATKGENOMEBED'};
-	return 1 if ( -e $loci );
+	return 1 if ( -e $out );
+	
 	my $program = <<PROGRAM;
-java -Xmx4g -jar $gatk -R $genome -T CallableLoci -I $bam_recal -o $loci -l INFO -format BED -maxDepth 160 -L $genome_bed -summary $loci_summary
+java -Xmx4g -jar $gatk -R $genome -T CallableLoci -I $bam -o $out -l INFO -format BED -maxDepth 160 -L $genome_bed -summary $summary
 PROGRAM
-	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
-	$task_scheduler->submit( $project->callable_loci_id(),
-		$qsub_param, $program, 4 );
+
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory	=> 4,
+	);
 }
 
 sub depth_coverage {
-	my ($project) = @_;
+	my ( $bam, $genome_bed, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
-	my $merged = $project->merged_sorted();
-	my $out    = $project->depth_coverage();
 	return 1 if ( -e $out );
-	my $genome_bed = $project->{'CONFIG'}->{'GATKGENOMEBED'};
-	my $program    = <<PROGRAM;
-java -jar $gatk -R $genome -T DepthOfCoverage -I $merged -L $genome_bed -o $out
+	
+	my $program = <<PROGRAM;
+java -Xmx4g -jar $gatk -R $genome -T DepthOfCoverage -I $bam -L $genome_bed -o $out
 PROGRAM
-	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
-	$task_scheduler->submit( $project->depth_coverage_id(),
-		$qsub_param, $program, 1 );
+
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory	=> 4,
+	);
 }
+
 
 sub predict_effect {
 	my ($project) = @_;
@@ -908,9 +963,10 @@ sub tabix {
 sub variant_annotator {
 	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
+	#$project->parallel_gatk_vcf($chr);
 	my $annotated = $project->variant_annotator($chr);
 	return 1 if ( -e $annotated );
-	my $snps      = $project->parallel_predict_effect($chr);
+	my $snps      = $project->parallel_gatk_vcf($chr);
 	my $bam_recal = $project->table_recalibration($chr);
 	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
 	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
@@ -933,7 +989,7 @@ java -Xmx4g -jar $gatk \\
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid '
-	  . $project->task_id( $project->parallel_predict_effect_id($chr) );
+	  . $project->task_id( $project->parallel_gatk_vcf_id($chr) );
 	$task_scheduler->submit( $project->variant_annotator_id($chr),
 		$qsub_param, $program, 4 );
 
@@ -968,38 +1024,35 @@ PROGRAM
 }
 
 sub calculate_genome_coverage {
-	my ($project) = @_;
+	my ( $bam, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
-	my $bam_recal = $project->table_recalibration();
-	return 1 if ( -e $project->genome_coverage() );
-	my $coverage_file = $project->genome_coverage();
+	return 1 if ( -e $out );
 	my $program       =
-	    "$genome_coverage -ibam $bam_recal -g "
+	    "$genome_coverage -ibam $bam -g "
 	  . $project->{'CONFIG'}->{'BEDGENOME'}
-	  . " > $coverage_file";
+	  . " > $out";
 
-	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
-	$task_scheduler->submit( $project->genome_coverage_id(),
-		$qsub_param, $program );
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+	);
 }
 
 sub calculate_bga_coverage {
-	my ($project) = @_;
+	my ( $bam, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
-	my $bam_recal = $project->table_recalibration();
-	return 1 if ( -e $project->genome_coverage_bga() );
-	my $coverage_file = $project->genome_coverage_bga();
-
-	my $program =
-	    "$genome_coverage -bga -ibam $bam_recal -g "
+	return 1 if ( -e $out );
+	my $program       =
+	    "$genome_coverage -bga -ibam $bam -g "
 	  . $project->{'CONFIG'}->{'BEDGENOME'}
-	  . " > $coverage_file";
+	  . " > $out";
 
-	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
-	$task_scheduler->submit( $project->genome_coverage_bga_id(),
-		$qsub_param, $program );
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+	);
 }
 
 #sub move_bedtools_results {

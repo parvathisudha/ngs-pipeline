@@ -103,7 +103,7 @@ for my $chr (@chr) {
 my @before_snps_merge;
 for my $chr (@chr) {
 	push( @before_snps_merge,
-		$project->_get_id( $project->filter_snps($chr) ) );
+		$project->filter_snps_id($chr) );
 }
 my $merged_snps    = $project->merge_snps();
 my $merge_snps_job = $project->merge_snps_id();
@@ -119,7 +119,7 @@ for my $chr (@chr) {
 my @before_indels_merge;
 for my $chr (@chr) {
 	push( @before_indels_merge,
-		$project->_get_id( $project->parallel_call_indels($chr) ) );
+		 $project->parallel_call_indels_id($chr)  );
 }
 my $merged_indels    = $project->merge_indels();
 my $merge_indels_job = $project->merge_indels_id();

@@ -184,14 +184,14 @@ merge_parallel_vcf( $project, [ $recalibrated_snps, $merged_indels ],
 	$sample_id, $snps_with_indels, $snps_with_indels_job, $before_merge,
 	$snps_with_indels_job );
 
-#selecting PASS variants - TESTED
+#selecting PASS variants - !!!!!!!!!!!!!!!!!!
 my $snps_with_indels_pass     = $project->file_prefix() . ".variants.pass.vcf";
 my $snps_with_indels_pass_job =
   'pass.var.' . $project->_get_id($snps_with_indels_pass);
 filter_pass( $snps_with_indels, $sample_id, $snps_with_indels_pass,
 	$snps_with_indels_pass_job, [$snps_with_indels_job] );
 
-#variant evaluation - TESTED
+#variant evaluation - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 my $var_stat           = $project->file_prefix() . ".stat";
 my $var_evaluation_job = 'var_eval.' . $project->_get_id($var_stat);
 variant_evaluation( $snps_with_indels_pass, $var_stat, $var_evaluation_job,
@@ -322,7 +322,7 @@ sub filter_pass {
 java -Xmx2g -jar $gatk \\
 -T SelectVariants \\
 -R $genome \\
--B:$id,VCF $vcf \\
+-B:variant,VCF $vcf \\
 -o $out \\
 -ef
 PROGRAM

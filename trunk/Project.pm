@@ -344,16 +344,6 @@ sub parallel_predict_effect_id {
 	return "eff.snp.$chr." . $self->_get_id( $self->parallel_predict_effect($chr) );
 }
 
-sub parallel_predict_indels_effect {
-	my ($self,$chr) = @_;
-	return $self->file_prefix() . ".$chr.eff.ind.vcf";
-}
-
-sub parallel_predict_indels_effect_id {
-	my ($self,$chr) = @_;
-	return "e.ind.$chr." . $self->_get_id( $self->parallel_predict_indels_effect($chr) );
-}
-
 sub depth_coverage {
 	my ($self) = @_;
 	return $self->file_prefix() . ".depth_coverage";

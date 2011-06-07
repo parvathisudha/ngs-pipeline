@@ -57,6 +57,7 @@ my $break_dancer_dir = $project->{'CONFIG'}->{'BREAKDANCER'};
 my $bam2cfg          = "perl $break_dancer_dir/bam2cfg.pl";
 my $BreakDancerMax   = "perl $break_dancer_dir/BreakDancerMax.pl";
 my $BreakDancerMini  = "perl $break_dancer_dir/BreakDancerMini.pl";
+my $cumulative_covarage_p = "perl " . $project->{'CONFIG'}->{'CUMULATIVE_COVERAGE'};
 ####### commands to execute ##
 
 #define_done_jobs($project);
@@ -150,6 +151,17 @@ calculate_genome_coverage(
 	$merged_recalibrated_bam, $genome_coverage_file,
 	$genome_coverage_job, [$merge_recalibrated_bams_job]
 );
+
+#coverage_cumulative 
+my $coverage_cumulative_file = $project->file_prefix() . ".cum";
+my $coverage_cumulative_job  =
+  'cum.' . $project->_get_id($coverage_cumulative_file);
+coverage_cumulative(
+	$genome_coverage_file, $coverage_cumulative_file,
+	$coverage_cumulative_job, [$genome_coverage_job]
+);
+
+
 
 my $b_genome_coverage_file = $project->file_prefix() . ".bcov";
 my $b_genome_coverage_job  =
@@ -1067,6 +1079,19 @@ sub calculate_genome_coverage {
 	  . $project->{'CONFIG'}->{'BEDGENOME'}
 	  . " > $out";
 
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+	);
+}
+
+sub coverage_cumulative {
+	my ( $in, $out, $job_name, $after ) = @_;
+	sleep($sleep_time);
+	return 1 if ( -e $out );
+	my $program =
+	    "$cumulative_covarage_p $in > $out";
 	$task_scheduler->submit_after(
 		job_name => $job_name,
 		program  => $program,

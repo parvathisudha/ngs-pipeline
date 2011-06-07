@@ -13,3 +13,4 @@ OMNI=/data/genomes/bwa/human_g1k_v37/OMNI.764s.b37.annotated.vcf
 1KG=/data/genomes/bwa/human_g1k_v37/ALL.2of4intersection.20100804.sites.vcf
 SNPEFF=/data/test/snpeff/SnpEffect
 SNPEFF_GENOME=grch37n
+CUMULATIVE_COVERAGE=/data/software/coverage_cumulative.pl

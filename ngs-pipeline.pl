@@ -88,7 +88,7 @@ for my $chr (@chr) {
 	index_recalibrated( $project, $chr );          #..
 	parallel_call_SNPs( $project, $chr );          #..
 	parallel_call_indels( $project, $chr );        #..
-
+	indel_annotator( $project, $chr );           #..
 	#	parallel_predict_effect( $project, $chr );     #..
 	#	parallel_predict_indels_effect( $project, $chr );    #..
 	variant_annotator( $project, $chr );           #..
@@ -115,12 +115,12 @@ merge_parallel_vcf( $project, \@snps_to_merge, $sample_id, $merged_snps, $merge_
 #merge indels after calling
 my @indels_to_merge;
 for my $chr (@chr) {
-	push( @indels_to_merge, $project->parallel_call_indels($chr) );
+	push( @indels_to_merge, $project->indel_annotator($chr) );
 }
 my @before_indels_merge;
 for my $chr (@chr) {
 	push( @before_indels_merge,
-		 $project->parallel_call_indels_id($chr)  );
+		 $project->indel_annotator_id($chr)  );
 }
 my $merged_indels    = $project->merge_indels();
 my $merge_indels_job = $project->merge_indels_id();
@@ -1005,6 +1005,40 @@ sub tabix {
 	my $program    = "tabix -p vcf $bgz";
 	my $qsub_param = '-hold_jid ' . $project->task_id( $project->bgzip_id() );
 	$task_scheduler->submit( $project->tabix_id(), $qsub_param, $program );
+}
+sub indel_annotator {#TO WRITE
+	my ( $project, $chr ) = @_;
+	sleep($sleep_time);
+
+	#$project->parallel_gatk_vcf($chr);
+	my $annotated = $project->indel_annotator($chr);
+	return 1 if ( -e $annotated );
+	my $snps      = $project->parallel_call_indels($chr);
+	my $bam_recal = $project->table_recalibration($chr);
+	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
+	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
+	my $omni      = $project->{'CONFIG'}->{'OMNI'};
+	my $dbSNP     = $project->{'CONFIG'}->{'DBSNP'};
+	my $program   = <<PROGRAM;
+java -Xmx4g -jar $gatk \\
+-T VariantAnnotator \\
+-l INFO \\
+-R $genome \\
+-I $bam_recal \\
+-o $annotated \\
+--useAllAnnotations \\
+-B:variant,VCF $snps \\
+-B:comp1KG,VCF $snps_1KG \\
+-B:compHapMap,VCF $hapmap \\
+-B:compOMNI,VCF $omni \\
+-B:compDBSNP,VCF $dbSNP \\
+-B:dbsnp,VCF $dbSNP \\
+-L $chr
+PROGRAM
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->parallel_call_indels_id($chr) );
+	$task_scheduler->submit( $project->indel_annotator_id($chr),
+		$qsub_param, $program, 4 );
 }
 
 sub variant_annotator {

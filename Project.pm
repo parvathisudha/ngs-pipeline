@@ -444,6 +444,16 @@ sub variant_annotator_id {
 	return "a.snp.$chr." . $self->_get_id( $self->variant_annotator($chr) );
 }
 
+sub indel_annotator {
+	my ($self, $chr) = @_;
+	return $self->file_prefix() . ".$chr.indels.annot.vcf";
+}
+
+sub indel_annotator_id {
+	my ($self, $chr) = @_;
+	return "a.ind.$chr." . $self->_get_id( $self->indel_annotator($chr) );
+}
+
 sub filter_snps {
 	my ($self, $chr) = @_;
 	return $self->file_prefix() . ".$chr.snps.annot.filt.vcf";

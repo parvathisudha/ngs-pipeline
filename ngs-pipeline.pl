@@ -55,8 +55,8 @@ my $genome_coverage    = $config->{'BEDTOOLS'} . "/genomeCoverageBed";
 
 my $break_dancer_dir = $project->{'CONFIG'}->{'BREAKDANCER'};
 my $bam2cfg          = "perl $break_dancer_dir/bam2cfg.pl";
-my $BreakDancerMax   = "perl $break_dancer_dir/BreakDancerMax.pl";
-my $BreakDancerMini  = "perl $break_dancer_dir/BreakDancerMini.pl";
+my $BreakDancerMax   = "perl $break_dancer_dir/breakdancer-max";
+
 my $cumulative_covarage_p = "perl " . $project->{'CONFIG'}->{'CUMULATIVE_COVERAGE'};
 ####### commands to execute ##
 
@@ -347,9 +347,9 @@ PROGRAM
 	);
 }
 
-#breakdancer_cfg($project);#install on cluster
+breakdancer_cfg($project);#install on cluster
 #breakdancer_mini($project);#install on cluster
-#breakdancer_max($project);#install on cluster
+breakdancer_max($project);#install on cluster
 
 #clean($project);
 
@@ -917,21 +917,6 @@ sub breakdancer_max {
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->breakdancer_cfg_id() );
 	$task_scheduler->submit( $project->breakdancer_max_id(),
-		$qsub_param, $program );
-}
-
-sub breakdancer_mini {
-	my ($project) = @_;
-	sleep($sleep_time);
-	my $breakdancer_cfg_result  = $project->breakdancer_cfg();
-	my $breakdancer_mini_result = $project->breakdancer_mini();
-
-	#return 1 if (-e $breakdancer_mini_result);
-	my $program =
-	  "$BreakDancerMini $breakdancer_cfg_result > $breakdancer_mini_result";
-	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->breakdancer_cfg_id() );
-	$task_scheduler->submit( $project->breakdancer_mini_id(),
 		$qsub_param, $program );
 }
 

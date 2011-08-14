@@ -286,6 +286,7 @@ sub snpeff {
 	my $program       = <<PROGRAM;
 java -jar -Xmx4g $snpeff/snpEff.jar \\
 -config $snpeff/snpEff.config \\
+-onlyCoding \\
 -stats $html \\
 -vcf4 $snpeff_genome \\
 $vcf > $effect

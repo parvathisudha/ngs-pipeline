@@ -896,7 +896,7 @@ sub breakdancer_cfg {
 	my $merged                 = $project->merged_sorted();
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
 
-	#return 1 if (-e $breakdancer_cfg_result);
+	return 1 if (-e $breakdancer_cfg_result);
 	my $program    = "$bam2cfg $merged > $breakdancer_cfg_result";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
@@ -910,7 +910,7 @@ sub breakdancer_max {
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
 	my $breakdancer_max_result = $project->breakdancer_max();
 
-	#return 1 if (-e $breakdancer_max_result);
+	return 1 if (-e $breakdancer_max_result);
 	my $program =
 	  "$BreakDancerMax $breakdancer_cfg_result > $breakdancer_max_result";
 	my $qsub_param =

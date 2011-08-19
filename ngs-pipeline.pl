@@ -804,7 +804,6 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -o $merged_vcf \\
 $all_vcf \\
--variantMergeOptions UNION \\
 --assumeIdenticalSamples
 PROGRAM
 

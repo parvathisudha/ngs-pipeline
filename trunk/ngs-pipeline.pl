@@ -6,10 +6,18 @@ use Project;
 use TaskScheduler;
 use Time::HiRes qw ( time sleep);
 use Data::Dumper;
+use Getopt::Long;
+
+####### get argumants      ###
+my ( $config_file, $mode, $debug );
+GetOptions(
+	'config=s' => \$config_file,
+	'mode=s'   => \$mode,
+	'debug'    => \$debug
+);
 
 ####### general parameters ###
-my $config = ConfigRun->new( $ARGV[0] );
-my $debug  = $ARGV[1] ? $ARGV[1] : 0;
+my $config = ConfigRun->new($config_file);
 
 my $project        = Project->new( $config,        $debug );
 my $task_scheduler = TaskScheduler->new( $project, $debug );
@@ -57,84 +65,109 @@ my $break_dancer_dir = $project->{'CONFIG'}->{'BREAKDANCER'};
 my $bam2cfg          = "perl $break_dancer_dir/bam2cfg.pl";
 my $BreakDancerMax   = "perl $break_dancer_dir/breakdancer-max";
 
-my $cumulative_covarage_p = "perl " . $project->{'CONFIG'}->{'CUMULATIVE_COVERAGE'};
+my $cumulative_covarage_p =
+  "perl " . $project->{'CONFIG'}->{'CUMULATIVE_COVERAGE'};
 ####### commands to execute ##
+my @task_types = qw/ALIGN DEDUP VARIATION SV EFFECT COVERAGE ALL/;
+my %tasks      = map { $_ => 0 } @task_types;
+
+my @modes = split( /,/, $mode );
+if ( $mode =~ m/ALL/ ) {
+	for my $t ( keys %tasks ) {
+		$tasks{$t} = 1;
+	}
+}
+for my $m (@modes) {
+	if ( exists $tasks{$m} ) {
+		$tasks{$m} = 1;
+	}
+	elsif ( $m =~ m/^NO_/ ) {
+		$m =~ s/^NO_//;
+		$tasks{$m} = 0;
+	}
+}
+print "TASKS:\n";
+print Dumper \%tasks;
 
 #define_done_jobs($project);
 
 my $output_bam = $project->merged_sorted;
-unless ( -e $output_bam ) {
-	for my $lane ( @{ $config->{LANES} } ) {
-		align( $project, $lane );    #tested
-		sai_to_sam( $project, $lane );    #tested
-		     #import_sam( $project, $lane );#to deletion
-		sort_bam( $project, $lane );    #rewrite with picard
-		index_bam( $project, $lane );   #rewrite with picard
+
+if ( $tasks{'ALIGN'} ) {
+	unless ( -e $output_bam ) {
+		for my $lane ( @{ $config->{LANES} } ) {
+			align( $project, $lane );    #tested
+			sai_to_sam( $project, $lane );    #tested
+			     #import_sam( $project, $lane );#to deletion
+			sort_bam( $project, $lane );    #rewrite with picard
+			index_bam( $project, $lane );   #rewrite with picard
+		}
 	}
+	merge_bams($project);                   #rewrite with picard
+
+	#sort_merged($project);#to deletion
+	index_merged($project);                 #tested
 }
 
-merge_bams($project);                   #rewrite with picard
-
-#sort_merged($project);#to deletion
-index_merged($project);                 #tested
-mark_duplicates($project);              #tested
-my @chr = $project->read_intervals();
-for my $chr (@chr) {
-	realigner_target_creator( $project, $chr );    #..
-	indel_realigner( $project, $chr );             #..
-	index_realigned( $project, $chr );             #..
-	count_covariates( $project, $chr );            #..
-	table_recalibration( $project, $chr );         #..
-	index_recalibrated( $project, $chr );          #..
-	parallel_call_SNPs( $project, $chr );          #..
-	parallel_call_indels( $project, $chr );        #..
-	indel_annotator( $project, $chr );           #..
-	#	parallel_predict_effect( $project, $chr );     #..
-	#	parallel_predict_indels_effect( $project, $chr );    #..
-	variant_annotator( $project, $chr );           #..
-	filter_snps( $project, $chr );                 #tested
+if ( $tasks{'DEDUP'} ) {
+	mark_duplicates($project);              #tested
 }
 
-my @chr = $project->read_intervals();
-#merge SNPs after GATK filtration
-my @snps_to_merge;
-for my $chr (@chr) {
-	push( @snps_to_merge, $project->filter_snps($chr) );
-}
-my @before_snps_merge;
-for my $chr (@chr) {
-	push( @before_snps_merge,
-		$project->filter_snps_id($chr) );
-}
-my $merged_snps    = $project->merge_snps();
-my $merge_snps_job = $project->merge_snps_id();
-
-merge_parallel_vcf( $project, \@snps_to_merge, $sample_id, $merged_snps, $merge_snps_job,
-	\@before_snps_merge );
-
-#merge indels after calling
-my @indels_to_merge;
-for my $chr (@chr) {
-	push( @indels_to_merge, $project->indel_annotator($chr) );
-}
-my @before_indels_merge;
-for my $chr (@chr) {
-	push( @before_indels_merge,
-		 $project->indel_annotator_id($chr)  );
-}
-my $merged_indels    = $project->merge_indels();
-my $merge_indels_job = $project->merge_indels_id();
-
-merge_parallel_vcf( $project, \@indels_to_merge, $sample_id, $merged_indels, $merge_indels_job,
-	\@before_indels_merge );
-
-
-
-variant_recalibrator($project);    #
-apply_recalibration($project);     #
-
+my @chr                   = $project->read_intervals();
 my $recalibrated_snps     = $project->apply_recalibration();
 my $recalibrated_snps_job = $project->apply_recalibration_id();
+my $merged_indels         = $project->merge_indels();
+my $merge_indels_job      = $project->merge_indels_id();
+my $merged_snps           = $project->merge_snps();
+my $merge_snps_job        = $project->merge_snps_id();
+if ( $tasks{'VARIATION'} ) {
+	for my $chr (@chr) {
+		realigner_target_creator( $project, $chr );    #..
+		indel_realigner( $project, $chr );             #..
+		index_realigned( $project, $chr );             #..
+		count_covariates( $project, $chr );            #..
+		table_recalibration( $project, $chr );         #..
+		index_recalibrated( $project, $chr );          #..
+		parallel_call_SNPs( $project, $chr );          #..
+		parallel_call_indels( $project, $chr );        #..
+		indel_annotator( $project, $chr );             #..
+		     #	parallel_predict_effect( $project, $chr );     #..
+		     #	parallel_predict_indels_effect( $project, $chr );    #..
+		variant_annotator( $project, $chr );    #..
+		filter_snps( $project, $chr );          #tested
+	}
+
+	my @chr = $project->read_intervals();
+
+	#merge SNPs after GATK filtration
+	my @snps_to_merge;
+	for my $chr (@chr) {
+		push( @snps_to_merge, $project->filter_snps($chr) );
+	}
+	my @before_snps_merge;
+	for my $chr (@chr) {
+		push( @before_snps_merge, $project->filter_snps_id($chr) );
+	}
+
+	merge_parallel_vcf( $project, \@snps_to_merge, $sample_id, $merged_snps,
+		$merge_snps_job, \@before_snps_merge );
+
+	#merge indels after calling
+	my @indels_to_merge;
+	for my $chr (@chr) {
+		push( @indels_to_merge, $project->indel_annotator($chr) );
+	}
+	my @before_indels_merge;
+	for my $chr (@chr) {
+		push( @before_indels_merge, $project->indel_annotator_id($chr) );
+	}
+
+	merge_parallel_vcf( $project, \@indels_to_merge, $sample_id, $merged_indels,
+		$merge_indels_job, \@before_indels_merge );
+
+	variant_recalibrator($project);    #
+	apply_recalibration($project);     #
+}
 
 #merging recalibrated bams
 my $merged_recalibrated_bam     = $project->file_prefix() . ".recal.bam";
@@ -152,7 +185,7 @@ calculate_genome_coverage(
 	$genome_coverage_job, [$merge_recalibrated_bams_job]
 );
 
-#coverage_cumulative 
+#coverage_cumulative
 my $coverage_cumulative_file = $project->file_prefix() . ".cum";
 my $coverage_cumulative_job  =
   'cum.' . $project->_get_id($coverage_cumulative_file);
@@ -160,8 +193,6 @@ coverage_cumulative(
 	$genome_coverage_file, $coverage_cumulative_file,
 	$coverage_cumulative_job, [$genome_coverage_job]
 );
-
-
 
 my $b_genome_coverage_file = $project->file_prefix() . ".bcov";
 my $b_genome_coverage_job  =
@@ -213,31 +244,35 @@ variant_evaluation( $snps_with_indels_pass, $var_stat, $var_evaluation_job,
 my $eff_html    = $project->file_prefix() . ".eff.html";
 my $eff_vcf     = $project->file_prefix() . ".eff.vcf";
 my $var_eff_job = 'var_eff.' . $project->_get_id($eff_vcf);
-snpeff( $snps_with_indels_pass, $eff_html, $eff_vcf, $var_eff_job,
-	[$snps_with_indels_pass_job] ,
-	$project->{CONFIG}->{SNPEFF},
+snpeff(
+	$snps_with_indels_pass,       $eff_html,
+	$eff_vcf,                     $var_eff_job,
+	[$snps_with_indels_pass_job], $project->{CONFIG}->{SNPEFF},
 	$project->{CONFIG}->{SNPEFF_GENOME},
-	);
+);
+
 #SNPEFF2 effect prediction - !!!!!!!!!!!!!!!!!!
 my $eff2_html    = $project->file_prefix() . ".eff2.html";
 my $eff2_vcf     = $project->file_prefix() . ".eff2.vcf";
 my $var_eff2_job = 'var_eff2.' . $project->_get_id($eff2_vcf);
-snpeff2( $snps_with_indels_pass, $eff2_html, $eff2_vcf, $var_eff2_job,
-	[$snps_with_indels_pass_job] ,
-	$project->{CONFIG}->{SNPEFF2},
-	$project->{CONFIG}->{SNPEFF2_GENOME},	
-	);
+snpeff2(
+	$snps_with_indels_pass,       $eff2_html,
+	$eff2_vcf,                    $var_eff2_job,
+	[$snps_with_indels_pass_job], $project->{CONFIG}->{SNPEFF2},
+	$project->{CONFIG}->{SNPEFF2_GENOME},
+);
 
 #SNPEFF3 effect prediction - !!!!!!!!!!!!!!!!!!
 my $eff3_html    = $project->file_prefix() . ".eff3.html";
 my $eff3_vcf     = $project->file_prefix() . ".eff3.vcf";
 my $var_eff3_job = 'var_eff3.' . $project->_get_id($eff3_vcf);
-snpeff2( $snps_with_indels_pass, $eff3_html, $eff3_vcf, $var_eff3_job,
-	[$snps_with_indels_pass_job] ,
-	$project->{CONFIG}->{SNPEFF2},
-	$project->{CONFIG}->{SNPEFF3_GENOME},	
-	);
-	
+snpeff2(
+	$snps_with_indels_pass,       $eff3_html,
+	$eff3_vcf,                    $var_eff3_job,
+	[$snps_with_indels_pass_job], $project->{CONFIG}->{SNPEFF2},
+	$project->{CONFIG}->{SNPEFF3_GENOME},
+);
+
 #zipping and indexing file with annotated variations - TESTED
 my $zipped_vars      = $eff_vcf . '.gz';
 my $indexed_vars     = $zipped_vars . '.tbi';
@@ -300,10 +335,11 @@ PROGRAM
 }
 
 sub snpeff {
-	my ( $vcf, $html, $effect, $job_name, $after , $snpeff, $snpeff_genome) = @_;
+	my ( $vcf, $html, $effect, $job_name, $after, $snpeff, $snpeff_genome ) =
+	  @_;
 	sleep($sleep_time);
 	return 1 if ( -e "$effect" && -e "$html" );
-	my $program       = <<PROGRAM;
+	my $program = <<PROGRAM;
 java -jar -Xmx4g $snpeff/snpEff.jar \\
 -config $snpeff/snpEff.config \\
 -onlyCoding \\
@@ -320,10 +356,11 @@ PROGRAM
 }
 
 sub snpeff2 {
-	my ( $vcf, $html, $effect, $job_name, $after , $snpeff, $snpeff_genome) = @_;
+	my ( $vcf, $html, $effect, $job_name, $after, $snpeff, $snpeff_genome ) =
+	  @_;
 	sleep($sleep_time);
 	return 1 if ( -e "$effect" && -e "$html" );
-	my $program       = <<PROGRAM;
+	my $program = <<PROGRAM;
 java -jar -Xmx4g $snpeff/snpEff.jar \\
 -config $snpeff/snpEff.config \\
 -onlyCoding \\
@@ -388,9 +425,10 @@ PROGRAM
 	);
 }
 
-breakdancer_cfg($project);#install on cluster
+breakdancer_cfg($project);    #install on cluster
+
 #breakdancer_mini($project);#install on cluster
-breakdancer_max($project);#install on cluster
+breakdancer_max($project);    #install on cluster
 
 #clean($project);
 
@@ -611,7 +649,7 @@ sub realigner_target_creator {
 	my $realigner_target_created = $project->realigner_target_creator($chr);
 	return 1 if ( -e $realigner_target_created );
 	my $marked  = $project->mark_duplicates();
-	my $KGIND = $project->{'CONFIG'}->{'1KGIND'};
+	my $KGIND   = $project->{'CONFIG'}->{'1KGIND'};
 	my $program = <<PROGRAM;
 java -Xmx1g -jar $gatk \\
 -T RealignerTargetCreator \\
@@ -635,8 +673,8 @@ sub indel_realigner {
 	return 1 if ( -e $indel_realigned );
 	my $marked                   = $project->mark_duplicates();
 	my $realigner_target_created = $project->realigner_target_creator($chr);
-	my $KGIND = $project->{'CONFIG'}->{'1KGIND'};
-	my $program = <<PROGRAM;
+	my $KGIND                    = $project->{'CONFIG'}->{'1KGIND'};
+	my $program                  = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T IndelRealigner \\
 -I $marked \\
@@ -940,7 +978,7 @@ sub breakdancer_cfg {
 	my $merged                 = $project->merged_sorted();
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
 
-	return 1 if (-e $breakdancer_cfg_result);
+	return 1 if ( -e $breakdancer_cfg_result );
 	my $program    = "$bam2cfg $merged > $breakdancer_cfg_result";
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merged_indexed_id() );
@@ -954,7 +992,7 @@ sub breakdancer_max {
 	my $breakdancer_cfg_result = $project->breakdancer_cfg();
 	my $breakdancer_max_result = $project->breakdancer_max();
 
-	return 1 if (-e $breakdancer_max_result);
+	return 1 if ( -e $breakdancer_max_result );
 	my $program =
 	  "$BreakDancerMax $breakdancer_cfg_result > $breakdancer_max_result";
 	my $qsub_param =
@@ -1035,7 +1073,8 @@ sub tabix {
 	my $qsub_param = '-hold_jid ' . $project->task_id( $project->bgzip_id() );
 	$task_scheduler->submit( $project->tabix_id(), $qsub_param, $program );
 }
-sub indel_annotator {#TO WRITE
+
+sub indel_annotator {    #TO WRITE
 	my ( $project, $chr ) = @_;
 	sleep($sleep_time);
 
@@ -1065,7 +1104,8 @@ java -Xmx4g -jar $gatk \\
 -L $chr
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->parallel_call_indels_id($chr) );
+	  '-hold_jid '
+	  . $project->task_id( $project->parallel_call_indels_id($chr) );
 	$task_scheduler->submit( $project->indel_annotator_id($chr),
 		$qsub_param, $program, 4 );
 }
@@ -1153,8 +1193,7 @@ sub coverage_cumulative {
 	my ( $in, $out, $job_name, $after ) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e $out );
-	my $program =
-	    "$cumulative_covarage_p $in > $out";
+	my $program = "$cumulative_covarage_p $in > $out";
 	$task_scheduler->submit_after(
 		job_name => $job_name,
 		program  => $program,

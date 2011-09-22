@@ -214,8 +214,30 @@ my $eff_html    = $project->file_prefix() . ".eff.html";
 my $eff_vcf     = $project->file_prefix() . ".eff.vcf";
 my $var_eff_job = 'var_eff.' . $project->_get_id($eff_vcf);
 snpeff( $snps_with_indels_pass, $eff_html, $eff_vcf, $var_eff_job,
-	[$snps_with_indels_pass_job] );
+	[$snps_with_indels_pass_job] ,
+	$project->{CONFIG}->{SNPEFF},
+	$project->{CONFIG}->{SNPEFF_GENOME},
+	);
+#SNPEFF2 effect prediction - !!!!!!!!!!!!!!!!!!
+my $eff2_html    = $project->file_prefix() . ".eff2.html";
+my $eff2_vcf     = $project->file_prefix() . ".eff2.vcf";
+my $var_eff2_job = 'var_eff2.' . $project->_get_id($eff2_vcf);
+snpeff2( $snps_with_indels_pass, $eff2_html, $eff2_vcf, $var_eff2_job,
+	[$snps_with_indels_pass_job] ,
+	$project->{CONFIG}->{SNPEFF2},
+	$project->{CONFIG}->{SNPEFF2_GENOME},	
+	);
 
+#SNPEFF3 effect prediction - !!!!!!!!!!!!!!!!!!
+my $eff3_html    = $project->file_prefix() . ".eff3.html";
+my $eff3_vcf     = $project->file_prefix() . ".eff3.vcf";
+my $var_eff3_job = 'var_eff3.' . $project->_get_id($eff3_vcf);
+snpeff2( $snps_with_indels_pass, $eff3_html, $eff3_vcf, $var_eff3_job,
+	[$snps_with_indels_pass_job] ,
+	$project->{CONFIG}->{SNPEFF2},
+	$project->{CONFIG}->{SNPEFF3_GENOME},	
+	);
+	
 #zipping and indexing file with annotated variations - TESTED
 my $zipped_vars      = $eff_vcf . '.gz';
 my $indexed_vars     = $zipped_vars . '.tbi';
@@ -278,17 +300,36 @@ PROGRAM
 }
 
 sub snpeff {
-	my ( $vcf, $html, $effect, $job_name, $after ) = @_;
+	my ( $vcf, $html, $effect, $job_name, $after , $snpeff, $snpeff_genome) = @_;
 	sleep($sleep_time);
 	return 1 if ( -e "$effect" && -e "$html" );
-	my $snpeff        = $project->{CONFIG}->{SNPEFF};
-	my $snpeff_genome = $project->{CONFIG}->{SNPEFF_GENOME};
 	my $program       = <<PROGRAM;
 java -jar -Xmx4g $snpeff/snpEff.jar \\
 -config $snpeff/snpEff.config \\
 -onlyCoding \\
 -stats $html \\
 -vcf4 $snpeff_genome \\
+$vcf > $effect
+PROGRAM
+	$task_scheduler->submit_after(
+		job_name => $job_name,
+		program  => $program,
+		after    => $after,
+		memory   => 4,
+	);
+}
+
+sub snpeff2 {
+	my ( $vcf, $html, $effect, $job_name, $after , $snpeff, $snpeff_genome) = @_;
+	sleep($sleep_time);
+	return 1 if ( -e "$effect" && -e "$html" );
+	my $program       = <<PROGRAM;
+java -jar -Xmx4g $snpeff/snpEff.jar \\
+-config $snpeff/snpEff.config \\
+-onlyCoding \\
+-stats $html \\
+-o vcf \\
+$snpeff_genome \\
 $vcf > $effect
 PROGRAM
 	$task_scheduler->submit_after(
@@ -570,13 +611,15 @@ sub realigner_target_creator {
 	my $realigner_target_created = $project->realigner_target_creator($chr);
 	return 1 if ( -e $realigner_target_created );
 	my $marked  = $project->mark_duplicates();
+	my $KGIND = $project->{'CONFIG'}->{'1KGIND'};
 	my $program = <<PROGRAM;
 java -Xmx1g -jar $gatk \\
 -T RealignerTargetCreator \\
 -R $genome \\
 -o $realigner_target_created \\
 -I $marked \\
--L $chr
+-L $chr \\
+--known $KGIND
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->mark_duplicates_id() );
@@ -592,7 +635,7 @@ sub indel_realigner {
 	return 1 if ( -e $indel_realigned );
 	my $marked                   = $project->mark_duplicates();
 	my $realigner_target_created = $project->realigner_target_creator($chr);
-
+	my $KGIND = $project->{'CONFIG'}->{'1KGIND'};
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T IndelRealigner \\
@@ -600,7 +643,8 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -targetIntervals $realigner_target_created \\
 -o $indel_realigned \\
--L $chr
+-L $chr \\
+--known $KGIND
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid '

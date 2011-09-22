@@ -804,7 +804,7 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -T UnifiedGenotyper \\
 -I $bam_recal \\
--B:dbsnp,VCF $dbSNP \\
+--dbsnp $dbSNP \\
 -o $gatk_vcf \\
 -stand_call_conf $stand_call_conf \\
 -stand_emit_conf $stand_emit_conf \\
@@ -833,7 +833,7 @@ java -Xmx4g -jar $gatk \\
 -T UnifiedGenotyper \\
 -glm INDEL \\
 -I $bam_recal \\
--B:dbsnp,VCF $dbSNP \\
+--dbsnp $dbSNP \\
 -o $gatk_vcf \\
 -stand_call_conf $stand_call_conf \\
 -stand_emit_conf $stand_emit_conf \\
@@ -1158,7 +1158,7 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -o $filtered \\
 -B:variant,VCF $annotated \\
--B:mask,VCF $indels \\
+--mask,VCF $indels \\
 --maskName InDel \\
 --clusterWindowSize 10 \\
 --filterExpression "MQ0 > 50" \\

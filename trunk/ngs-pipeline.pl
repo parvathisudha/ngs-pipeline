@@ -724,7 +724,6 @@ sub count_covariates {
 
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
--l INFO \\
 -T CountCovariates \\
 -R $genome \\
 -I $indel_realigned \\
@@ -733,7 +732,7 @@ java -Xmx4g -jar $gatk \\
 -cov CycleCovariate \\
 -cov DinucCovariate \\
 -recalFile $recal_file \\
--B:dbsnp,VCF $dbSNP \\
+-knownSites $dbSNP \\
 -L $chr
 PROGRAM
 	my $qsub_param =

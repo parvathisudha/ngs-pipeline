@@ -1093,7 +1093,6 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -I $bam_recal \\
 -o $annotated \\
---useAllAnnotations \\
 --variant $snps \\
 --comp:1KG,VCF $snps_1KG \\
 --comp:HapMap,VCF $hapmap \\
@@ -1129,7 +1128,6 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -I $bam_recal \\
 -o $annotated \\
---useAllAnnotations \\
 --variant $snps \\
 --comp:1KG,VCF $snps_1KG \\
 --comp:HapMap,VCF $hapmap \\

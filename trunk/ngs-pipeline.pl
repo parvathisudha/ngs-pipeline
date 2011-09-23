@@ -413,7 +413,7 @@ sub filter_pass {
 java -Xmx2g -jar $gatk \\
 -T SelectVariants \\
 -R $genome \\
--B:variant,VCF $vcf \\
+--variant $vcf \\
 -o $out \\
 -ef
 PROGRAM

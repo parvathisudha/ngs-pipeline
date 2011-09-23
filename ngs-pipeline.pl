@@ -877,7 +877,7 @@ sub merge_parallel_vcf {
 	my $merged_vcf = $merged_name;
 	return 1 if ( -e $merged_vcf );
 	sleep($sleep_time);
-	my @vcfs = map { "-B:$sample_id,VCF $_" } @$vcfs;
+	my @vcfs = map { "--variant:$sample_id $_" } @$vcfs;
 	my $all_vcf = join( ' ', @vcfs );
 	my $program = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
@@ -1157,8 +1157,8 @@ java -Xmx4g -jar $gatk \\
 -T VariantFiltration \\
 -R $genome \\
 -o $filtered \\
--B:variant,VCF $annotated \\
---mask,VCF $indels \\
+--variant $annotated \\
+--mask $indels \\
 --maskName InDel \\
 --clusterWindowSize 10 \\
 --filterExpression "MQ0 > 50" \\

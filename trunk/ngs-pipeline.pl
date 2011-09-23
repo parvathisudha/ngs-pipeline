@@ -934,11 +934,11 @@ sub variant_recalibrator {
 java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
 -R $genome \\
--B:input,VCF $merged_snps \\
--B:hapmap,VCF,known=false,training=true,truth=true,prior=15.0 $hapmap \\
--B:omni,VCF,known=false,training=true,truth=false,prior=12.0 $omni \\
--B:dbsnp,VCF,known=true,training=false,truth=false,prior=8.0 $dbSNP \\
--an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an HRun \\
+-input $merged_snps \\
+-resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap \\
+-resource:omni,known=false,training=true,truth=false,prior=12.0 $omni \\
+-resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP \\
+-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
 -rscriptFile $variant_recalibrator.plots.R
@@ -960,7 +960,7 @@ sub apply_recalibration {
 java -Xmx3g -jar $gatk \\
 -T ApplyRecalibration  \\
 -R $genome \\
--B:input,VCF $merged_snps \\
+-input $merged_snps \\
 --ts_filter_level 99.0 \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
@@ -1083,7 +1083,7 @@ sub indel_annotator {    #TO WRITE
 	return 1 if ( -e $annotated );
 	my $snps      = $project->parallel_call_indels($chr);
 	my $bam_recal = $project->table_recalibration($chr);
-	my $snps_1KG  = $project->{'CONFIG'}->{'1KG'};
+	my $snps_1KG  = $project->{'CONFIG'}->{'1KGIND'};
 	my $hapmap    = $project->{'CONFIG'}->{'HAPMAP'};
 	my $omni      = $project->{'CONFIG'}->{'OMNI'};
 	my $dbSNP     = $project->{'CONFIG'}->{'DBSNP'};
@@ -1095,12 +1095,12 @@ java -Xmx4g -jar $gatk \\
 -I $bam_recal \\
 -o $annotated \\
 --useAllAnnotations \\
--B:variant,VCF $snps \\
--B:comp1KG,VCF $snps_1KG \\
--B:compHapMap,VCF $hapmap \\
--B:compOMNI,VCF $omni \\
--B:compDBSNP,VCF $dbSNP \\
--B:dbsnp,VCF $dbSNP \\
+--variant $snps \\
+--comp:1KG,VCF $snps_1KG \\
+--comp:HapMap,VCF $hapmap \\
+--comp:OMNI,VCF $omni \\
+--comp:DBSNP,VCF $dbSNP \\
+--dbsnp $dbSNP \\
 -L $chr
 PROGRAM
 	my $qsub_param =
@@ -1131,11 +1131,12 @@ java -Xmx4g -jar $gatk \\
 -I $bam_recal \\
 -o $annotated \\
 --useAllAnnotations \\
--B:variant,VCF $snps \\
--B:comp1KG,VCF $snps_1KG \\
--B:compHapMap,VCF $hapmap \\
--B:compOMNI,VCF $omni \\
--B:compDBSNP,VCF $dbSNP \\
+--variant $snps \\
+--comp:1KG,VCF $snps_1KG \\
+--comp:HapMap,VCF $hapmap \\
+--comp:OMNI,VCF $omni \\
+--comp:DBSNP,VCF $dbSNP \\
+--dbsnp $dbSNP \\
 -L $chr
 PROGRAM
 	my $qsub_param =

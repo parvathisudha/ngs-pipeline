@@ -956,7 +956,7 @@ sub apply_recalibration {
 	my $merged_snps          = $project->merge_snps();
 	my $variant_recalibrator = $project->variant_recalibrator();
 	my $program              = <<PROGRAM;
-java -Xmx3g -jar $gatk \\
+java -Xmx6g -jar $gatk \\
 -T ApplyRecalibration  \\
 -R $genome \\
 -input $merged_snps \\
@@ -968,7 +968,7 @@ PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->variant_recalibrator_id() );
 	$task_scheduler->submit( $project->apply_recalibration_id(),
-		$qsub_param, $program, 3 );
+		$qsub_param, $program, 6 );
 }
 
 sub breakdancer_cfg {

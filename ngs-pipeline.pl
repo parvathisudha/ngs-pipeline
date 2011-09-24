@@ -929,6 +929,7 @@ sub variant_recalibrator {
 	my $hapmap      = $project->{'CONFIG'}->{'HAPMAP'};
 	my $omni        = $project->{'CONFIG'}->{'OMNI'};
 	my $merged_snps = $project->merge_snps();
+	my $resources = $project->{'CONFIG'}->{'GATK'} . "/resources/";
 	my $program     = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
@@ -940,7 +941,8 @@ java -Xmx4g -jar $gatk \\
 -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
--rscriptFile $variant_recalibrator.plots.R
+-rscriptFile $variant_recalibrator.plots.R \\
+--path_to_resources $resources
 PROGRAM
 	my $qsub_param =
 	  '-hold_jid ' . $project->task_id( $project->merge_snps_id() );

@@ -1019,7 +1019,7 @@ java -Xmx4g -jar $gatk \\
 -R $genome \\
 -input $merged_indels \\
 --resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills \\
--an QD -an FS -an HaplotypeScore -an ReadPosRankSum -an InbreedingCoeff \\
+-an QD -an FS -an HaplotypeScore -an ReadPosRankSum \\
 -mode INDEL \\
 --recal_file $variant_recalibrator.recal \\
 --tranches_file $variant_recalibrator \\

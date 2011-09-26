@@ -963,14 +963,14 @@ java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
 -R $genome \\
 -input $merged_snps \\
--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap \\
--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni \\
--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP \\
+--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap \\
+--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni \\
+--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP \\
 -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \\
 -mode SNP \\
--recalFile $variant_recalibrator.recal \\
--tranchesFile $variant_recalibrator \\
--rscriptFile $variant_recalibrator.plots.R \\
+--recal_file $variant_recalibrator.recal \\
+--tranches_file $variant_recalibrator \\
+--rscript_file $variant_recalibrator.plots.R \\
 --path_to_resources $resources
 PROGRAM
 	my $qsub_param =
@@ -992,8 +992,8 @@ java -Xmx6g -jar $gatk \\
 -R $genome \\
 -input $merged_snps \\
 --ts_filter_level 99.0 \\
--recalFile $variant_recalibrator.recal \\
--tranchesFile $variant_recalibrator \\
+--recal_file $variant_recalibrator.recal \\
+--tranches_file $variant_recalibrator \\
 -mode SNP \\
 -o $recalibrated_vcf
 PROGRAM
@@ -1018,12 +1018,12 @@ java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
 -R $genome \\
 -input $merged_indels \\
--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 indels_mills_devine.b37.sites.vcf \
--an QD -an FS -an HaplotypeScore -an ReadPosRankSum -an InbreedingCoeff \
+--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 indels_mills_devine.b37.sites.vcf \\
+-an QD -an FS -an HaplotypeScore -an ReadPosRankSum -an InbreedingCoeff \\
 -mode INDEL \\
--recalFile $variant_recalibrator.recal \\
--tranchesFile $variant_recalibrator \\
--rscriptFile $variant_recalibrator.plots.R \\
+--recal_file $variant_recalibrator.recal \\
+--tranches_file $variant_recalibrator \\
+--rscript_file $variant_recalibrator.plots.R \\
 --path_to_resources $resources
 PROGRAM
 	my $qsub_param =
@@ -1045,8 +1045,8 @@ java -Xmx6g -jar $gatk \\
 -R $genome \\
 -input $merged_indels \\
 --ts_filter_level 99.0 \\
--recalFile $variant_recalibrator.recal \\
--tranchesFile $variant_recalibrator \\
+--recal_file $variant_recalibrator.recal \\
+--tranches_file $variant_recalibrator \\
 -mode INDEL \\
 -o $recalibrated_vcf
 PROGRAM

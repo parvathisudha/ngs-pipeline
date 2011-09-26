@@ -120,7 +120,26 @@ my $merged_indels         = $project->merge_indels();
 my $merge_indels_job      = $project->merge_indels_id();
 my $merged_snps           = $project->merge_snps();
 my $merge_snps_job        = $project->merge_snps_id();
+
+my $snps_passed           = 'snps.pass.vcf';
+my $indels_passed           = 'indels.pass.vcf';
+my $snps_tranches = 'snps.tranches';
+my $indels_tranches = 'indels.tranches';
+my $snps_recal = 'snps.recal.vcf';
+my $indels_recal = 'indels.recal.vcf';
+my $variations = 'variations.vcf'; 
+
+my $merged_snps           = $project->merge_snps();
+my $merge_snps_job        = $project->merge_snps_id();
+
+my $snps_with_indels      = $project->file_prefix() . ".variants.vcf";
+my $snps_with_indels_job  = 'merg.var.' . $project->_get_id($snps_with_indels);
+my $snps_with_indels_pass = $project->file_prefix() . ".variants.pass.vcf";
+my $snps_with_indels_pass_job =
+  'pass.var.' . $project->_get_id($snps_with_indels_pass);
+
 if ( $tasks{'VARIATION'} ) {
+
 	for my $chr (@chr) {
 		realigner_target_creator( $project, $chr );    #..
 		indel_realigner( $project, $chr );             #..
@@ -165,8 +184,28 @@ if ( $tasks{'VARIATION'} ) {
 	merge_parallel_vcf( $project, \@indels_to_merge, $sample_id, $merged_indels,
 		$merge_indels_job, \@before_indels_merge );
 
-	variant_recalibrator($project);    #
-	apply_recalibration($project);     #
+	#selecting PASS SNPs - !!!!!!!!!!!!!!!!!!
+	#$vcf, $id, $out, $job_name, $after
+	filter_pass( $merged_snps, $sample_id, $snps_passed, [$merge_snps_job] );
+		
+	#selecting PASS Indels - !!!!!!!!!!!!!!!!!!
+	filter_pass( $merged_indels, $sample_id, $indels_passed, [$merge_indels_job] );
+		
+	snps_variant_recalibrator($project);    #
+	snps_apply_recalibration($project);     #
+	
+	indels_variant_recalibrator($project);    #
+	indels_apply_recalibration($project);     #		
+
+	#merging snps with indels - TESTED
+
+	my $before_merge = [ $project->get_job_by_suffix($snps_recal), $project->get_job_by_suffix($indels_recal) ];
+	#$project, $vcfs, $sample_id, $merged_name, $job_name, $after
+	merge_parallel_vcf(
+		$project, [ $project->get_out_by_suffix($snps_recal), $project->get_out_by_suffix($indels_recal) ],
+		$sample_id, $project->get_out_by_suffix($variations),
+		$project->get_job_by_suffix($variations), $before_merge
+	);
 }
 
 #merging recalibrated bams
@@ -218,36 +257,20 @@ my $depth_coverage_job = 'gcov.' . $project->_get_id($gatk_cov);
 depth_coverage( $merged_recalibrated_bam, $genome_bed, $gatk_cov,
 	$depth_coverage_job, [$merge_recalibrated_bams_job] );
 
-#merging snps with indels - TESTED
-
-my $snps_with_indels     = $project->file_prefix() . ".variants.vcf";
-my $snps_with_indels_job = 'merg.var.' . $project->_get_id($snps_with_indels);
-my $before_merge         = [ $merge_indels_job, $recalibrated_snps_job ];
-merge_parallel_vcf( $project, [ $recalibrated_snps, $merged_indels ],
-	$sample_id, $snps_with_indels, $snps_with_indels_job, $before_merge,
-	$snps_with_indels_job );
-
-#selecting PASS variants - !!!!!!!!!!!!!!!!!!
-my $snps_with_indels_pass     = $project->file_prefix() . ".variants.pass.vcf";
-my $snps_with_indels_pass_job =
-  'pass.var.' . $project->_get_id($snps_with_indels_pass);
-filter_pass( $snps_with_indels, $sample_id, $snps_with_indels_pass,
-	$snps_with_indels_pass_job, [$snps_with_indels_job] );
-
 #variant evaluation - !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 my $var_stat           = $project->file_prefix() . ".stat";
 my $var_evaluation_job = 'var_eval.' . $project->_get_id($var_stat);
-variant_evaluation( $snps_with_indels_pass, $var_stat, $var_evaluation_job,
-	[$snps_with_indels_pass_job] );
+variant_evaluation( $project->get_out_by_suffix($variations), $var_stat, $var_evaluation_job,
+	[$project->get_job_by_suffix($variations)] );
 
 #effect prediction - TESTED
 my $eff_html    = $project->file_prefix() . ".eff.html";
 my $eff_vcf     = $project->file_prefix() . ".eff.vcf";
 my $var_eff_job = 'var_eff.' . $project->_get_id($eff_vcf);
 snpeff(
-	$snps_with_indels_pass,       $eff_html,
+	$project->get_out_by_suffix($variations),       $eff_html,
 	$eff_vcf,                     $var_eff_job,
-	[$snps_with_indels_pass_job], $project->{CONFIG}->{SNPEFF},
+	[$project->get_job_by_suffix($variations)], $project->{CONFIG}->{SNPEFF},
 	$project->{CONFIG}->{SNPEFF_GENOME},
 );
 
@@ -256,9 +279,9 @@ my $eff2_html    = $project->file_prefix() . ".eff2.html";
 my $eff2_vcf     = $project->file_prefix() . ".eff2.vcf";
 my $var_eff2_job = 'var_eff2.' . $project->_get_id($eff2_vcf);
 snpeff2(
-	$snps_with_indels_pass,       $eff2_html,
+	$project->get_out_by_suffix($variations),       $eff2_html,
 	$eff2_vcf,                    $var_eff2_job,
-	[$snps_with_indels_pass_job], $project->{CONFIG}->{SNPEFF2},
+	[$project->get_job_by_suffix($variations)], $project->{CONFIG}->{SNPEFF2},
 	$project->{CONFIG}->{SNPEFF2_GENOME},
 );
 
@@ -267,9 +290,9 @@ my $eff3_html    = $project->file_prefix() . ".eff3.html";
 my $eff3_vcf     = $project->file_prefix() . ".eff3.vcf";
 my $var_eff3_job = 'var_eff3.' . $project->_get_id($eff3_vcf);
 snpeff2(
-	$snps_with_indels_pass,       $eff3_html,
+	$project->get_out_by_suffix($variations),       $eff3_html,
 	$eff3_vcf,                    $var_eff3_job,
-	[$snps_with_indels_pass_job], $project->{CONFIG}->{SNPEFF2},
+	[$project->get_job_by_suffix($variations)], $project->{CONFIG}->{SNPEFF2},
 	$project->{CONFIG}->{SNPEFF3_GENOME},
 );
 
@@ -406,7 +429,10 @@ PROGRAM
 }
 
 sub filter_pass {
-	my ( $vcf, $id, $out, $job_name, $after ) = @_;
+	#$merged_snps, $sample_id, $snps_passed, [$merge_snps_job]
+	my ( $vcf, $id, $suffix, $after ) = @_;
+	my $out = $project->get_out_by_suffix($suffix); 
+	my $job_name = $project->get_job_by_suffix($suffix);
 	sleep($sleep_time);
 	return 1 if ( -e "$out" );
 	my $program = <<PROGRAM;
@@ -920,16 +946,18 @@ PROGRAM
 		$qsub_param, $program, 4 );
 }
 
-sub variant_recalibrator {
+sub snps_variant_recalibrator {
 	my ($project) = @_;
 	sleep($sleep_time);
-	my $variant_recalibrator = $project->variant_recalibrator();
+	my $variant_recalibrator = $project->get_out_by_suffix($snps_tranches);
 	return 1 if ( -e $variant_recalibrator );
 	my $dbSNP       = $project->{'CONFIG'}->{'DBSNP'};
 	my $hapmap      = $project->{'CONFIG'}->{'HAPMAP'};
 	my $omni        = $project->{'CONFIG'}->{'OMNI'};
-	my $merged_snps = $project->merge_snps();
-	my $resources = $project->{'CONFIG'}->{'GATK'} . "/resources/";
+	my $merged_snps = $project->get_out_by_suffix($snps_passed); 
+	my $pre_job_name = $project->get_job_by_suffix($snps_passed);
+	
+	my $resources   = $project->{'CONFIG'}->{'GATK'} . "/resources/";
 	my $program     = <<PROGRAM;
 java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
@@ -939,24 +967,25 @@ java -Xmx4g -jar $gatk \\
 -resource:omni,known=false,training=true,truth=false,prior=12.0 $omni \\
 -resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP \\
 -an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ \\
+-mode SNP \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
 -rscriptFile $variant_recalibrator.plots.R \\
 --path_to_resources $resources
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->merge_snps_id() );
-	$task_scheduler->submit( $project->variant_recalibrator_id(),
+	  '-hold_jid ' . $project->task_id( $pre_job_name );
+	$task_scheduler->submit( $project->get_job_by_suffix($snps_tranches),
 		$qsub_param, $program, 4 );
 }
 
-sub apply_recalibration {
+sub snps_apply_recalibration {
 	my ($project) = @_;
 	sleep($sleep_time);
-	my $recalibrated_vcf = $project->apply_recalibration();
+	my $recalibrated_vcf = $project->get_out_by_suffix($snps_recal);
 	return 1 if ( -e $recalibrated_vcf );
-	my $merged_snps          = $project->merge_snps();
-	my $variant_recalibrator = $project->variant_recalibrator();
+	my $merged_snps = $project->get_out_by_suffix($snps_passed); 
+	my $variant_recalibrator = $project->get_out_by_suffix($snps_tranches);
 	my $program              = <<PROGRAM;
 java -Xmx6g -jar $gatk \\
 -T ApplyRecalibration  \\
@@ -965,11 +994,65 @@ java -Xmx6g -jar $gatk \\
 --ts_filter_level 99.0 \\
 -recalFile $variant_recalibrator.recal \\
 -tranchesFile $variant_recalibrator \\
+-mode SNP \\
 -o $recalibrated_vcf
 PROGRAM
 	my $qsub_param =
-	  '-hold_jid ' . $project->task_id( $project->variant_recalibrator_id() );
-	$task_scheduler->submit( $project->apply_recalibration_id(),
+	  '-hold_jid ' . $project->task_id( $project->get_job_by_suffix($snps_tranches) );
+	$task_scheduler->submit( $project->get_job_by_suffix($snps_recal),
+		$qsub_param, $program, 6 );
+}
+
+
+sub indels_variant_recalibrator {
+	my ($project) = @_;
+	sleep($sleep_time);
+	my $variant_recalibrator = $project->get_out_by_suffix($indels_tranches);
+	return 1 if ( -e $variant_recalibrator );
+	my $indels_mills  = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
+	my $merged_indels = $project->get_out_by_suffix($indels_passed); 
+	my $pre_job_name = $project->get_job_by_suffix($indels_passed);
+	my $resources   = $project->{'CONFIG'}->{'GATK'} . "/resources/";
+	my $program     = <<PROGRAM;
+java -Xmx4g -jar $gatk \\
+-T VariantRecalibrator  \\
+-R $genome \\
+-input $merged_indels \\
+-resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 indels_mills_devine.b37.sites.vcf \
+-an QD -an FS -an HaplotypeScore -an ReadPosRankSum -an InbreedingCoeff \
+-mode INDEL \\
+-recalFile $variant_recalibrator.recal \\
+-tranchesFile $variant_recalibrator \\
+-rscriptFile $variant_recalibrator.plots.R \\
+--path_to_resources $resources
+PROGRAM
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $pre_job_name );
+	$task_scheduler->submit( $project->get_job_by_suffix($indels_tranches),
+		$qsub_param, $program, 4 );
+}
+
+sub indels_apply_recalibration {
+	my ($project) = @_;
+	sleep($sleep_time);
+	my $recalibrated_vcf = $project->get_out_by_suffix($indels_recal);
+	return 1 if ( -e $recalibrated_vcf );
+	my $merged_indels = $project->get_out_by_suffix($indels_passed); 
+	my $variant_recalibrator = $project->get_out_by_suffix($indels_tranches);
+	my $program              = <<PROGRAM;
+java -Xmx6g -jar $gatk \\
+-T ApplyRecalibration  \\
+-R $genome \\
+-input $merged_indels \\
+--ts_filter_level 99.0 \\
+-recalFile $variant_recalibrator.recal \\
+-tranchesFile $variant_recalibrator \\
+-mode INDEL \\
+-o $recalibrated_vcf
+PROGRAM
+	my $qsub_param =
+	  '-hold_jid ' . $project->task_id( $project->get_job_by_suffix($indels_tranches) );
+	$task_scheduler->submit( $project->get_job_by_suffix($indels_recal),
 		$qsub_param, $program, 6 );
 }
 

@@ -1018,7 +1018,7 @@ java -Xmx4g -jar $gatk \\
 -T VariantRecalibrator  \\
 -R $genome \\
 -input $merged_indels \\
---resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 indels_mills_devine.b37.sites.vcf \\
+--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills \\
 -an QD -an FS -an HaplotypeScore -an ReadPosRankSum -an InbreedingCoeff \\
 -mode INDEL \\
 --recal_file $variant_recalibrator.recal \\

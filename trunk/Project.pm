@@ -434,6 +434,16 @@ sub breakdancer_mini_id {
 	return 'brd_mini' . $self->_get_id( $self->breakdancer_mini() );
 }
 
+sub get_out_by_suffix{
+	my ($self, $suffix) = @_;
+	return $self->file_prefix() . ".$suffix";	
+}
+
+sub get_job_by_suffix{
+	my ($self, $suffix) = @_;
+	return $suffix . $self->_get_id( $self->get_out_by_suffix($suffix) );	
+}
+
 sub variant_annotator {
 	my ($self, $chr) = @_;
 	return $self->file_prefix() . ".$chr.snps.annot.vcf";

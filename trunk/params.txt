@@ -13,6 +13,7 @@ HAPMAP=/data/genomes/gsa/1.1/b37/hapmap_3.3.b37.sites.vcf
 OMNI=/data/genomes/gsa/1.1/b37/1000G_omni2.5.b37.sites.vcf
 1KG=/data/genomes/bwa/human_g1k_v37/ALL.wgs.phase1.projectConsensus.snps.sites.vcf
 1KGIND=/data/genomes/gsa/1.1/b37/1000G_indels_for_realignment.b37.vcf
+INDELS_MILLS_DEVINE=/data/genomes/gsa/1.1/b37/indels_mills_devine.b37.sites.vcf
 SNPEFF=/data/test/20110630/SnpEffect
 SNPEFF_GENOME=grch37_gencode8
 SNPEFF2=/data/software/snpEff_v2_0_2

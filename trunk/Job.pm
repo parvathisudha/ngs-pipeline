@@ -165,7 +165,6 @@ sub job_id {
 
 sub get_sge_id {
 	my ( $self, $file ) = @_;
-	return "0000" if $self->virtual;
 	if ( $self->project()->{'DEBUG'} ) {
 		$file = "id.txt";
 	}

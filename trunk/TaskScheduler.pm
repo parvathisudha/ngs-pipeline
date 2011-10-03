@@ -85,8 +85,6 @@ export PATH=\$PATH:/data/software/tabix
 export PERL5LIB=\$PERL5LIB:/data/software/breakdancer
 
 $program
-# Send mail at submission and completion of script
-#\$ -m be
 COMMAND
 	my $script_name = $self->_script_name($job_name);	
 	open( OUT, ">$script_name" )

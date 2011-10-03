@@ -20,13 +20,54 @@ use Data::Dumper;
 	}
 	1;
 }
+
+#######################################################
+{
+
+	package MergeSamFiles;
+	our @ISA = qw( PicardJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->string_id('sort_sam');
+		my $tmp_dir = $self->project()->dir;
+		$self->memory(5);
+		my $previous = $self->previous();
+		my @input    = $self->input;
+		$output = $input[0] . ".joined.bam";
+		my $program =
+		  $self->picard( "MergeSamFiles.jar", [ @input, "OUTPUT=$output" ] );
+		$self->program($program);
+		$self->out($output);
+	}
+
+	sub input {
+		my ( $self, ) = @_;
+		return map { "INPUT=" . $_->out } @{ $self->previous };
+	}
+
+	sub out {
+		my ( $self, $output ) = @_;
+		$self->{output_by_type}->{main} = $output if $output;
+		return $self->{output_by_type}->{main};
+	}
+	1;
+}
+
 #######################################################
 {
 
 	package SaiToBam;
 	use Data::Dumper;
-	our @ISA = qw( Job );
-	
+	our @ISA = qw( BwaJob );
+
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
@@ -40,12 +81,12 @@ use Data::Dumper;
 		my $bwa_path = $self->project()->{'CONFIG'}->{'BWA'};
 		my $view     =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
-		my $genome  = $self->project()->{'CONFIG'}->{'GENOME'};
+		my $genome   = $self->project()->{'CONFIG'}->{'GENOME'};
 		my $previous = $self->previous();
-		my $rg      = $self->get_read_group( $$previous[0]->lane() );
-		my $sai     = join( " ", map { $_->out() } @$previous );
-		my $fastq   = join( " ", map { $_->output_by_type('fastq') } @$previous );
-		my $out     = $$previous[0]->out() . ".bam";
+		my $rg       = $self->get_read_group( $self->lane() );
+		my $sai      = join( " ", map { $_->out() } @$previous );
+		my $fastq = join( " ", map { $_->output_by_type('fastq') } @$previous );
+		my $out   = $$previous[0]->out() . ".bam";
 		my $command = scalar @$previous == 2 ? 'sampe' : 'samse';
 		$program =
 		  "$bwa_path/$command $genome $sai $fastq -r $rg | $view -bS - > $out";
@@ -95,6 +136,7 @@ use Data::Dumper;
 {
 
 	package PicardJob;
+	use Data::Dumper;
 	our @ISA = qw( Job );
 
 	sub new {
@@ -107,19 +149,18 @@ use Data::Dumper;
 	}
 
 	sub picard {
-		my ( $self, %params ) = @_;
+		my ( $self, $program, $params ) = @_;
 		my $picard = $self->{picard};
 		$picard = "java -Xmx" . $self->memory() . "g -jar $picard";
-		$picard .= $params{jar};
-		delete $params{jar};
-		my %basic_params = {
-			TMP_DIR               => $self->project()->tmp_dir(),
-			VALIDATION_STRINGENCY => SILENT,
-			MAX_RECORDS_IN_RAM    => 1250000,
-		};
-		my %all_params = ( %basic_params, %params );
-		while ( ( $key, $value ) = each %all_params ) {
-			$picard .= " $key=$value";
+		$picard .= $program;
+		my @basic_params = (
+			"TMP_DIR=" . $self->project()->tmp_dir(),
+			"VALIDATION_STRINGENCY=SILENT",
+			"MAX_RECORDS_IN_RAM=1250000",
+		);
+		my @all_params = ( @basic_params, @$params );
+		for (@all_params) {
+			$picard .= " $_";
 		}
 		return $picard;
 	}
@@ -152,46 +193,83 @@ use Data::Dumper;
 		my $params    = $self->params();
 
 		#print "PROCESS: ", Dumper $lane;
-		my $job_factory = $self->job_factory();
-		if ( $lane->{PL} eq 'ILLUMINA' ) {
-			my @sai;
-			if ( $lane->{FORWARD} ) {
-				my $align = Align->new(
-					params   => $params,
-					previous => [$self],
-					lane     => $lane,
-					type     => 'FORWARD'
-				);
-				$align->align_fastq();
-				push( @sai, $align );
-			}
-			if ( $lane->{REVERSE} ) {
-				my $align = Align->new(
-					params   => $params,
-					previous => [$self],
-					lane     => $lane,
-					type     => 'REVERSE'
-				);
-				$align->align_fastq();
-				push( @sai, $align );
-			}
-			my $sai_to_bam =
-			  SaiToBam->new( params => $params, previous =>  \@sai );
-			
-			my $sort_sam =
-			  SortSam->new( params => $params, previous => [$sai_to_bam] );
-			$self->{last_job} = $sort_sam;
+		my @sai;
+		if ( $lane->{FORWARD} ) {
+			my $align = Align->new(
+				params   => $params,
+				previous => [$self],
+				lane     => $lane,
+				type     => 'FORWARD'
+			);
+			$align->align_fastq();
+			push( @sai, $align );
+		}
+		if ( $lane->{REVERSE} ) {
+			my $align = Align->new(
+				params   => $params,
+				previous => [$self],
+				lane     => $lane,
+				type     => 'REVERSE'
+			);
+			$align->align_fastq();
+			push( @sai, $align );
+		}
+		my $sai_to_bam =
+		  SaiToBam->new( lane => $lane, params => $params, previous => \@sai );
+
+		my $sort_sam =
+		  SortSam->new( params => $params, previous => [$sai_to_bam] );
+		$self->{last_job} = $sort_sam;
+	}
+	1;
+}
+#######################################################
+{
+
+	package BwaJob;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->string_id('root_job');
+		$self->virtual(1);
+	}
+
+	sub lane {
+		my ( $self, $lane ) = @_;
+		$self->{lane} = $lane if $lane;
+		return $self->{lane};
+	}
+
+	sub genome {
+		my ( $self, ) = @_;
+		if ( $self->platform eq 'ILLUMINA' ) {
+			return $self->{config}->{PARAMETERS}->{GENOME};
+		}
+		elsif ( $self->platform eq 'Solid' ) {
+			return $self->{config}->{PARAMETERS}->{GENOME_COLOR};
+		}
+		else {
+			return undef;
 		}
 	}
 
-	#@Override
-	sub output_files {
-		my ( $self, ) = @_;
+	sub lane {
+		my ( $self, $lane ) = @_;
+		$self->{lane} = $lane if $lane;
+		return $self->{lane};
 	}
 
-	#@Override
-	sub program {
+	sub platform {
 		my ( $self, ) = @_;
+		return $self->lane->{PL};
 	}
 	1;
 }
@@ -199,7 +277,7 @@ use Data::Dumper;
 {
 
 	package Align;
-	our @ISA = qw( Job );
+	our @ISA = qw( BwaJob );
 
 	sub new {
 		my ( $class, %params ) = @_;
@@ -214,27 +292,26 @@ use Data::Dumper;
 		$self->processors( $self->project()->{'CONFIG'}->{'BWA_PROCESSORS'} );
 	}
 
-	sub lane {
-		my ( $self, $lane ) = @_;
-		$self->{lane} = $lane if $lane;
-		return $self->{lane};
-	}
 	sub type {
 		my ( $self, $type ) = @_;
 		$self->{type} = $type if $type;
 		return $self->{type};
 	}
+
 	sub align_fastq {
-		my ( $self,) = @_;
-		my $lane = $self->lane();
-		my $type = $self->type();
-		my $suffix       = $lane->{ID} . ".$type" . '.sai';
-		my $prefix       = $self->project()->file_prefix();
-		my $in           = $lane->{$type};
-		my $out          = "$prefix.$suffix";
-		my $bwa          = $self->project()->{'CONFIG'}->{'BWA'} . "/bwa";
-		my $proc         = $self->processors();
-		my $align        = "$bwa aln -t $proc";
+		my ( $self, )  = @_;
+		my $lane       = $self->lane();
+		my $type       = $self->type();
+		my $suffix     = $lane->{ID} . ".$type" . '.sai';
+		my $prefix     = $self->project()->file_prefix();
+		my $in         = $lane->{$type};
+		my $out        = "$prefix.$suffix";
+		my $bwa        = $self->project()->{'CONFIG'}->{'BWA'} . "/bwa";
+		my $proc       = $self->processors();
+		my $genome     = $self->genome;
+		my $colorspace = "";
+		$colorspace = "-c" if $self->platform eq 'Solid';
+		my $align        = "$bwa aln -q 5 -t $proc $colorspace";
 		my $program      = "$align -f $out $genome $in";
 		my $bwa_priority = 10;
 		my $qsub_param   = "-pe mpi $proc -p $bwa_priority";
@@ -265,14 +342,14 @@ use Data::Dumper;
 		my $tmp_dir = $self->project()->dir;
 		$self->memory(5);
 		my $previous = $self->previous();
-		my $input = $$previous[0]->out();
-		$output = $input . "sorted.bam";
+		my $input    = $$previous[0]->out();
+		$output = $input . ".sorted.bam";
 		my $program = $self->picard(
-			jar          => SortSam . jar,
-			INPUT        => $input,
-			OUTPUT       => $output,
-			CREATE_INDEX => true,
-			SORT_ORDER   => coordinate,
+			"SortSam.jar",
+			[
+				"INPUT=$input",      "OUTPUT=$output",
+				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
+			]
 		);
 		$self->program($program);
 		$self->out($output);

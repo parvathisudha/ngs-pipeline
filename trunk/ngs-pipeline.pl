@@ -40,7 +40,7 @@ my $root_job = RootJob->new( params => $params, previous => undef);
 my @lanes_processing;
 for my $lane ( @{ $project->get_lanes() } ) {
 	my $process_lane = ProcessLane->new( params => $params, previous => [$root_job] , lane => $lane );
-	push( @lanes_processing, $process_lane );
+	push( @lanes_processing, $process_lane->last_job );
 }
-
+#my join_lane_bams = MergeSamFiles->new( params => $params, previous => [@lanes_processing]);
 $job_manager->start();

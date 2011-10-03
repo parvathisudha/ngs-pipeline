@@ -58,6 +58,7 @@ sub make_folder_structure {
 	$self->mkdir( $self->output_dir() );
 	$self->mkdir( $self->error_dir() );
 	$self->mkdir( $self->ids_dir() );
+	$self->mkdir( $self->tmp_dir() );
 }
 
 sub mkdir {
@@ -72,7 +73,7 @@ sub file_prefix {
 
 sub tmp_dir{
 	my ($self) = @_;
-	return $self->dir;
+	return $self->dir() . '/tmp';
 }
 
 sub command {

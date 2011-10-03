@@ -12,7 +12,6 @@ sub new {
 	}
 	bless $self, $class;
 	$self->{output_by_type} = {};
-	$self->{last_job}       = $self;
 	$self->manager()->register($self);
 	$self->initialize();
 	return $self;
@@ -102,7 +101,6 @@ sub job_factory {
 sub cluster_id {
 	my ( $self, ) = @_;
 }
-
 sub name {
 	my ( $self, ) = @_;
 	return $self->string_id();
@@ -110,7 +108,6 @@ sub name {
 
 sub submit {
 	my ( $self, ) = @_;
-	print $self->string_id, "\n";
 	unless ( $self->virtual ) {
 		$self->scheduler()->submit_job($self);
 	}

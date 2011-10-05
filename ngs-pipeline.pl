@@ -396,7 +396,7 @@ PROGRAM
 		job_name => $job_name,
 		program  => $program,
 		after    => $after,
-		memory   => 4,
+		memory   => 8,
 	);
 }
 

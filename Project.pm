@@ -663,6 +663,7 @@ sub get_sge_id {
 		return $1 if m/Your job\s(\d+)\s/;
 	}
 	close IN;
+	return "0000";
 }
 
 sub command {

@@ -78,8 +78,7 @@ use Data::Dumper;
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->string_id('sai_to_bam');
-		my $bwa_path = $self->project()->{'CONFIG'}->{'BWA'};
-		my $view     =
+		my $view =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
 		my $genome   = $self->project()->{'CONFIG'}->{'GENOME'};
 		my $previous = $self->previous();
@@ -88,8 +87,12 @@ use Data::Dumper;
 		my $fastq = join( " ", map { $_->output_by_type('fastq') } @$previous );
 		my $out   = $$previous[0]->out() . ".bam";
 		my $command = scalar @$previous == 2 ? 'sampe' : 'samse';
-		$program =
-		  "$bwa_path/$command $genome $sai $fastq -r $rg | $view -bS - > $out";
+		my $program = Program->new(
+			path         => $self->project()->{'CONFIG'}->{'BWA'},
+			name         => $command,
+			basic_params =>
+			  [ $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ]
+		);
 		$self->program($program);
 		$self->out($out);
 	}
@@ -143,27 +146,11 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
-		my $picard = $self->project()->{'CONFIG'}->{'PICARD'} . "/";
-		$self->{picard} = $picard;
+		my $program = PicardProgram->new(path=>$self->project()->{'CONFIG'}->{'PICARD'});
+		$self->program($program);
 		return $self;
 	}
 
-	sub picard {
-		my ( $self, $program, $params ) = @_;
-		my $picard = $self->{picard};
-		$picard = "java -Xmx" . $self->memory() . "g -jar $picard";
-		$picard .= $program;
-		my @basic_params = (
-			"TMP_DIR=" . $self->project()->tmp_dir(),
-			"VALIDATION_STRINGENCY=SILENT",
-			"MAX_RECORDS_IN_RAM=1250000",
-		);
-		my @all_params = ( @basic_params, @$params );
-		for (@all_params) {
-			$picard .= " $_";
-		}
-		return $picard;
-	}
 	1;
 }
 #######################################################
@@ -306,15 +293,20 @@ use Data::Dumper;
 		my $prefix     = $self->project()->file_prefix();
 		my $in         = $lane->{$type};
 		my $out        = "$prefix.$suffix";
-		my $bwa        = $self->project()->{'CONFIG'}->{'BWA'} . "/bwa";
 		my $proc       = $self->processors();
 		my $genome     = $self->genome;
 		my $colorspace = "";
 		$colorspace = "-c" if $self->platform eq 'Solid';
-		my $align        = "$bwa aln -q 5 -t $proc $colorspace";
-		my $program      = "$align -f $out $genome $in";
 		my $bwa_priority = 10;
 		my $qsub_param   = "-pe mpi $proc -p $bwa_priority";
+		my $program      = Program->new(
+			prefix       => $self->project()->{'CONFIG'}->{'BWA'},
+			name         => 'bwa',
+			basic_params => [
+				'aln',     '-q 5',  "-t $proc", $colorspace,
+				"-f $out", $genome, $in
+			]
+		);
 		$self->program($program);
 		$self->qsub_params($qsub_param);
 		$self->out($out);
@@ -344,14 +336,13 @@ use Data::Dumper;
 		my $previous = $self->previous();
 		my $input    = $$previous[0]->out();
 		$output = $input . ".sorted.bam";
-		my $program = $self->picard(
-			"SortSam.jar",
+		$self->program->additional_params(
 			[
 				"INPUT=$input",      "OUTPUT=$output",
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
 			]
 		);
-		$self->program($program);
+		$self->program->name("SortSam.jar");
 		$self->out($output);
 	}
 	1;

@@ -92,15 +92,6 @@ sub string_id {
 	return $self->{string_id};
 }
 
-sub job_factory {
-	my ( $self, $job_factory ) = @_;
-	$self->{job_factory} = $job_factory if $job_factory;
-	return $self->{job_factory};
-}
-
-sub cluster_id {
-	my ( $self, ) = @_;
-}
 sub name {
 	my ( $self, ) = @_;
 	return $self->string_id();

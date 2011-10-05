@@ -56,7 +56,7 @@ sub make_script {
 	#my ( $self, $user_id, $job_id, $program, $dir ) = @_;
 	my ( $self, $job) = @_;
 	my $job_name = $job->job_name();
-	my $program = $job->program();
+	my $program = $job->program->to_string;
 	my $project = $self->{'PROJECT'};
 	my $user_id = $project->{'CONFIG'}->{'USER'};
 	my $command = <<COMMAND;

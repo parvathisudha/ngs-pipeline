@@ -1,7 +1,6 @@
 package TaskScheduler;
 use strict;
-use Data::Dumper;
-my $global_qsub_params = '';
+my $global_qsub_params = '-m e';
 
 sub new {
 	my ( $class, $project , $debug) = @_;
@@ -14,30 +13,41 @@ sub new {
 	return $self;
 }
 
-sub submit_job {
-	my ( $self, $job) = @_;
-	my @ids = map {$_->job_id} @{$job->previous};
-	my $qsub_params = $job->qsub_params;
-	$qsub_params .= " -hold_jid " . join(",", @ids) unless $ids[0] eq undef;
-	my $memory_qs  = 'mem_total=' . $job->memory() . 'G';
+sub submit {
+	#my ( $self, $user_id, $job_id, $qsub_params, $program, $email, $dir) = @_;
+	my ( $self, $job_name, $qsub_params, $program, $memory) = @_;
+	my $memory_qs  = 'mem_total=' . $memory . 'G';
 	my $memstr = " -l $memory_qs";
-	$qsub_params .= $memstr;
-	$self->make_script( $job);
-	$self->run_script( $job, $qsub_params);
+	$qsub_params .= $memstr if $memory;
+	$self->make_script( $job_name, $program);
+	$self->run_script( $job_name, $qsub_params);
+}
+
+sub submit_after {
+	my %params;
+	#my ( $self, $job_name, $qsub_params, $program, $memory, $after) = @_;
+	my ( $self, %params) = @_;
+	my $project = $self->{'PROJECT'};
+	my @ids = map {$project->task_id($_)} @{$params{after}};
+	$params{qsub_params} .= " -hold_jid " . join(",", @ids);
+	my $memory_qs  = 'mem_total=' . $params{memory} . 'G';
+	my $memstr = " -l $memory_qs";
+	$params{qsub_params} .= $memstr if $params{memory};
+	$self->make_script( $params{job_name}, $params{program});
+	$self->run_script( $params{job_name}, $params{qsub_params});
 }
 
 sub run_script {
 	#my ( $self, $qsub_params, $job_id, $email, $dir) = @_;
-	my ( $self, $job, $qsub_params) = @_;
-	my $job_name = $job->job_name();
-	my $project = $job->project;
+	my ( $self, $job_name, $qsub_params) = @_;
+	my $project = $self->{'PROJECT'};
 	my $email = $project->{'CONFIG'}->{'EMAIL'};
 	my $output_dir = $project->output_dir();
 	my $error_dir = $project->error_dir();
 	my $script_name = $self->_script_name($job_name);
-	my $task_id_file = $job->task_id_file;
+	my $task_id_file = $project->task_id_file($job_name);
 	my $task_line_end = "$script_name > $task_id_file";
-	my $add_param = "$global_qsub_params -N $job_name -o $output_dir -e $error_dir";
+	my $add_param = "$global_qsub_params -M $email -N $job_name -o $output_dir -e $error_dir";
 	if ($qsub_params) {
 		$qsub_params .= " $add_param";
 	}
@@ -54,9 +64,7 @@ sub run_script {
 
 sub make_script {
 	#my ( $self, $user_id, $job_id, $program, $dir ) = @_;
-	my ( $self, $job) = @_;
-	my $job_name = $job->job_name();
-	my $program = $job->program->to_string;
+	my ( $self, $job_name, $program ) = @_;
 	my $project = $self->{'PROJECT'};
 	my $user_id = $project->{'CONFIG'}->{'USER'};
 	my $command = <<COMMAND;
@@ -85,6 +93,8 @@ export PATH=\$PATH:/data/software/tabix
 export PERL5LIB=\$PERL5LIB:/data/software/breakdancer
 
 $program
+# Send mail at submission and completion of script
+#\$ -m be
 COMMAND
 	my $script_name = $self->_script_name($job_name);	
 	open( OUT, ">$script_name" )

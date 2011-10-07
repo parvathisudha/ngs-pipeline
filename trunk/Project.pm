@@ -76,28 +76,6 @@ sub tmp_dir{
 	return $self->dir() . '/tmp';
 }
 
-sub command {
-	my ( $self, $command ) = @_;
-	if ( $self->{'DEBUG'} ) {
-		print "$command\n";
-	}
-	else {
-		system("echo $command");
-		system("$command");
-	}
-}
-
-sub get_time {
-	my $dir = shift;
-	opendir( DIR, $dir ) or print $!, "\n";
-	my @matches = grep( /\d{10}/, readdir(DIR) );
-	closedir(DIR);
-	if(scalar @matches > 0){
-		return $1 if $matches[0] =~ m/(\d{10})/;
-	}
-	return time;
-}
-
 sub read_intervals {
 	my ( $self ) = @_;
 	my $file = $self->{'CONFIG'}->{'GATKGENOMEBED'};

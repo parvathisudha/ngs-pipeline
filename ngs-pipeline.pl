@@ -759,6 +759,7 @@ java -Xmx4g -jar $gatk \\
 -cov DinucCovariate \\
 -recalFile $recal_file \\
 -knownSites $dbSNP \\
+--solid_nocall_strategy PURGE_READ \\
 -L $chr
 PROGRAM
 	my $qsub_param =
@@ -782,6 +783,7 @@ java -Xmx4g -jar $gatk \\
 -I $indel_realigned \\
 -recalFile $recal_file \\
 -o $bam_recal \\
+--solid_nocall_strategy PURGE_READ \\
 -L $chr
 PROGRAM
 	my $qsub_param =

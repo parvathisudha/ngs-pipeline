@@ -56,6 +56,7 @@ sub run_script {
 	}
 	my $task =
 	  $qsub_params ? "qsub $qsub_params $task_line_end" : "qsub $task_line_end";
+	$task =~ s/-hold_jid 0000//;
 	print "$task\n";
 	unless($self->{'DEBUG'}){
 		system($task);

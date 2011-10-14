@@ -384,7 +384,7 @@ sub snpeff2 {
 	sleep($sleep_time);
 	return 1 if ( -e "$effect" && -e "$html" );
 	my $program = <<PROGRAM;
-java -jar -Xmx4g $snpeff/snpEff.jar \\
+java -jar -Xmx8g $snpeff/snpEff.jar \\
 -config $snpeff/snpEff.config \\
 -onlyCoding \\
 -stats $html \\

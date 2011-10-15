@@ -1,5 +1,6 @@
 package Job;
 use strict;
+use Program;
 use Data::Dumper;
 
 sub new {
@@ -12,6 +13,7 @@ sub new {
 	}
 	bless $self, $class;
 	$self->{output_by_type} = {};
+	$self->program(Program->new());
 	$self->manager()->register($self);
 	$self->initialize();
 	return $self;
@@ -119,8 +121,8 @@ sub virtual {
 
 sub memory {
 	my ( $self, $memory ) = @_;
-	$self->{memory} = $memory if $memory;
-	return $self->{memory};
+	$self->program->memory ($memory) if $memory;
+	return $self->program->memory;
 }
 
 sub processors {

@@ -88,13 +88,9 @@ use Data::Dumper;
 		my $fastq = join( " ", map { $_->output_by_type('fastq') } @$previous );
 		my $out   = $$previous[0]->out() . ".bam";
 		my $command = scalar @$previous == 2 ? 'sampe' : 'samse';
-		my $program = Program->new(
-			path         => $self->project()->{'CONFIG'}->{'BWA'},
-			name         => $command,
-			basic_params =>
-			  [ $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ]
-		);
-		$self->program($program);
+		$self->program->name($command);
+		$self->program->basic_params(
+			[ $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ] );
 		$self->out($out);
 	}
 
@@ -147,8 +143,8 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
-		my $program = PicardProgram->new(path=>$self->project()->{'CONFIG'}->{'PICARD'});
-		$self->program($program);
+		$self->program->path($self->project()->{'CONFIG'}->{'PICARD'});
+		$self->program->tmp_dir($self->project()->tmp_dir());
 		return $self;
 	}
 
@@ -220,6 +216,7 @@ use Data::Dumper;
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
+		$self->program->path( $self->project()->{'CONFIG'}->{'BWA'} );
 		bless $self, $class;
 		return $self;
 	}
@@ -300,15 +297,10 @@ use Data::Dumper;
 		$colorspace = "-c" if $self->platform eq 'Solid';
 		my $bwa_priority = 10;
 		my $qsub_param   = "-pe mpi $proc -p $bwa_priority";
-		my $program      = Program->new(
-			prefix       => $self->project()->{'CONFIG'}->{'BWA'},
-			name         => 'bwa',
-			basic_params => [
-				'aln',     '-q 5',  "-t $proc", $colorspace,
-				"-f $out", $genome, $in
-			]
+		$self->program->name(bwa);
+		$self->program->basic_params(
+			[ 'aln', '-q 5', "-t $proc", $colorspace, "-f $out", $genome, $in ]
 		);
-		$self->program($program);
 		$self->qsub_params($qsub_param);
 		$self->out($out);
 		$self->output_by_type( 'fastq', $in );
@@ -321,7 +313,7 @@ use Data::Dumper;
 
 	package SortSam;
 	our @ISA = qw( PicardJob );
-
+	use Data::Dumper;
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);

@@ -62,9 +62,6 @@ sub make_script {
 	my $command = <<COMMAND;
 #!/bin/sh
 #
-# Usage: sleeper.sh [time]]
-#        default for time is 60 seconds
-
 # -- $user_id ---
 #\$ -N $job_name
 #\$ -S /bin/sh

@@ -34,7 +34,11 @@ sub path {
 	$self->{path} = $path if $path;
 	return $self->{path};
 }
-
+sub tmp_dir {
+	my ( $self, $tmp_dir ) = @_;
+	$self->{tmp_dir} = $tmp_dir if $tmp_dir;
+	return $self->{tmp_dir};
+}
 sub prefix {
 	my ( $self, $prefix ) = @_;
 	$self->{prefix} = $prefix if $prefix;
@@ -54,10 +58,13 @@ sub to_string {
 	my $full_program = $path . '/' . $self->name;
 	my @all          = (
 		$self->prefix, $full_program,
-		@{ $self->additional_parameters },
-		@{ $self->basic_parameters }
+		@{ $self->additional_params },
+		@{ $self->basic_params }
 	);
-	return join( " ", @all );
+	my $string = join( " ", @all );
+	$string =~ s/^\s+//;
+	$string =~ s/\s{2,}/ /;
+	return $string;
 }
 1;
 
@@ -86,7 +93,7 @@ sub new {
 	bless $self, $class;
 	$self->basic_params(
 		[
-			"TMP_DIR=" . $self->project()->tmp_dir(),
+			"TMP_DIR=" . $self->{tmp_dir},
 			"VALIDATION_STRINGENCY=SILENT",
 			"MAX_RECORDS_IN_RAM=1250000",
 		]

@@ -16,6 +16,7 @@ sub new {
 	my $program = $self->program ? $self->program : Program->new();
 	$self->program($program);
 	$self->manager()->register($self);
+	$self->out($params{out}) if $params{out};
 	$self->initialize();
 	return $self;
 }

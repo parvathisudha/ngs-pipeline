@@ -50,7 +50,8 @@ for my $lane ( @{ $project->get_lanes() } ) {
 my $join_lane_bams = MergeSamFiles->new(
 	params   => $params,
 	previous => [@lanes_processing],
-	out => $project->file_prefix() . "bam",
+	out => $project->file_prefix() . ".bam",
 );
+$join_lane_bams->out();
 
 $job_manager->start();

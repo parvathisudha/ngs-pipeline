@@ -303,7 +303,6 @@ use Data::Dumper;
 }
 #######################################################
 {
-
 	package MergeSamFiles;
 	our @ISA = qw( PicardJob );
 	use Data::Dumper;
@@ -311,7 +310,6 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
-		$self->out($params{out});
 		return $self;
 	}
 

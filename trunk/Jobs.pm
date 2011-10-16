@@ -25,46 +25,6 @@ use Data::Dumper;
 #######################################################
 {
 
-	package MergeSamFiles;
-	our @ISA = qw( PicardJob );
-
-	sub new {
-		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new(%params);
-		bless $self, $class;
-		return $self;
-	}
-
-	sub initialize {
-		my ( $self, ) = @_;
-		$self->string_id('sort_sam');
-		my $tmp_dir = $self->project()->dir;
-		$self->memory(5);
-		my $previous = $self->previous();
-		my @input    = $self->input;
-		$output = $input[0] . ".joined.bam";
-		my $program =
-		  $self->picard( "MergeSamFiles.jar", [ @input, "OUTPUT=$output" ] );
-		$self->program($program);
-		$self->out($output);
-	}
-
-	sub input {
-		my ( $self, ) = @_;
-		return map { "INPUT=" . $_->out } @{ $self->previous };
-	}
-
-	sub out {
-		my ( $self, $output ) = @_;
-		$self->{output_by_type}->{main} = $output if $output;
-		return $self->{output_by_type}->{main};
-	}
-	1;
-}
-
-#######################################################
-{
-
 	package SaiToBam;
 	use Data::Dumper;
 	our @ISA = qw( BwaJob );
@@ -137,11 +97,12 @@ use Data::Dumper;
 
 	package PicardJob;
 	use Data::Dumper;
+	use Program;
 	our @ISA = qw( Job );
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new(%params);
+		my $self = $class->SUPER::new(%params, program => new PicardProgram());
 		bless $self, $class;
 		$self->program->path($self->project()->{'CONFIG'}->{'PICARD'});
 		$self->program->tmp_dir($self->project()->tmp_dir());
@@ -337,6 +298,38 @@ use Data::Dumper;
 		);
 		$self->program->name("SortSam.jar");
 		$self->out($output);
+	}
+	1;
+}
+#######################################################
+{
+
+	package MergeSamFiles;
+	our @ISA = qw( PicardJob );
+	use Data::Dumper;
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->out($params{out});
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->string_id('merge_sam');
+		$self->memory(5);
+		my $previous = $self->previous();
+		my @input = map {"INPUT=" . $_->out} @$previous;
+		my $input    = join(" ", @input);
+		$output = $self->out;
+		$self->program->additional_params(
+			[
+				"$input",      "OUTPUT=$output",
+				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
+			]
+		);
+		$self->program->name("MergeSamFiles.jar");
 	}
 	1;
 }

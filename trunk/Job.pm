@@ -13,7 +13,8 @@ sub new {
 	}
 	bless $self, $class;
 	$self->{output_by_type} = {};
-	$self->program(Program->new());
+	my $program = $self->program ? $self->program : Program->new();
+	$self->program($program);
 	$self->manager()->register($self);
 	$self->initialize();
 	return $self;

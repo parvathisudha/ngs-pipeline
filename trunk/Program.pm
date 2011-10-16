@@ -34,11 +34,13 @@ sub path {
 	$self->{path} = $path if $path;
 	return $self->{path};
 }
+
 sub tmp_dir {
 	my ( $self, $tmp_dir ) = @_;
 	$self->{tmp_dir} = $tmp_dir if $tmp_dir;
 	return $self->{tmp_dir};
 }
+
 sub prefix {
 	my ( $self, $prefix ) = @_;
 	$self->{prefix} = $prefix if $prefix;
@@ -80,7 +82,7 @@ sub new {
 
 sub prefix {
 	my ( $self, ) = @_;
-	return "java -jar Xmx" . $self->memory . "g -jar";
+	return "java Xmx" . $self->memory . "g -jar";
 }
 1;
 
@@ -91,14 +93,15 @@ sub new {
 	my ( $class, %params ) = @_;
 	my $self = $class->SUPER::new(%params);
 	bless $self, $class;
-	$self->basic_params(
-		[
-			"TMP_DIR=" . $self->{tmp_dir},
-			"VALIDATION_STRINGENCY=SILENT",
-			"MAX_RECORDS_IN_RAM=1250000",
-		]
-	);
 	return $self;
+}
+
+sub basic_params {
+	my ($self) = @_;
+	return [
+		"TMP_DIR=" . $self->{tmp_dir}, "VALIDATION_STRINGENCY=SILENT",
+		"MAX_RECORDS_IN_RAM=1250000",
+	];
 }
 
 1;

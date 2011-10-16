@@ -30,17 +30,27 @@ my $params         = {
 	scheduler => $task_scheduler,
 	project   => $project,
 	memory    => 1,
-	manager => $job_manager,
+	manager   => $job_manager,
 };
 
 # making right folder structure
 $project->make_folder_structure();
 ####### Add Jobs #############
-my $root_job = RootJob->new( params => $params, previous => undef);
+my $root_job = RootJob->new( params => $params, previous => undef );
 my @lanes_processing;
 for my $lane ( @{ $project->get_lanes() } ) {
-	my $process_lane = ProcessLane->new( params => $params, previous => [$root_job] , lane => $lane );
+	my $process_lane = ProcessLane->new(
+		params   => $params,
+		previous => [$root_job],
+		lane     => $lane
+	);
+	
 	push( @lanes_processing, $process_lane->last_job );
 }
-#my join_lane_bams = MergeSamFiles->new( params => $params, previous => [@lanes_processing]);
+my $join_lane_bams = MergeSamFiles->new(
+	params   => $params,
+	previous => [@lanes_processing],
+	out => $project->file_prefix() . "bam",
+);
+
 $job_manager->start();

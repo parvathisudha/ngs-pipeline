@@ -17,6 +17,7 @@ sub new {
 	$self->program($program);
 	$self->manager()->register($self);
 	$self->out($params{out}) if $params{out};
+	$self->memory(1);
 	$self->initialize();
 	return $self;
 }
@@ -104,9 +105,9 @@ sub name {
 sub submit {
 	my ( $self, ) = @_;
 	unless ( $self->virtual ) {
+		return 1 if ( -e $self->out );
 		$self->scheduler()->submit_job($self);
 	}
-
 }
 
 sub qsub_params {

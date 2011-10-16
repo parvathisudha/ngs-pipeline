@@ -16,7 +16,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('root_job');
+		$self->string_id('RootJob');
 		$self->virtual(1);
 	}
 	1;
@@ -38,7 +38,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('sai_to_bam');
+		$self->string_id('SaiToBam');
 		my $view =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
 		my $genome   = $self->project()->{'CONFIG'}->{'GENOME'};
@@ -52,6 +52,7 @@ use Data::Dumper;
 		$self->program->basic_params(
 			[ $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ] );
 		$self->out($out);
+		$self->memory(4);
 	}
 
 	sub get_read_group {
@@ -127,7 +128,7 @@ use Data::Dumper;
 	#@Override
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('process_lane');
+		$self->string_id('ProcessLane');
 		$self->process();
 		$self->virtual(1);
 	}
@@ -234,8 +235,9 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('align');
+		$self->string_id('Align');
 		$self->processors( $self->project()->{'CONFIG'}->{'BWA_PROCESSORS'} );
+		$self->memory(5);
 	}
 
 	sub type {
@@ -284,7 +286,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('sort_sam');
+		$self->string_id('SortSam');
 		my $tmp_dir = $self->project()->dir;
 		$self->memory(5);
 		my $previous = $self->previous();
@@ -315,7 +317,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('merge_sam');
+		$self->string_id('MergeSamFiles');
 		$self->memory(5);
 		my $previous = $self->previous();
 		my @input = map {"INPUT=" . $_->out} @$previous;
@@ -328,6 +330,38 @@ use Data::Dumper;
 			]
 		);
 		$self->program->name("MergeSamFiles.jar");
+	}
+	1;
+}
+#######################################################
+{
+	package MarkDuplicates;
+	our @ISA = qw( PicardJob );
+	use Data::Dumper;
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		return $self;
+	}
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->string_id('MarkDuplicates');
+		$self->memory(5);
+		my $previous = $self->previous();
+		my $input    = "INPUT=" . $$previous[0]->out;
+		my $output = $input . ".dedup.bam";
+		my $metrics = $input . ".metrics.txt";
+		$self->program->additional_params(
+			[
+				"$input",      "OUTPUT=$output",
+				"CREATE_INDEX=true", "SORT_ORDER=coordinate",
+				"METRICS_FILE=$metrics",
+			]
+		);
+		$self->program->name("MarkDuplicates.jar");
+		$self->out($output);
+		$self->output_by_type("metrics", $metrics);
 	}
 	1;
 }

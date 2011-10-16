@@ -46,6 +46,7 @@ sub run_script {
 	}
 	my $task =
 	  $qsub_params ? "qsub $qsub_params $task_line_end" : "qsub $task_line_end";
+	$task =~ s/\s+/ /g;
 	print "$task\n";
 	unless($self->{'DEBUG'}){
 		system($task);

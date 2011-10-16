@@ -53,5 +53,9 @@ my $join_lane_bams = MergeSamFiles->new(
 	out => $project->file_prefix() . ".bam",
 );
 $join_lane_bams->out();
+my $mark_duplicates = MarkDuplicates->new(
+	params   => $params,
+	previous => [$join_lane_bams],
+);
 
 $job_manager->start();

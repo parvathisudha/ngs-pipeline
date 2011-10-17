@@ -48,9 +48,9 @@ use Data::Dumper;
 		my $fastq = join( " ", map { $_->output_by_type('fastq') } @$previous );
 		my $out   = $$previous[0]->out() . ".bam";
 		my $command = scalar @$previous == 2 ? 'sampe' : 'samse';
-		$self->program->name($command);
+		$self->program->name('bwa');
 		$self->program->basic_params(
-			[ $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ] );
+			[ $command, $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ] );
 		$self->out($out);
 		$self->memory(4);
 	}
@@ -58,10 +58,10 @@ use Data::Dumper;
 	sub get_read_group {
 		my ( $self, $lane ) = @_;
 		my $rg = "@RG";
-		while ( ( $key, $value ) = each %params ) {
-			$rg .= "\t$key:$value" if length($key) == 2;
+		while ( ( $key, $value ) = each %$lane ) {
+			$rg .= "\\t$key:$value" if length($key) == 2;
 		}
-		return $rg;
+		return "'$rg'";
 	}
 	1;
 }

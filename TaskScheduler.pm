@@ -17,8 +17,12 @@ sub new {
 sub submit_job {
 	my ( $self, $job) = @_;
 	my @ids = map {$_->job_id} @{$job->previous};
+	my @real_ids;
+	for(@ids){
+		push(@real_ids, $_) if $_;
+	}
 	my $qsub_params = $job->qsub_params;
-	$qsub_params .= " -hold_jid " . join(",", @ids) unless $ids[0] eq undef;
+	$qsub_params .= " -hold_jid " . join(",", @real_ids) if scalar @real_ids >= 1;
 	my $memory_qs  = 'mem_total=' . $job->memory() . 'G';
 	my $memstr = " -l $memory_qs";
 	$qsub_params .= $memstr;

@@ -61,6 +61,7 @@ use Data::Dumper;
 		while ( ( $key, $value ) = each %$lane ) {
 			$rg .= "\\t$key:$value" if length($key) == 2;
 		}
+		$rg =~ s/^\\t//;
 		return "'$rg'";
 	}
 	1;

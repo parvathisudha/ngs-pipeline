@@ -32,7 +32,10 @@ sub previous {
 	$self->{previous} = $previous if $previous;
 	return $self->{previous};
 }
-
+sub first_previous {
+	my ( $self,  ) = @_;
+	return ${$self->{previous}}[0];
+}
 #@Override
 sub initialize {
 	my ( $self, ) = @_;

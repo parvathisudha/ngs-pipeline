@@ -113,13 +113,7 @@ sub new {
 	my ( $class, %params ) = @_;
 	my $self = $class->SUPER::new(%params);
 	bless $self, $class;
-	$self->basic_params(
-		[
-			"TMP_DIR=" . $self->project()->tmp_dir(),
-			"VALIDATION_STRINGENCY=SILENT",
-			"MAX_RECORDS_IN_RAM=1250000",
-		]
-	);
+	$self->name("GenomeAnalysisTK.jar");
 	return $self;
 }
 

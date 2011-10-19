@@ -50,7 +50,11 @@ use Data::Dumper;
 		my $command = scalar @$previous == 2 ? 'sampe' : 'samse';
 		$self->program->name('bwa');
 		$self->program->basic_params(
-			[ $command, $genome, $sai, $fastq, "-r", $rg, "| $view -bS - >", $out ] );
+			[
+				$command, $genome, $sai,              $fastq,
+				"-r",     $rg,     "| $view -bS - >", $out
+			]
+		);
 		$self->out($out);
 		$self->memory(4);
 	}
@@ -62,6 +66,7 @@ use Data::Dumper;
 			$rg .= "\\t$key:$value" if length($key) == 2;
 		}
 		$rg =~ s/^\\t//;
+		$rg = '@RG\t' . $rg;
 		return "'$rg'";
 	}
 	1;
@@ -74,26 +79,62 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new(%params);
+		my $self =
+		  $class->SUPER::new( %params, program => new GATKProgram() );
 		bless $self, $class;
-		my $gatk =
-		  $self->project()->{'CONFIG'}->{'GATK'} . "/GenomeAnalysisTK.jar";
-		$gatk .= '-R ' . $self->project()->{'CONFIG'}->{'GENOME'};
-		$self->{gatk} = $gatk;
+		$self->program->path( $self->project()->{'CONFIG'}->{'GATK'} );
+		my @b_params = ("-R " . $self->project()->{'CONFIG'}->{'GENOME'},
+				"-T " . $self->walker);
+		push(@b_params, "-L " . $self->interval) if $self->interval;
+		$self->program->basic_params(
+			\@b_params
+		);
 		return $self;
 	}
 
-	sub gatk {
-		my ( $self, %params ) = @_;
-		my $gatk = $self->{gatk};
-		$gatk = "java -Xmx" . $self->memory() . "g -jar $gatk";
-		while ( ( $key, $value ) = each %params ) {
-			$gatk .= " $key $value";
-		}
-		return $gatk;
+	sub walker {
+		my ( $self, $walker ) = @_;
+		$self->{walker} = $walker if $walker;
+		return $self->{walker};
+	}
+	sub interval {
+		my ( $self, $interval ) = @_;
+		$self->{interval} = $interval if $interval;
+		return $self->{interval};
+	}
+	sub string_id {
+		my ( $self, ) = @_;
+		return $self->walker;
 	}
 	1;
 }
+#######################################################
+{
+
+	package RealignerTargetCreator;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self =
+		  $class->SUPER::new( %params, 'walker' => 'RealignerTargetCreator' );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(1);
+		my $previous = $self->previous();
+		my $input    = $self->first_previous->out();
+		my $output = $input . "." . $self->interval . ".targets";
+		my $KGIND = $self->project()->{'CONFIG'}->{'KGIND'};
+		$self->program->additional_params( [ "-o $output", "-I $input", "--known $KGIND"] );
+		$self->out($output);
+	}
+	1;
+}
+
 #######################################################
 {
 
@@ -104,10 +145,11 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new(%params, program => new PicardProgram());
+		my $self =
+		  $class->SUPER::new( %params, program => new PicardProgram() );
 		bless $self, $class;
-		$self->program->path($self->project()->{'CONFIG'}->{'PICARD'});
-		$self->program->tmp_dir($self->project()->tmp_dir());
+		$self->program->path( $self->project()->{'CONFIG'}->{'PICARD'} );
+		$self->program->tmp_dir( $self->project()->tmp_dir() );
 		return $self;
 	}
 
@@ -277,7 +319,7 @@ use Data::Dumper;
 
 	package SortSam;
 	our @ISA = qw( PicardJob );
-	use Data::Dumper;
+
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
@@ -306,9 +348,11 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package MergeSamFiles;
 	our @ISA = qw( PicardJob );
 	use Data::Dumper;
+
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
@@ -321,12 +365,12 @@ use Data::Dumper;
 		$self->string_id('MergeSamFiles');
 		$self->memory(5);
 		my $previous = $self->previous();
-		my @input = map {"INPUT=" . $_->out} @$previous;
-		my $input    = join(" ", @input);
-		$output = $self->out;
+		my @input    = map { "INPUT=" . $_->out } @$previous;
+		my $input    = join( " ", @input );
+		my $output = $self->out;
 		$self->program->additional_params(
 			[
-				"$input",      "OUTPUT=$output",
+				"$input",            "OUTPUT=$output",
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
 			]
 		);
@@ -336,33 +380,36 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package MarkDuplicates;
 	our @ISA = qw( PicardJob );
 	use Data::Dumper;
+
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
 		return $self;
 	}
+
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->string_id('MarkDuplicates');
 		$self->memory(5);
 		my $previous = $self->previous();
-		my $input    = "INPUT=" . $$previous[0]->out;
-		my $output = $input . ".dedup.bam";
-		my $metrics = $input . ".metrics.txt";
+		my $input = $self->first_previous->out;
+		my $output   = $input . ".dedup.bam";
+		my $metrics  = $input . ".metrics.txt";
 		$self->program->additional_params(
 			[
-				"$input",      "OUTPUT=$output",
+				"INPUT=$input" , "OUTPUT=$output",
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate",
 				"METRICS_FILE=$metrics",
 			]
 		);
 		$self->program->name("MarkDuplicates.jar");
 		$self->out($output);
-		$self->output_by_type("metrics", $metrics);
+		$self->output_by_type( "metrics", $metrics );
 	}
 	1;
 }

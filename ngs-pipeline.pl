@@ -44,18 +44,38 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		previous => [$root_job],
 		lane     => $lane
 	);
-	
+
 	push( @lanes_processing, $process_lane->last_job );
 }
 my $join_lane_bams = MergeSamFiles->new(
 	params   => $params,
 	previous => [@lanes_processing],
-	out => $project->file_prefix() . ".bam",
+	out      => $project->file_prefix() . ".bam",
 );
-$join_lane_bams->out();
 my $mark_duplicates = MarkDuplicates->new(
 	params   => $params,
 	previous => [$join_lane_bams],
 );
 
+#my @chr = $project->read_intervals();
+#for my $chr (@chr) {
+#	my $realigner_target_creator = RealignerTargetCreator->new(
+#		params   => $params,
+#		interval => $chr,
+#		previous => [$mark_duplicates],
+#	);    
+#
+#	#	indel_realigner($chr);             #..
+#	#	index_realigned($chr);             #..
+#	#	count_covariates($chr);            #..
+#	#	table_recalibration($chr);         #..
+#	#	index_recalibrated($chr);          #..
+#	#	parallel_call_SNPs($chr);          #..
+#	#	parallel_call_indels($chr);        #..
+#	#	indel_annotator($chr);             #..
+#	#	variant_annotator($chr);           #..
+#	#	filter_snps($chr);                 #tested
+#}
+
 $job_manager->start();
+

@@ -304,8 +304,10 @@ use Data::Dumper;
 		my $bwa_priority = 10;
 		my $qsub_param   = "-pe mpi $proc -p $bwa_priority";
 		$self->program->name(bwa);
+		my $illumina_fastq_qualities_flag = "";
+		$illumina_fastq_qualities_flag = "-I" if $self->lane->{ILLUMINA_FASTQ};
 		$self->program->basic_params(
-			[ 'aln', '-q 5', "-t $proc", $colorspace, "-f $out", $genome, $in ]
+			[ 'aln', '-q 5', "-t $proc", $illumina_fastq_qualities_flag ,$colorspace, "-f $out", $genome, $in ]
 		);
 		$self->qsub_params($qsub_param);
 		$self->out($out);

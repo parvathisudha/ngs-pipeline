@@ -79,16 +79,15 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self =
-		  $class->SUPER::new( %params, program => new GATKProgram() );
+		my $self = $class->SUPER::new( %params, program => new GATKProgram() );
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'GATK'} );
-		my @b_params = ("-R " . $self->project()->{'CONFIG'}->{'GENOME'},
-				"-T " . $self->walker);
-		push(@b_params, "-L " . $self->interval) if $self->interval;
-		$self->program->basic_params(
-			\@b_params
+		my @b_params = (
+			"-R " . $self->project()->{'CONFIG'}->{'GENOME'},
+			"-T " . $self->walker
 		);
+		push( @b_params, "-L " . $self->interval ) if $self->interval;
+		$self->program->basic_params( \@b_params );
 		return $self;
 	}
 
@@ -97,11 +96,13 @@ use Data::Dumper;
 		$self->{walker} = $walker if $walker;
 		return $self->{walker};
 	}
+
 	sub interval {
 		my ( $self, $interval ) = @_;
 		$self->{interval} = $interval if $interval;
 		return $self->{interval};
 	}
+
 	sub string_id {
 		my ( $self, ) = @_;
 		return $self->walker;
@@ -124,17 +125,52 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(1);
+		$self->memory(4);
 		my $previous = $self->previous();
 		my $input    = $self->first_previous->out();
-		my $output = $input . "." . $self->interval . ".targets";
-		my $KGIND = $self->project()->{'CONFIG'}->{'KGIND'};
-		$self->program->additional_params( [ "-o $output", "-I $input", "--known $KGIND"] );
+		my $output   = $input . "." . $self->interval . ".targets";
+		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
+		$self->program->additional_params(
+			[ "-o $output", "-I $input", "--known $KGIND" ] );
 		$self->out($output);
+		$self->output_by_type( 'bam', $input );
 	}
 	1;
 }
+#######################################################
+{
 
+	package IndelRealigner;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, 'walker' => 'IndelRealigner' );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $previous = $self->previous();
+		my $input    = $self->first_previous->output_by_type('bam');
+		my $targets  = $self->first_previous->out;
+		my $output   = $input . "." . $self->interval . ".realigned.bam";
+		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
+		$self->program->additional_params(
+			[
+				"-o $output",
+				"-I $input",
+				"--known $KGIND",
+				"-targetIntervals $targets"
+			]
+		);
+		$self->out($output);
+		$self->output_by_type( 'bam', $input );
+	}
+	1;
+}
 #######################################################
 {
 
@@ -307,7 +343,10 @@ use Data::Dumper;
 		my $illumina_fastq_qualities_flag = "";
 		$illumina_fastq_qualities_flag = "-I" if $self->lane->{ILLUMINA_FASTQ};
 		$self->program->basic_params(
-			[ 'aln', '-q 5', "-t $proc", $illumina_fastq_qualities_flag ,$colorspace, "-f $out", $genome, $in ]
+			[
+				'aln', '-q 5', "-t $proc", $illumina_fastq_qualities_flag,
+				$colorspace, "-f $out", $genome, $in
+			]
 		);
 		$self->qsub_params($qsub_param);
 		$self->out($out);
@@ -369,7 +408,7 @@ use Data::Dumper;
 		my $previous = $self->previous();
 		my @input    = map { "INPUT=" . $_->out } @$previous;
 		my $input    = join( " ", @input );
-		my $output = $self->out;
+		my $output   = $self->out;
 		$self->program->additional_params(
 			[
 				"$input",            "OUTPUT=$output",
@@ -399,12 +438,12 @@ use Data::Dumper;
 		$self->string_id('MarkDuplicates');
 		$self->memory(5);
 		my $previous = $self->previous();
-		my $input = $self->first_previous->out;
+		my $input    = $self->first_previous->out;
 		my $output   = $input . ".dedup.bam";
 		my $metrics  = $input . ".metrics.txt";
 		$self->program->additional_params(
 			[
-				"INPUT=$input" , "OUTPUT=$output",
+				"INPUT=$input",      "OUTPUT=$output",
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate",
 				"METRICS_FILE=$metrics",
 			]

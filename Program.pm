@@ -82,7 +82,7 @@ sub new {
 
 sub prefix {
 	my ( $self, ) = @_;
-	return "java Xmx" . $self->memory . "g -jar";
+	return "java -Xmx" . $self->memory . "g -jar";
 }
 1;
 

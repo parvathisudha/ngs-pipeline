@@ -72,8 +72,8 @@ sub last_job {
 
 sub output_by_type {
 	my ( $self, $type, $output ) = @_;
-	$self->{output_by_type}->{type} = $output if $output;
-	return $self->{output_by_type}->{type};
+	$self->{output_by_type}->{$type} = $output if $output;
+	return $self->{output_by_type}->{$type};
 }
 
 sub out {

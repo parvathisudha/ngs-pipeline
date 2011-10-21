@@ -41,7 +41,7 @@ use Data::Dumper;
 		$self->string_id('SaiToBam');
 		my $view =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
-		my $genome   = $self->project()->{'CONFIG'}->{'GENOME'};
+		my $genome   = $self->first_previous->output_by_type( 'genome');
 		my $previous = $self->previous();
 		my $rg       = $self->get_read_group( $self->lane() );
 		my $sai      = join( " ", map { $_->out() } @$previous );
@@ -139,7 +139,6 @@ use Data::Dumper;
 }
 #######################################################
 {
-
 	package IndelRealigner;
 	our @ISA = qw( GATKJob );
 
@@ -166,6 +165,48 @@ use Data::Dumper;
 				"-targetIntervals $targets"
 			]
 		);
+		$self->out($output);
+		$self->output_by_type( 'bam', $input );
+	}
+	1;
+}
+#######################################################
+{
+	package CountCovariates;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, 'walker' => 'CountCovariates' );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input    = $self->first_previous->output_by_type('bam');
+		my $targets  = $self->first_previous->out;
+		my $output   = $input . "." . $self->interval . ".realigned.bam";
+		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
+		$self->program->additional_params(
+			[
+				"-o $output",
+				"-I $input",
+				"--known $KGIND",
+				"-targetIntervals $targets"
+			]
+		);
+	my $p1rogram = <<PROGRAM;
+-I $indel_realigned \\
+-cov ReadGroupCovariate \\
+-cov QualityScoreCovariate \\
+-cov CycleCovariate \\
+-cov DinucCovariate \\
+-recalFile $recal_file \\
+-knownSites $dbSNP \\
+-L $chr
+PROGRAM
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 	}
@@ -351,13 +392,13 @@ use Data::Dumper;
 		$self->qsub_params($qsub_param);
 		$self->out($out);
 		$self->output_by_type( 'fastq', $in );
+		$self->output_by_type( 'genome', $genome );
 	}
 
 	1;
 }
 #######################################################
 {
-
 	package SortSam;
 	our @ISA = qw( PicardJob );
 
@@ -384,6 +425,36 @@ use Data::Dumper;
 		);
 		$self->program->name("SortSam.jar");
 		$self->out($output);
+	}
+	1;
+}
+#######################################################
+{
+	package BuildBamIndex;
+	our @ISA = qw( PicardJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->string_id('BuildBamIndex');
+		my $tmp_dir = $self->project()->dir;
+		$self->memory(5);
+		my $input    = $previous->first_previous->out();
+		$output = $input . ".bai";
+		$self->program->additional_params(
+			[
+				"INPUT=$input",      "OUTPUT=$output",
+			]
+		);
+		$self->program->name("BuildBamIndex.jar");
+		$self->out($output);
+		$self->output_by_type( 'bam', $input );
 	}
 	1;
 }

@@ -41,7 +41,7 @@ use Data::Dumper;
 		$self->string_id('SaiToBam');
 		my $view =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
-		my $genome   = $self->first_previous->output_by_type( 'genome');
+		my $genome   = $self->first_previous->output_by_type('genome');
 		my $previous = $self->previous();
 		my $rg       = $self->get_read_group( $self->lane() );
 		my $sai      = join( " ", map { $_->out() } @$previous );
@@ -139,6 +139,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package IndelRealigner;
 	our @ISA = qw( GATKJob );
 
@@ -172,6 +173,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package CountCovariates;
 	our @ISA = qw( GATKJob );
 
@@ -185,33 +187,107 @@ use Data::Dumper;
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->memory(4);
-		my $input    = $self->first_previous->output_by_type('bam');
-		my $targets  = $self->first_previous->out;
-		my $output   = $input . "." . $self->interval . ".realigned.bam";
-		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
+		my $input  = $self->first_previous->output_by_type('bam');
+		my $output = $input . ".covarities";
+		my $dbSNP  = $self->project()->{'CONFIG'}->{'DBSNP'};
 		$self->program->additional_params(
 			[
-				"-o $output",
 				"-I $input",
-				"--known $KGIND",
-				"-targetIntervals $targets"
+				"-cov ReadGroupCovariate",
+				"-cov QualityScoreCovariate",
+				"-cov CycleCovariate",
+				"-cov DinucCovariate",
+				"-recalFile $output",
+				"-knownSites $dbSNP",
 			]
 		);
-	my $p1rogram = <<PROGRAM;
--I $indel_realigned \\
--cov ReadGroupCovariate \\
--cov QualityScoreCovariate \\
--cov CycleCovariate \\
--cov DinucCovariate \\
--recalFile $recal_file \\
--knownSites $dbSNP \\
--L $chr
-PROGRAM
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 	}
 	1;
 }
+#######################################################
+{
+
+	package TableRecalibration;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self =
+		  $class->SUPER::new( %params, 'walker' => 'TableRecalibration' );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input      = $self->first_previous->output_by_type('bam');
+		my $recal_file = $self->first_previous->out;
+		my $output     = $input . ".recalibrated.bam";
+		my $dbSNP      = $self->project()->{'CONFIG'}->{'DBSNP'};
+		$self->program->additional_params(
+			[
+				"-l INFO",
+				"-o $output",
+				"-I $input",
+				"-recalFile $recal_file",
+				"-knownSites $dbSNP",
+			]
+		);
+		$self->out($output);
+		$self->output_by_type( 'bam', $output );
+	}
+	1;
+}
+#######################################################
+{
+
+	package UnifiedGenotyper;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self =
+		  $class->SUPER::new( %params, 'walker' => 'UnifiedGenotyper' );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub variation_type {
+		my ( $self, ) = @_;
+		return $self->{variation_type};
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input           = $self->first_previous->output_by_type('bam');
+		my $recal_file      = $self->first_previous->out;
+		my $output          = $input . "." . $self->variation_type . ".vcf";
+		my $dbSNP           = $self->project()->{'CONFIG'}->{'DBSNP'};
+		my $stand_call_conf =
+		  $self->project()->{'CONFIG'}->{'GATK_stand_call_conf'};
+		my $stand_emit_conf =
+		  $self->project()->{'CONFIG'}->{'GATK_stand_emit_conf'};
+		my $genotype_likelihoods_model = $self->variation_type;
+		$self->program->additional_params(
+			[
+				"-o $output",
+				"-I $input",
+				"--dbsnp $dbSNP",
+				"-stand_call_conf $stand_call_conf",
+				"-stand_emit_conf $stand_emit_conf",
+				"-dcov 80 -U",
+				"--genotype_likelihoods_model $genotype_likelihoods_model",
+			]
+		);
+		$self->out($output);
+	}
+	1;
+}
+
 #######################################################
 {
 
@@ -391,7 +467,7 @@ PROGRAM
 		);
 		$self->qsub_params($qsub_param);
 		$self->out($out);
-		$self->output_by_type( 'fastq', $in );
+		$self->output_by_type( 'fastq',  $in );
 		$self->output_by_type( 'genome', $genome );
 	}
 
@@ -399,6 +475,7 @@ PROGRAM
 }
 #######################################################
 {
+
 	package SortSam;
 	our @ISA = qw( PicardJob );
 
@@ -425,11 +502,13 @@ PROGRAM
 		);
 		$self->program->name("SortSam.jar");
 		$self->out($output);
+		$self->output_by_type( 'bam', $output );
 	}
 	1;
 }
 #######################################################
 {
+
 	package BuildBamIndex;
 	our @ISA = qw( PicardJob );
 
@@ -445,13 +524,11 @@ PROGRAM
 		$self->string_id('BuildBamIndex');
 		my $tmp_dir = $self->project()->dir;
 		$self->memory(5);
-		my $input    = $previous->first_previous->out();
-		$output = $input . ".bai";
+		my $input  = $self->first_previous->out();
+		my $output = $input;
+		$output =~ s/bam$/bai/;
 		$self->program->additional_params(
-			[
-				"INPUT=$input",      "OUTPUT=$output",
-			]
-		);
+			[ "INPUT=$input", "OUTPUT=$output", ] );
 		$self->program->name("BuildBamIndex.jar");
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
@@ -515,8 +592,7 @@ PROGRAM
 		$self->program->additional_params(
 			[
 				"INPUT=$input",      "OUTPUT=$output",
-				"CREATE_INDEX=true", 
-				"METRICS_FILE=$metrics",
+				"CREATE_INDEX=true", "METRICS_FILE=$metrics",
 			]
 		);
 		$self->program->name("MarkDuplicates.jar");

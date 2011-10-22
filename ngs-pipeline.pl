@@ -57,31 +57,31 @@ my $mark_duplicates = MarkDuplicates->new(
 	previous => [$join_lane_bams],
 );
 
-#my @chr = $project->read_intervals();
-#for my $chr (@chr) {
-#	my $realigner_target_creator = RealignerTargetCreator->new(
-#		params   => $params,
-#		interval => $chr,
-#		previous => [$mark_duplicates],
-#	);#!
-#	my $indel_realigner = IndelRealigner->new(
-#		params   => $params,
-#		interval => $chr,
-#		previous => [$realigner_target_creator],
-#	);#!
-#	my $sort_realigned =
-#	  SortSam->new( params => $params, previous => [$indel_realigner] );#!
-#	my $count_covariates = CountCovariates->new( params => $params, previous => [$sort_realigned] );#
-#	my $table_recalibration = TableRecalibration->new( params => $params, previous => [$count_covariates] );#
-#	my $index_recalibrated = BuildBamIndex->new( params => $params, previous => [$table_recalibration] );#
-#	my $call_snps = UnifiedGenotyper->new( params => $params, previous => [$index_recalibrated] );#
-#	my $call_indels = UnifiedGenotyper->new( params => $params, previous => [$index_recalibrated] );#
+my @chr = $project->read_intervals();
+for my $chr (@chr) {
+	my $realigner_target_creator = RealignerTargetCreator->new(
+		params   => $params,
+		interval => $chr,
+		previous => [$mark_duplicates],
+	);
+	my $indel_realigner = IndelRealigner->new(
+		params   => $params,
+		interval => $chr,
+		previous => [$realigner_target_creator],
+	);
+	my $sort_realigned =
+	  SortSam->new( params => $params, previous => [$indel_realigner] );
+	my $count_covariates = CountCovariates->new( params => $params, previous => [$sort_realigned] );
+	my $table_recalibration = TableRecalibration->new( params => $params, previous => [$count_covariates] );
+	my $index_recalibrated = BuildBamIndex->new( params => $params, previous => [$table_recalibration] );
+	my $call_snps = UnifiedGenotyper->new( params => $params, previous => [$index_recalibrated] , variation_type => "SNP");#
+	my $call_indels = UnifiedGenotyper->new( params => $params, previous => [$index_recalibrated] , variation_type => "INDEL" );#
 #	my $indel_annotator = VariantAnnotator->new( params => $params, previous => [$call_indels] );#
 #	my $snps_annotator = VariantAnnotator->new( params => $params, previous => [$call_snps] );#
 #	my $snps_filter = VariantFiltration->new( params => $params, previous => [$snps_annotator] );#
-#	
-#	#	filter_snps($chr);                 #tested
-#}
+	
+	#	filter_snps($chr);                 #tested
+}
 
 $job_manager->start();
 

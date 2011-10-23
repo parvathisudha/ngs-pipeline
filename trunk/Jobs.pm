@@ -82,6 +82,7 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new GATKProgram() );
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'GATK'} );
+		$self->walker($class);
 		my @b_params = (
 			"-R " . $self->project()->{'CONFIG'}->{'GENOME'},
 			"-T " . $self->walker
@@ -118,7 +119,7 @@ use Data::Dumper;
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self =
-		  $class->SUPER::new( %params, 'walker' => 'RealignerTargetCreator' );
+		  $class->SUPER::new( %params,);
 		bless $self, $class;
 		return $self;
 	}
@@ -145,7 +146,7 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params, 'walker' => 'IndelRealigner' );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
 	}
@@ -179,7 +180,7 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params, 'walker' => 'CountCovariates' );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
 	}
@@ -215,7 +216,7 @@ use Data::Dumper;
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self =
-		  $class->SUPER::new( %params, 'walker' => 'TableRecalibration' );
+		  $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
 	}
@@ -250,7 +251,54 @@ use Data::Dumper;
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self =
-		  $class->SUPER::new( %params, 'walker' => 'UnifiedGenotyper' );
+		  $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub variation_type {
+		my ( $self, ) = @_;
+		return $self->{variation_type};
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input           = $self->first_previous->output_by_type('bam');
+		my $recal_file      = $self->first_previous->out;
+		my $output          = $input . "." . $self->variation_type . ".vcf";
+		my $dbSNP           = $self->project()->{'CONFIG'}->{'DBSNP'};
+		my $stand_call_conf =
+		  $self->project()->{'CONFIG'}->{'GATK_stand_call_conf'};
+		my $stand_emit_conf =
+		  $self->project()->{'CONFIG'}->{'GATK_stand_emit_conf'};
+		my $genotype_likelihoods_model = $self->variation_type;
+		$self->program->additional_params(
+			[
+				"-o $output",
+				"-I $input",
+				"--dbsnp $dbSNP",
+				"-stand_call_conf $stand_call_conf",
+				"-stand_emit_conf $stand_emit_conf",
+				"-dcov 80 -U",
+				"--genotype_likelihoods_model $genotype_likelihoods_model",
+			]
+		);
+		$self->out($output);
+	}
+	1;
+}
+#######################################################
+{
+
+	package VariantAnnotator;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self =
+		  $class->SUPER::new( %params, );
+	  
 		bless $self, $class;
 		return $self;
 	}

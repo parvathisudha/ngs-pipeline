@@ -351,6 +351,7 @@ use Data::Dumper;
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'PICARD'} );
 		$self->program->tmp_dir( $self->project()->tmp_dir() );
+		$self->program->name($class . ".jar");
 		return $self;
 	}
 
@@ -548,7 +549,6 @@ use Data::Dumper;
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
 			]
 		);
-		$self->program->name("SortSam.jar");
 		$self->out($output);
 		$self->output_by_type( 'bam', $output );
 	}
@@ -577,7 +577,6 @@ use Data::Dumper;
 		$output =~ s/bam$/bai/;
 		$self->program->additional_params(
 			[ "INPUT=$input", "OUTPUT=$output", ] );
-		$self->program->name("BuildBamIndex.jar");
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 	}
@@ -611,7 +610,6 @@ use Data::Dumper;
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
 			]
 		);
-		$self->program->name("MergeSamFiles.jar");
 	}
 	1;
 }
@@ -643,7 +641,6 @@ use Data::Dumper;
 				"CREATE_INDEX=true", "METRICS_FILE=$metrics",
 			]
 		);
-		$self->program->name("MarkDuplicates.jar");
 		$self->out($output);
 		$self->output_by_type( "metrics", $metrics );
 	}

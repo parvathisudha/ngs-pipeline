@@ -80,6 +80,7 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new JavaProgram() );
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'SNPEFF'} );
+		my $config = $self->project()->{'CONFIG'}->{'SNPEFF'} . "/snpEff.config";
 		$self->program->name("snpEff.jar");
 		$self->memory(8);
 		my $input = $self->first_previous->output_by_type('vcf');
@@ -87,7 +88,8 @@ use Data::Dumper;
 		my $snpeff_genome = $self->project->{'CONFIG'}->{SNPEFF_GENOME};
 		my $output = $input . ".eff.vcf";
 		$self->program->additional_params(
-			[ "-onlyCoding", "-stats $html", "-o vcf", $snpeff_genome, "$input > $output" ] );
+			[ "-config $config", 
+			"-onlyCoding", "-stats $html", "-o vcf", $snpeff_genome, "$input > $output" ] );
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
 		return $self;
@@ -283,7 +285,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(4);
+		$self->memory(2);
 		my $input      = $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
 		$self->program->additional_params(
 			[

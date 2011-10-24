@@ -19,6 +19,7 @@ sub new {
 	$self->program->additional_params($self->{additional_params}) if $self->{additional_params};
 	$self->manager()->register($self);
 	$self->out($params{out}) if $params{out};
+	$self->in($params{in}) if $params{in};
 	$self->memory(1);
 	$self->initialize();
 	return $self;
@@ -83,7 +84,11 @@ sub out {
 	$self->{output_by_type}->{main} = $output if $output;
 	return $self->{output_by_type}->{main};
 }
-
+sub in {
+	my ( $self, $in ) = @_;
+	$self->{in} = $in if $in;
+	return $self->{in};
+}
 sub project {
 	my ( $self, $project ) = @_;
 	$self->{project} = $project if $project;

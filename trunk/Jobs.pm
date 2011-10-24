@@ -16,7 +16,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('RootJob');
 		$self->virtual(1);
 	}
 	1;
@@ -38,7 +37,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('SaiToBam');
 		my $view =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
 		my $genome   = $self->first_previous->output_by_type('genome');
@@ -69,6 +67,32 @@ use Data::Dumper;
 		$rg = '@RG\t' . $rg;
 		return "'$rg'";
 	}
+	1;
+}
+#######################################################
+{
+
+	package SnpEff;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new JavaProgram() );
+		bless $self, $class;
+		$self->program->path( $self->project()->{'CONFIG'}->{'SNPEFF'} );
+		$self->program->name("snpEff.jar");
+		$self->memory(8);
+		my $input = $self->first_previous->output_by_type('vcf');
+		my $html = $input . ".html";
+		my $snpeff_genome = $self->project->{'CONFIG'}->{SNPEFF_GENOME};
+		my $output = $input . ".eff.vcf";
+		$self->program->additional_params(
+			[ "-onlyCoding", "-stats $html", "-o vcf", $snpeff_genome, "$input > $output" ] );
+		$self->out($output);
+		$self->output_by_type( 'vcf', $output );
+		return $self;
+	}
+
 	1;
 }
 #######################################################
@@ -118,8 +142,7 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self =
-		  $class->SUPER::new( %params,);
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
 	}
@@ -215,8 +238,7 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self =
-		  $class->SUPER::new( %params, );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
 	}
@@ -250,8 +272,7 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self =
-		  $class->SUPER::new( %params, );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
 	}
@@ -272,6 +293,37 @@ use Data::Dumper;
 		  $self->project()->{'CONFIG'}->{'GATK_stand_call_conf'};
 		my $stand_emit_conf =
 		  $self->project()->{'CONFIG'}->{'GATK_stand_emit_conf'};
+		my @annotations = qw/
+		  ChromosomeCounts
+		  IndelType
+		  HardyWeinberg
+		  SpanningDeletions
+		  GLstats
+		  NBaseCount
+		  AlleleBalance
+		  MappingQualityZero
+		  BaseCounts
+		  LowMQ
+		  RMSMappingQuality
+		  HaplotypeScore
+		  TechnologyComposition
+		  SampleList
+		  FisherStrand
+		  DepthOfCoverage
+		  HomopolymerRun
+		  MappingQualityZeroFraction
+		  GCContent
+		  MappingQualityRankSumTest
+		  ReadPosRankSumTest
+		  BaseQualityRankSumTest
+		  QualByDepth
+		  SBByDepth
+		  ReadDepthAndAllelicFractionBySample
+		  AlleleBalanceBySample
+		  DepthPerAlleleBySample
+		  MappingQualityZeroBySample
+		  /;
+		my @formatted_annotations = map { "--annotation $_" } @annotations;
 		my $genotype_likelihoods_model = $self->variation_type;
 		$self->program->additional_params(
 			[
@@ -282,9 +334,12 @@ use Data::Dumper;
 				"-stand_emit_conf $stand_emit_conf",
 				"-dcov 80 -U",
 				"--genotype_likelihoods_model $genotype_likelihoods_model",
+				@formatted_annotations,
 			]
 		);
 		$self->out($output);
+		$self->output_by_type( 'bam', $input );
+		$self->output_by_type( 'vcf', $output );
 	}
 	1;
 }
@@ -296,46 +351,131 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self =
-		  $class->SUPER::new( %params, );
-	  
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		return $self;
-	}
-
-	sub variation_type {
-		my ( $self, ) = @_;
-		return $self->{variation_type};
 	}
 
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->memory(4);
-		my $input           = $self->first_previous->output_by_type('bam');
-		my $recal_file      = $self->first_previous->out;
-		my $output          = $input . "." . $self->variation_type . ".vcf";
-		my $dbSNP           = $self->project()->{'CONFIG'}->{'DBSNP'};
-		my $stand_call_conf =
-		  $self->project()->{'CONFIG'}->{'GATK_stand_call_conf'};
-		my $stand_emit_conf =
-		  $self->project()->{'CONFIG'}->{'GATK_stand_emit_conf'};
-		my $genotype_likelihoods_model = $self->variation_type;
+		my $input      = $self->first_previous->output_by_type('bam');
+		my $variations = $self->first_previous->output_by_type('vcf');
+		my $output     = $variations . ".annotated.vcf";
 		$self->program->additional_params(
 			[
 				"-o $output",
 				"-I $input",
-				"--dbsnp $dbSNP",
-				"-stand_call_conf $stand_call_conf",
-				"-stand_emit_conf $stand_emit_conf",
-				"-dcov 80 -U",
-				"--genotype_likelihoods_model $genotype_likelihoods_model",
+				"--variant $variations",
 			]
 		);
 		$self->out($output);
+		$self->output_by_type( 'bam', $input );
+		$self->output_by_type( 'vcf', $output );
 	}
 	1;
 }
+#######################################################
+{
 
+	package CombineVariants;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $sample   = $self->project->{CONFIG}->{SAMPLE_NAME};
+		my @previous = @{ $self->previous };
+		my @vcfs     =
+		  map { "--variant:$sample " . $_->output_by_type('vcf') } @previous;
+		my $input = join( " ", @vcfs );
+		my $output = $self->out;
+		$self->program->additional_params(
+			[ $input, "-o $output", "--assumeIdenticalSamples", ] );
+		$self->out($output);
+		$self->output_by_type( 'vcf', $output );
+	}
+	1;
+}
+#######################################################
+{
+
+	package VariantRecalibrator;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input         = $self->first_previous->output_by_type('vcf');
+		my $recal_file    = $input . ".recal";
+		my $tranches_file = $input . ".tranches";
+		my $rscript_file  = $input . ".plots.R";
+		my $resources     = $self->project->{CONFIG}->{GATK} . "/resources/";
+		$self->program->additional_params(
+			[
+				"-input $input",
+				"--recal_file $recal_file",
+				"--tranches_file $tranches_file",
+				"--rscript_file $rscript_file",
+				"--path_to_resources $resources",
+			]
+		);
+		$self->out($tranches_file);
+		$self->output_by_type( 'vcf',           $input );
+		$self->output_by_type( 'recal_file',    $recal_file );
+		$self->output_by_type( 'tranches_file', $tranches_file );
+		$self->output_by_type( 'rscript_file',  $rscript_file );
+	}
+	1;
+}
+#######################################################
+{
+
+	package ApplyRecalibration;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(6);
+		my $input  = $self->first_previous->output_by_type('vcf');
+		my $output = $input . ".recalibrated.vcf";
+		$self->program->additional_params(
+			[
+				"-input $input",
+				"--ts_filter_level 99.0",
+				"--recal_file "
+				  . $self->first_previous->output_by_type('recal_file'),
+				"--tranches_file "
+				  . $self->first_previous->output_by_type('tranches_file'),
+				"-o $output"
+			]
+		);
+		$self->out($output);
+		$self->output_by_type( 'vcf',    $output );
+	}
+	1;
+}
 #######################################################
 {
 
@@ -351,7 +491,7 @@ use Data::Dumper;
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'PICARD'} );
 		$self->program->tmp_dir( $self->project()->tmp_dir() );
-		$self->program->name($class . ".jar");
+		$self->program->name( $class . ".jar" );
 		return $self;
 	}
 
@@ -373,7 +513,6 @@ use Data::Dumper;
 	#@Override
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('ProcessLane');
 		$self->process();
 		$self->virtual(1);
 	}
@@ -430,7 +569,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('root_job');
 		$self->virtual(1);
 	}
 
@@ -480,7 +618,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('Align');
 		$self->processors( $self->project()->{'CONFIG'}->{'BWA_PROCESSORS'} );
 		$self->memory(5);
 	}
@@ -537,7 +674,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('SortSam');
 		my $tmp_dir = $self->project()->dir;
 		$self->memory(5);
 		my $previous = $self->previous();
@@ -569,7 +705,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('BuildBamIndex');
 		my $tmp_dir = $self->project()->dir;
 		$self->memory(5);
 		my $input  = $self->first_previous->out();
@@ -598,7 +733,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('MergeSamFiles');
 		$self->memory(5);
 		my $previous = $self->previous();
 		my @input    = map { "INPUT=" . $_->out } @$previous;
@@ -629,7 +763,6 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->string_id('MarkDuplicates');
 		$self->memory(5);
 		my $previous = $self->previous();
 		my $input    = $self->first_previous->out;

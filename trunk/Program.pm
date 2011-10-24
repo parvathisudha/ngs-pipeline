@@ -13,7 +13,10 @@ sub new {
 
 sub additional_params {
 	my ( $self, $additional_params ) = @_;
-	$self->{additional_params} = $additional_params if $additional_params;
+	my @params;
+	@params = $self->{additional_params} if $self->{additional_params};
+	@params = (@params,@$additional_params) if $additional_params;
+	$self->{additional_params} = \@params if $additional_params;
 	return $self->{additional_params};
 }
 

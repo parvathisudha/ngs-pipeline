@@ -35,9 +35,21 @@ my $params         = {
 
 # making right folder structure
 $project->make_folder_structure();
+
+##############################
+my $KG           = $project->{'CONFIG'}->{'1KG'};
+my $hapmap       = $project->{'CONFIG'}->{'HAPMAP'};
+my $omni         = $project->{'CONFIG'}->{'OMNI'};
+my $dbSNP        = $project->{'CONFIG'}->{'DBSNP'};
+my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
+my $cgi          = $project->{'CONFIG'}->{'CGI'};
+my $eur          = $project->{'CONFIG'}->{'EURKG'};
+
+
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
 my @lanes_processing;
+
 for my $lane ( @{ $project->get_lanes() } ) {
 	my $process_lane = ProcessLane->new(
 		params   => $params,
@@ -58,6 +70,8 @@ my $mark_duplicates = MarkDuplicates->new(
 );
 
 my @chr = $project->read_intervals();
+my @snps;
+my @indels;
 for my $chr (@chr) {
 	my $realigner_target_creator = RealignerTargetCreator->new(
 		params   => $params,
@@ -71,17 +85,116 @@ for my $chr (@chr) {
 	);
 	my $sort_realigned =
 	  SortSam->new( params => $params, previous => [$indel_realigner] );
-	my $count_covariates = CountCovariates->new( params => $params, previous => [$sort_realigned] );
-	my $table_recalibration = TableRecalibration->new( params => $params, previous => [$count_covariates] );
-	my $index_recalibrated = BuildBamIndex->new( params => $params, previous => [$table_recalibration] );
-	my $call_snps = UnifiedGenotyper->new( params => $params, previous => [$index_recalibrated] , variation_type => "SNP");#
-	my $call_indels = UnifiedGenotyper->new( params => $params, previous => [$index_recalibrated] , variation_type => "INDEL" );#
-#	my $indel_annotator = VariantAnnotator->new( params => $params, previous => [$call_indels] );#
-#	my $snps_annotator = VariantAnnotator->new( params => $params, previous => [$call_snps] );#
-#	my $snps_filter = VariantFiltration->new( params => $params, previous => [$snps_annotator] );#
-	
-	#	filter_snps($chr);                 #tested
+	my $count_covariates =
+	  CountCovariates->new( params => $params, previous => [$sort_realigned] );
+	my $table_recalibration = TableRecalibration->new(
+		params   => $params,
+		previous => [$count_covariates]
+	);
+	my $index_recalibrated = BuildBamIndex->new(
+		params   => $params,
+		previous => [$table_recalibration]
+	);
+	my $call_snps = UnifiedGenotyper->new(
+		params         => $params,
+		previous       => [$index_recalibrated],
+		variation_type => "SNP"
+	);    #
+	my $call_indels = UnifiedGenotyper->new(
+		params         => $params,
+		previous       => [$index_recalibrated],
+		variation_type => "INDEL"
+	);    #
+
+	my $indel_annotator = VariantAnnotator->new(
+		additional_params => [
+			"--comp:KG,VCF $KG",
+			"--comp:HapMap,VCF $hapmap",
+			"--comp:OMNI,VCF $omni",
+			"--comp:CGI,VCF $cgi",
+			"--resource:EUR $eur",
+			"-E EUR.AF",
+			"--resource:CGI,VCF $cgi",
+			"-E CGI.AF",
+			"--resource:KG,VCF $KG",
+			"-E KG.AF",
+		],
+		params   => $params,
+		previous => [$call_indels]
+	);    #
+	my $snps_annotator = VariantAnnotator->new(
+		additional_params => [
+			"--comp:KG,VCF $KG",
+			"--comp:HapMap,VCF $hapmap",
+			"--comp:OMNI,VCF $omni",
+			"--comp:CGI,VCF $cgi",
+			"--resource:EUR $eur",
+			"-E EUR.AF",
+			"--resource:CGI,VCF $cgi",
+			"-E CGI.AF",
+			"--resource:KG,VCF $KG",
+			"-E KG.AF",
+		],
+
+		params   => $params,
+		previous => [$call_snps]
+	);    #
+	push( @snps,   $snps_annotator );
+	push( @indels, $indel_annotator );
 }
+
+my $combine_snps = CombineVariants->new(
+	out      => $project->file_prefix() . ".SNP.vcf",
+	params   => $params,
+	previous => \@snps
+);
+my $combine_indels = CombineVariants->new(
+	out      => $project->file_prefix() . ".INDEL.vcf",
+	params   => $params,
+	previous => \@indels
+);
+my $snps_variant_recalibrator = VariantRecalibrator->new(
+	params            => $params,
+	previous          => [$combine_snps],
+	additional_params => [
+"--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap",
+"--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni",
+"--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP",
+"-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ",
+		"-mode SNP",
+	]
+);
+my $snps_apply_recalibration = ApplyRecalibration->new(
+	params            => $params,
+	previous          => [$snps_variant_recalibrator],
+	additional_params => [ "-mode SNP", ]
+);
+
+my $indels_variant_recalibrator = VariantRecalibrator->new(
+	params            => $params,
+	previous          => [$combine_indels],
+	additional_params => [
+"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
+		"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
+		"-mode INDEL",
+	]
+);
+my $indels_apply_recalibration = ApplyRecalibration->new(
+	params            => $params,
+	previous          => [$indels_variant_recalibrator],
+	additional_params => [ "-mode INDEL", ]
+);
+
+my $variations = CombineVariants->new(
+	out      => $project->file_prefix() . ".variations.vcf",
+	params   => $params,
+	previous => [ $snps_apply_recalibration, $indels_apply_recalibration ]
+);
+
+my $effect_prediction = SnpEff->new(
+	params            => $params,
+	previous          => [$variations],
+);
 
 $job_manager->start();
 

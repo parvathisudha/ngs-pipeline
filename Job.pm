@@ -12,9 +12,11 @@ sub new {
 		$self->{$key} = $value;
 	}
 	bless $self, $class;
+	$self->string_id($class);
 	$self->{output_by_type} = {};
 	my $program = $self->program ? $self->program : Program->new();
 	$self->program($program);
+	$self->program->additional_params($self->{additional_params}) if $self->{additional_params};
 	$self->manager()->register($self);
 	$self->out($params{out}) if $params{out};
 	$self->memory(1);

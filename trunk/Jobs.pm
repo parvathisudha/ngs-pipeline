@@ -267,6 +267,37 @@ use Data::Dumper;
 #######################################################
 {
 
+	package SelectVariants;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+	sub sample{
+		my ($self) = @_;
+		return $self->{sample};
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input      = $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
+		$self->program->additional_params(
+			[
+				"-o " . $self->out,
+				"--variant $input",
+			]
+		);
+		$self->output_by_type( 'vcf', $self->out );
+	}
+	1;
+}
+#######################################################
+{
+
 	package UnifiedGenotyper;
 	our @ISA = qw( GATKJob );
 
@@ -362,10 +393,12 @@ use Data::Dumper;
 		my $input      = $self->first_previous->output_by_type('bam');
 		my $variations = $self->first_previous->output_by_type('vcf');
 		my $output     = $variations . ".annotated.vcf";
+		my $bam = "";
+		$bam = "-I $input" if $input;
 		$self->program->additional_params(
 			[
 				"-o $output",
-				"-I $input",
+				$bam,
 				"--variant $variations",
 			]
 		);

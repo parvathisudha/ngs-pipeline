@@ -258,7 +258,6 @@ use Data::Dumper;
 				"-o $output",
 				"-I $input",
 				"-recalFile $recal_file",
-				"-knownSites $dbSNP",
 			]
 		);
 		$self->out($output);

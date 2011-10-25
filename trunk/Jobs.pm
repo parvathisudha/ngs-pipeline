@@ -154,7 +154,7 @@ use Data::Dumper;
 		$self->memory(4);
 		my $previous = $self->previous();
 		my $input    = $self->first_previous->out();
-		my $output   = $input . "." . $self->interval . ".targets";
+		my $output   = $input . "." . $self->interval . ".intervals";
 		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
 		$self->program->additional_params(
 			[ "-o $output", "-I $input", "--known $KGIND" ] );

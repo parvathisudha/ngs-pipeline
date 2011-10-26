@@ -37,6 +37,9 @@ my $params         = {
 $project->make_folder_structure();
 
 ##############################
+system("date");
+
+##############################
 my $KG           = $project->{'CONFIG'}->{'1KG'};
 my $hapmap       = $project->{'CONFIG'}->{'HAPMAP'};
 my $omni         = $project->{'CONFIG'}->{'OMNI'};

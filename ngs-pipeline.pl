@@ -37,10 +37,10 @@ my $params         = {
 $project->make_folder_structure();
 
 ##############################
-system("date");
+#system("date");
 
 ##############################
-my $KG           = $project->{'CONFIG'}->{'1KG'};
+my $KG           = $project->{'CONFIG'}->{'KG'};
 my $hapmap       = $project->{'CONFIG'}->{'HAPMAP'};
 my $omni         = $project->{'CONFIG'}->{'OMNI'};
 my $dbSNP        = $project->{'CONFIG'}->{'DBSNP'};

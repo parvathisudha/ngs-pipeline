@@ -325,37 +325,37 @@ use Data::Dumper;
 		  $self->project()->{'CONFIG'}->{'GATK_stand_call_conf'};
 		my $stand_emit_conf =
 		  $self->project()->{'CONFIG'}->{'GATK_stand_emit_conf'};
-		my @annotations = qw/
-		  ChromosomeCounts
-		  IndelType
-		  HardyWeinberg
-		  SpanningDeletions
-		  GLstats
-		  NBaseCount
-		  AlleleBalance
-		  MappingQualityZero
-		  BaseCounts
-		  LowMQ
-		  RMSMappingQuality
-		  HaplotypeScore
-		  TechnologyComposition
-		  SampleList
-		  FisherStrand
-		  DepthOfCoverage
-		  HomopolymerRun
-		  MappingQualityZeroFraction
-		  GCContent
-		  MappingQualityRankSumTest
-		  ReadPosRankSumTest
-		  BaseQualityRankSumTest
-		  QualByDepth
-		  SBByDepth
-		  ReadDepthAndAllelicFractionBySample
-		  AlleleBalanceBySample
-		  DepthPerAlleleBySample
-		  MappingQualityZeroBySample
-		  /;
-		my @formatted_annotations = map { "--annotation $_" } @annotations;
+#		my @annotations = qw/
+#		  ChromosomeCounts
+#		  IndelType
+#		  HardyWeinberg
+#		  SpanningDeletions
+#		  GLstats
+#		  NBaseCount
+#		  AlleleBalance
+#		  MappingQualityZero
+#		  BaseCounts
+#		  LowMQ
+#		  RMSMappingQuality
+#		  HaplotypeScore
+#		  TechnologyComposition
+#		  SampleList
+#		  FisherStrand
+#		  DepthOfCoverage
+#		  HomopolymerRun
+#		  MappingQualityZeroFraction
+#		  GCContent
+#		  MappingQualityRankSumTest
+#		  ReadPosRankSumTest
+#		  BaseQualityRankSumTest
+#		  QualByDepth
+#		  SBByDepth
+#		  ReadDepthAndAllelicFractionBySample
+#		  AlleleBalanceBySample
+#		  DepthPerAlleleBySample
+#		  MappingQualityZeroBySample
+#		  /;
+#		my @formatted_annotations = map { "--annotation $_" } @annotations;
 		my $genotype_likelihoods_model = $self->variation_type;
 		$self->program->additional_params(
 			[
@@ -366,7 +366,7 @@ use Data::Dumper;
 				"-stand_emit_conf $stand_emit_conf",
 				"-dcov 80 -U",
 				"--genotype_likelihoods_model $genotype_likelihoods_model",
-				@formatted_annotations,
+#				@formatted_annotations,
 			]
 		);
 		$self->out($output);

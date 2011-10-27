@@ -48,7 +48,6 @@ my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi          = $project->{'CONFIG'}->{'CGI'};
 my $eur          = $project->{'CONFIG'}->{'EURKG'};
 
-
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
 my @lanes_processing;
@@ -108,42 +107,8 @@ for my $chr (@chr) {
 		previous       => [$index_recalibrated],
 		variation_type => "INDEL"
 	);    #
-
-	my $indel_annotator = VariantAnnotator->new(
-		additional_params => [
-			"--comp:KG,VCF $KG",
-			"--comp:HapMap,VCF $hapmap",
-			"--comp:OMNI,VCF $omni",
-			"--comp:CGI,VCF $cgi",
-			"--resource:EUR_FREQ $eur",
-			"-E EUR_FREQ.AF",
-			"--resource:CGI_FREQ,VCF $cgi",
-			"-E CGI_FREQ.AF",
-			"--resource:KG_FREQ,VCF $KG",
-			"-E KG_FREQ.AF",
-		],
-		params   => $params,
-		previous => [$call_indels]
-	);    #
-	my $snps_annotator = VariantAnnotator->new(
-		additional_params => [
-			"--comp:KG,VCF $KG",
-			"--comp:HapMap,VCF $hapmap",
-			"--comp:OMNI,VCF $omni",
-			"--comp:CGI,VCF $cgi",
-			"--resource:EUR_FREQ $eur",
-			"-E EUR_FREQ.AF",
-			"--resource:CGI_FREQ,VCF $cgi",
-			"-E CGI_FREQ.AF",
-			"--resource:KG_FREQ,VCF $KG",
-			"-E KG_FREQ.AF",
-		],
-
-		params   => $params,
-		previous => [$call_snps]
-	);    #
-	push( @snps,   $snps_annotator );
-	push( @indels, $indel_annotator );
+	push( @snps,   $call_snps );
+	push( @indels, $call_indels );
 }
 
 my $combine_snps = CombineVariants->new(
@@ -156,6 +121,7 @@ my $combine_indels = CombineVariants->new(
 	params   => $params,
 	previous => \@indels
 );
+
 my $snps_variant_recalibrator = VariantRecalibrator->new(
 	params            => $params,
 	previous          => [$combine_snps],
@@ -194,9 +160,40 @@ my $variations = CombineVariants->new(
 	previous => [ $snps_apply_recalibration, $indels_apply_recalibration ]
 );
 
+my $filter_low_qual = FilterLowQual->new(
+	params   => $params,
+	previous => [$variations]
+);
+
+my $variant_annotator = VariantAnnotator->new(
+	additional_params => [
+		"--comp:KG,VCF $KG",
+		"--comp:HapMap,VCF $hapmap",
+		"--comp:OMNI,VCF $omni",
+		"--comp:CGI,VCF $cgi",
+		"--resource:EUR_FREQ $eur",
+		"-E EUR_FREQ.AF",
+		"--resource:CGI_FREQ,VCF $cgi",
+		"-E CGI_FREQ.AF",
+		"--resource:KG_FREQ,VCF $KG",
+		"-E KG_FREQ.AF",
+	],
+	params   => $params,
+	previous => [$filter_low_qual]
+);
+
 my $effect_prediction = SnpEff->new(
-	params            => $params,
-	previous          => [$variations],
+	params   => $params,
+	previous => [$variant_annotator],
+);
+
+my $effect_annotator = VariantAnnotator->new(
+	additional_params => [
+		"--annotation SnpEff",
+		"--snpEffFile " . $effect_prediction->output_by_type('vcf'),
+	],
+	params   => $params,
+	previous => [ $filter_low_qual, $effect_prediction ]
 );
 
 $job_manager->start();

@@ -247,6 +247,7 @@ use Data::Dumper;
 				"-cov DinucCovariate",
 				"-recalFile $output",
 				"-knownSites $dbSNP",
+				"--solid_nocall_strategy PURGE_READ",
 			]
 		);
 		$self->out($output);
@@ -280,6 +281,7 @@ use Data::Dumper;
 				"-o $output",
 				"-I $input",
 				"-recalFile $recal_file",
+				"--solid_nocall_strategy PURGE_READ",
 			]
 		);
 		$self->out($output);

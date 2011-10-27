@@ -37,7 +37,7 @@ my $params         = {
 $project->make_folder_structure();
 
 ##############################
-#system("date");
+system("date") unless $debug;
 
 ##############################
 my $KG           = $project->{'CONFIG'}->{'KG'};
@@ -114,11 +114,11 @@ for my $chr (@chr) {
 			"--comp:KG,VCF $KG",
 			"--comp:HapMap,VCF $hapmap",
 			"--comp:OMNI,VCF $omni",
-			"--comp:CGI,VCF $cgi",
+#			"--comp:CGI,VCF $cgi",
 			"--resource:EUR $eur",
 			"-E EUR.AF",
-			"--resource:CGI,VCF $cgi",
-			"-E CGI.AF",
+#			"--resource:CGI,VCF $cgi",
+#			"-E CGI.AF",
 			"--resource:KG,VCF $KG",
 			"-E KG.AF",
 		],
@@ -130,11 +130,11 @@ for my $chr (@chr) {
 			"--comp:KG,VCF $KG",
 			"--comp:HapMap,VCF $hapmap",
 			"--comp:OMNI,VCF $omni",
-			"--comp:CGI,VCF $cgi",
+#			"--comp:CGI,VCF $cgi",
 			"--resource:EUR $eur",
 			"-E EUR.AF",
-			"--resource:CGI,VCF $cgi",
-			"-E CGI.AF",
+#			"--resource:CGI,VCF $cgi",
+#			"-E CGI.AF",
 			"--resource:KG,VCF $KG",
 			"-E KG.AF",
 		],

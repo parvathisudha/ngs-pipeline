@@ -20,6 +20,7 @@ sub new {
 	$self->manager()->register($self);
 	$self->out($params{out}) if $params{out};
 	$self->in($params{in}) if $params{in};
+	$self->bam($params{bam}) if $params{bam};
 	$self->memory(1);
 	$self->initialize();
 	return $self;
@@ -88,6 +89,11 @@ sub in {
 	my ( $self, $in ) = @_;
 	$self->{in} = $in if $in;
 	return $self->{in};
+}
+sub bam {
+	my ( $self, $bam ) = @_;
+	$self->{bam} = $bam if $bam;
+	return $self->{bam};
 }
 sub project {
 	my ( $self, $project ) = @_;

@@ -337,8 +337,8 @@ use Data::Dumper;
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->memory(2);
-		my $bam      = $self->first_previous->output_by_type('bam');
-		my $input      = $self->first_previous->output_by_type('vcf');
+		my $bam      = $self->bam ? $self->bam : $self->first_previous->output_by_type('bam');
+		my $input    = $self->first_previous->output_by_type('vcf');
 		my $output = $input . ".phased.vcf";
 		$self->program->additional_params(
 			[
@@ -870,6 +870,7 @@ use Data::Dumper;
 		);
 		$self->out($output);
 		$self->output_by_type( "metrics", $metrics );
+		$self->output_by_type('bam', $output),
 	}
 	1;
 }

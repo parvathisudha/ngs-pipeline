@@ -164,6 +164,7 @@ my $variations = CombineVariants->new(
 my $phase_variations = ReadBackedPhasing->new(
 	params   => $params,
 	previous => [$variations],
+	bam => $mark_duplicates->output_by_type('bam'),
 );
 
 my $filter_low_qual = FilterLowQual->new(

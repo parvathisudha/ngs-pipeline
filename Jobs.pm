@@ -321,6 +321,40 @@ use Data::Dumper;
 	}
 	1;
 }
+
+#######################################################
+{
+
+	package ReadBackedPhasing;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(2);
+		my $bam      = $self->first_previous->output_by_type('bam');
+		my $input      = $self->first_previous->output_by_type('vcf');
+		my $output = $input . ".phased.vcf";
+		$self->program->additional_params(
+			[
+				"-I $bam",
+				"--variant $input",
+				"-o $output",
+				"-BTI variant",
+      			"-BTIMR INTERSECTION",
+			]
+		);
+		$self->out($output);
+		$self->output_by_type( 'vcf', $output );
+		$self->output_by_type( 'bam', $bam );
+	}
+	1;
+}
 #######################################################
 {
 

@@ -116,6 +116,7 @@ my $combine_snps = CombineVariants->new(
 	params   => $params,
 	previous => \@snps
 );
+
 my $combine_indels = CombineVariants->new(
 	out      => $project->file_prefix() . ".INDEL.vcf",
 	params   => $params,
@@ -160,31 +161,36 @@ my $variations = CombineVariants->new(
 	previous => [ $snps_apply_recalibration, $indels_apply_recalibration ]
 );
 
-#my $filter_low_qual = FilterLowQual->new(
-#	params   => $params,
-#	previous => [$variations]
-#);
-#
-#my $variant_annotator = VariantAnnotator->new(
-#	additional_params => [
-#		"--comp:KG,VCF $KG",
-#		"--comp:HapMap,VCF $hapmap",
-#		"--comp:OMNI,VCF $omni",
-#		"--comp:CGI,VCF $cgi",
-#		"--resource:EUR_FREQ $eur",
-#		"-E EUR_FREQ.AF",
-#		"--resource:CGI_FREQ,VCF $cgi",
-#		"-E CGI_FREQ.AF",
-#		"--resource:KG_FREQ,VCF $KG",
-#		"-E KG_FREQ.AF",
-#	],
-#	params   => $params,
-#	previous => [$filter_low_qual]
-#);
+my $phase_variations = ReadBackedPhasing->new(
+	params   => $params,
+	previous => [$variations],
+);
+
+my $filter_low_qual = FilterLowQual->new(
+	params   => $params,
+	previous => [$phase_variations]
+);
+
+my $variant_annotator = VariantAnnotator->new(
+	additional_params => [
+		"--comp:KG,VCF $KG",
+		"--comp:HapMap,VCF $hapmap",
+		"--comp:OMNI,VCF $omni",
+		"--comp:CGI,VCF $cgi",
+		"--resource:EUR_FREQ $eur",
+		"-E EUR_FREQ.AF",
+		"--resource:CGI_FREQ,VCF $cgi",
+		"-E CGI_FREQ.AF",
+		"--resource:KG_FREQ,VCF $KG",
+		"-E KG_FREQ.AF",
+	],
+	params   => $params,
+	previous => [$filter_low_qual]
+);
 
 my $effect_prediction = SnpEff->new(
 	params   => $params,
-	previous => [$variations],#$variant_annotator
+	previous => [$variant_annotator],#
 );
 
 my $effect_annotator = VariantAnnotator->new(
@@ -193,7 +199,7 @@ my $effect_annotator = VariantAnnotator->new(
 		"--snpEffFile " . $effect_prediction->output_by_type('vcf'),
 	],
 	params   => $params,
-	previous => [ $variations, $effect_prediction ]# $filter_low_qual, $effect_prediction
+	previous => [ $filter_low_qual, $effect_prediction ]# 
 );
 
 $job_manager->start();

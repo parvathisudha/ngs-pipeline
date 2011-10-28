@@ -347,6 +347,7 @@ use Data::Dumper;
 				"-o $output",
 				"-BTI variant",
       			"-BTIMR INTERSECTION",
+      			"--maxGenomicDistanceForMNP 2",
 			]
 		);
 		$self->out($output);

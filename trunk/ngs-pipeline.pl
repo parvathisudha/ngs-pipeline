@@ -160,31 +160,31 @@ my $variations = CombineVariants->new(
 	previous => [ $snps_apply_recalibration, $indels_apply_recalibration ]
 );
 
-my $filter_low_qual = FilterLowQual->new(
-	params   => $params,
-	previous => [$variations]
-);
-
-my $variant_annotator = VariantAnnotator->new(
-	additional_params => [
-		"--comp:KG,VCF $KG",
-		"--comp:HapMap,VCF $hapmap",
-		"--comp:OMNI,VCF $omni",
-		"--comp:CGI,VCF $cgi",
-		"--resource:EUR_FREQ $eur",
-		"-E EUR_FREQ.AF",
-		"--resource:CGI_FREQ,VCF $cgi",
-		"-E CGI_FREQ.AF",
-		"--resource:KG_FREQ,VCF $KG",
-		"-E KG_FREQ.AF",
-	],
-	params   => $params,
-	previous => [$filter_low_qual]
-);
+#my $filter_low_qual = FilterLowQual->new(
+#	params   => $params,
+#	previous => [$variations]
+#);
+#
+#my $variant_annotator = VariantAnnotator->new(
+#	additional_params => [
+#		"--comp:KG,VCF $KG",
+#		"--comp:HapMap,VCF $hapmap",
+#		"--comp:OMNI,VCF $omni",
+#		"--comp:CGI,VCF $cgi",
+#		"--resource:EUR_FREQ $eur",
+#		"-E EUR_FREQ.AF",
+#		"--resource:CGI_FREQ,VCF $cgi",
+#		"-E CGI_FREQ.AF",
+#		"--resource:KG_FREQ,VCF $KG",
+#		"-E KG_FREQ.AF",
+#	],
+#	params   => $params,
+#	previous => [$filter_low_qual]
+#);
 
 my $effect_prediction = SnpEff->new(
 	params   => $params,
-	previous => [$variant_annotator],
+	previous => [$variations],#$variant_annotator
 );
 
 my $effect_annotator = VariantAnnotator->new(
@@ -193,7 +193,7 @@ my $effect_annotator = VariantAnnotator->new(
 		"--snpEffFile " . $effect_prediction->output_by_type('vcf'),
 	],
 	params   => $params,
-	previous => [ $filter_low_qual, $effect_prediction ]
+	previous => [ $variations, $effect_prediction ]# $filter_low_qual, $effect_prediction
 );
 
 $job_manager->start();

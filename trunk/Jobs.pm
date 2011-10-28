@@ -107,12 +107,13 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
-		$self->program->name("cat");
+		$self->program->name("grep");
+		$self->program->path("/bin");
 		$self->memory(1);
 		my $input = $self->first_previous->output_by_type('vcf');
 		my $output = $input . ".filtered.vcf";
 		$self->program->additional_params(
-			[ "$input | grep -v LowQual > $output" ] );
+			[ "-v LowQual > $output" ] );
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
 		return $self;

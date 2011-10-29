@@ -113,7 +113,7 @@ use Data::Dumper;
 		my $input = $self->first_previous->output_by_type('vcf');
 		my $output = $input . ".filtered.vcf";
 		$self->program->additional_params(
-			[ "-v LowQual > $output" ] );
+			[ "-v LowQual $input > $output" ] );
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
 		return $self;

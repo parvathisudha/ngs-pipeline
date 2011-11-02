@@ -80,16 +80,24 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new JavaProgram() );
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'SNPEFF'} );
-		my $config = $self->project()->{'CONFIG'}->{'SNPEFF'} . "/snpEff.config";
+		my $config =
+		  $self->project()->{'CONFIG'}->{'SNPEFF'} . "/snpEff.config";
 		$self->program->name("snpEff.jar");
 		$self->memory(8);
-		my $input = $self->first_previous->output_by_type('vcf');
-		my $html = $input . ".html";
+		my $input         = $self->first_previous->output_by_type('vcf');
+		my $html          = $input . ".html";
 		my $snpeff_genome = $self->project->{'CONFIG'}->{SNPEFF_GENOME};
-		my $output = $input . ".eff.vcf";
+		my $output        = $input . ".eff.vcf";
 		$self->program->additional_params(
-			[ "-config $config", 
-			"-onlyCoding", "-stats $html", "-o vcf", $snpeff_genome, "$input > $output" ] );
+			[
+				"-config $config",
+				"-onlyCoding",
+				"-stats $html",
+				"-o vcf",
+				$snpeff_genome,
+				"$input > $output"
+			]
+		);
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
 		return $self;
@@ -110,10 +118,9 @@ use Data::Dumper;
 		$self->program->name("grep");
 		$self->program->path("/bin");
 		$self->memory(1);
-		my $input = $self->first_previous->output_by_type('vcf');
+		my $input  = $self->first_previous->output_by_type('vcf');
 		my $output = $input . ".filtered.vcf";
-		$self->program->additional_params(
-			[ "-v LowQual $input > $output" ] );
+		$self->program->additional_params( ["-v LowQual $input > $output"] );
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
 		return $self;
@@ -278,9 +285,7 @@ use Data::Dumper;
 		my $dbSNP      = $self->project()->{'CONFIG'}->{'DBSNP'};
 		$self->program->additional_params(
 			[
-				"-l INFO",
-				"-o $output",
-				"-I $input",
+				"-l INFO", "-o $output", "-I $input",
 				"-recalFile $recal_file",
 				"--solid_nocall_strategy PURGE_READ",
 			]
@@ -302,7 +307,8 @@ use Data::Dumper;
 		bless $self, $class;
 		return $self;
 	}
-	sub sample{
+
+	sub sample {
 		my ($self) = @_;
 		return $self->{sample};
 	}
@@ -310,13 +316,10 @@ use Data::Dumper;
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->memory(2);
-		my $input      = $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
+		my $input =
+		  $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
 		$self->program->additional_params(
-			[
-				"-o " . $self->out,
-				"--variant $input",
-			]
-		);
+			[ "-o " . $self->out, "--variant $input", ] );
 		$self->output_by_type( 'vcf', $self->out );
 	}
 	1;
@@ -334,11 +337,15 @@ use Data::Dumper;
 		bless $self, $class;
 		return $self;
 	}
+
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->memory(2);
-		my $bam      = $self->bam ? $self->bam : $self->first_previous->output_by_type('bam');
-		my $input    = $self->first_previous->output_by_type('vcf');
+		my $bam =
+		    $self->bam
+		  ? $self->bam
+		  : $self->first_previous->output_by_type('bam');
+		my $input  = $self->first_previous->output_by_type('vcf');
 		my $output = $input . ".phased.vcf";
 		$self->program->additional_params(
 			[
@@ -346,8 +353,8 @@ use Data::Dumper;
 				"--variant $input",
 				"-o $output",
 				"-BTI variant",
-      			"-BTIMR INTERSECTION",
-      			"--maxGenomicDistanceForMNP 2",
+				"-BTIMR INTERSECTION",
+				"--maxGenomicDistanceForMNP 2",
 			]
 		);
 		$self->out($output);
@@ -376,7 +383,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(4);
+		$self->memory(8);
 		my $input           = $self->first_previous->output_by_type('bam');
 		my $recal_file      = $self->first_previous->out;
 		my $output          = $input . "." . $self->variation_type . ".vcf";
@@ -385,37 +392,38 @@ use Data::Dumper;
 		  $self->project()->{'CONFIG'}->{'GATK_stand_call_conf'};
 		my $stand_emit_conf =
 		  $self->project()->{'CONFIG'}->{'GATK_stand_emit_conf'};
-#		my @annotations = qw/
-#		  ChromosomeCounts
-#		  IndelType
-#		  HardyWeinberg
-#		  SpanningDeletions
-#		  GLstats
-#		  NBaseCount
-#		  AlleleBalance
-#		  MappingQualityZero
-#		  BaseCounts
-#		  LowMQ
-#		  RMSMappingQuality
-#		  HaplotypeScore
-#		  TechnologyComposition
-#		  SampleList
-#		  FisherStrand
-#		  DepthOfCoverage
-#		  HomopolymerRun
-#		  MappingQualityZeroFraction
-#		  GCContent
-#		  MappingQualityRankSumTest
-#		  ReadPosRankSumTest
-#		  BaseQualityRankSumTest
-#		  QualByDepth
-#		  SBByDepth
-#		  ReadDepthAndAllelicFractionBySample
-#		  AlleleBalanceBySample
-#		  DepthPerAlleleBySample
-#		  MappingQualityZeroBySample
-#		  /;
-#		my @formatted_annotations = map { "--annotation $_" } @annotations;
+
+		#		my @annotations = qw/
+		#		  ChromosomeCounts
+		#		  IndelType
+		#		  HardyWeinberg
+		#		  SpanningDeletions
+		#		  GLstats
+		#		  NBaseCount
+		#		  AlleleBalance
+		#		  MappingQualityZero
+		#		  BaseCounts
+		#		  LowMQ
+		#		  RMSMappingQuality
+		#		  HaplotypeScore
+		#		  TechnologyComposition
+		#		  SampleList
+		#		  FisherStrand
+		#		  DepthOfCoverage
+		#		  HomopolymerRun
+		#		  MappingQualityZeroFraction
+		#		  GCContent
+		#		  MappingQualityRankSumTest
+		#		  ReadPosRankSumTest
+		#		  BaseQualityRankSumTest
+		#		  QualByDepth
+		#		  SBByDepth
+		#		  ReadDepthAndAllelicFractionBySample
+		#		  AlleleBalanceBySample
+		#		  DepthPerAlleleBySample
+		#		  MappingQualityZeroBySample
+		#		  /;
+		#		my @formatted_annotations = map { "--annotation $_" } @annotations;
 		my $genotype_likelihoods_model = $self->variation_type;
 		$self->program->additional_params(
 			[
@@ -426,7 +434,8 @@ use Data::Dumper;
 				"-stand_emit_conf $stand_emit_conf",
 				"-dcov 80 -U",
 				"--genotype_likelihoods_model $genotype_likelihoods_model",
-#				@formatted_annotations,
+
+				#				@formatted_annotations,
 			]
 		);
 		$self->out($output);
@@ -454,15 +463,10 @@ use Data::Dumper;
 		my $input      = $self->first_previous->output_by_type('bam');
 		my $variations = $self->first_previous->output_by_type('vcf');
 		my $output     = $variations . ".annotated.vcf";
-		my $bam = "";
+		my $bam        = "";
 		$bam = "-I $input" if $input;
 		$self->program->additional_params(
-			[
-				"-o $output",
-				$bam,
-				"--variant $variations",
-			]
-		);
+			[ "-o $output", $bam, "--variant $variations", ] );
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 		$self->output_by_type( 'vcf', $output );
@@ -566,7 +570,7 @@ use Data::Dumper;
 			]
 		);
 		$self->out($output);
-		$self->output_by_type( 'vcf',    $output );
+		$self->output_by_type( 'vcf', $output );
 	}
 	1;
 }
@@ -615,34 +619,44 @@ use Data::Dumper;
 		my ( $self, ) = @_;
 		my $lane      = $self->{lane};
 		my $params    = $self->params();
-
-		#print "PROCESS: ", Dumper $lane;
-		my @sai;
-		if ( $lane->{FORWARD} ) {
-			my $align = Align->new(
+		my $aligned;
+		if ( $lane->{PL} =~ m/illumina/i ) {
+			my @sai;
+			if ( $lane->{FORWARD} ) {
+				my $align = Align->new(
+					params   => $params,
+					previous => [$self],
+					lane     => $lane,
+					type     => 'FORWARD'
+				);
+				$align->align_fastq();
+				push( @sai, $align );
+			}
+			if ( $lane->{REVERSE} ) {
+				my $align = Align->new(
+					params   => $params,
+					previous => [$self],
+					lane     => $lane,
+					type     => 'REVERSE'
+				);
+				$align->align_fastq();
+				push( @sai, $align );
+			}
+			$aligned = SaiToBam->new(
+				lane     => $lane,
+				params   => $params,
+				previous => \@sai
+			);
+		}
+		elsif ( $lane->{PL} =~ m/solid/i )  {#
+			$aligned = Bowtie->new(
+				lane     => $lane,
 				params   => $params,
 				previous => [$self],
-				lane     => $lane,
-				type     => 'FORWARD'
 			);
-			$align->align_fastq();
-			push( @sai, $align );
 		}
-		if ( $lane->{REVERSE} ) {
-			my $align = Align->new(
-				params   => $params,
-				previous => [$self],
-				lane     => $lane,
-				type     => 'REVERSE'
-			);
-			$align->align_fastq();
-			push( @sai, $align );
-		}
-		my $sai_to_bam =
-		  SaiToBam->new( lane => $lane, params => $params, previous => \@sai );
-
 		my $sort_sam =
-		  SortSam->new( params => $params, previous => [$sai_to_bam] );
+		  SortSam->new( params => $params, previous => [$aligned] );
 		$self->{last_job} = $sort_sam;
 	}
 	1;
@@ -751,6 +765,44 @@ use Data::Dumper;
 		$self->output_by_type( 'genome', $genome );
 	}
 
+	1;
+}
+#######################################################
+{
+
+	package Bowtie;
+	our @ISA = qw( BwaJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->memory(5);
+		my $lane       = $self->lane();
+		my $out        = $self->project()->file_prefix() . "." . $lane->{ID} . '.bam';
+		$self->program->path($self->project->{CONFIG}->{BOWTIE});
+		$self->program->name(bowtie);	
+		my $view =
+		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";	
+		if($lane->{F3_CFASTA} && $lane->{R3_CFASTA}){
+			$self->program->basic_params(
+				[
+					"-f " . $lane->{F3_CFASTA} . " " . $lane->{R3_CFASTA},
+					"--Q1 " . $lane->{F3_QUAL},
+					"--Q2 " . $lane->{R3_QUAL},
+					"| $view -bS - >", $out
+				]
+			);			
+		}	
+		$self->out($out);
+		$self->output_by_type( 'bam', $out );				
+		return $self;
+	}
+	sub lane {
+		my ( $self, $lane ) = @_;
+		$self->{lane} = $lane if $lane;
+		return $self->{lane};
+	}
 	1;
 }
 #######################################################
@@ -870,7 +922,7 @@ use Data::Dumper;
 		);
 		$self->out($output);
 		$self->output_by_type( "metrics", $metrics );
-		$self->output_by_type('bam', $output),
+		$self->output_by_type( 'bam',     $output ),;
 	}
 	1;
 }

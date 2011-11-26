@@ -13,11 +13,12 @@ use Jobs;
 use JobManager;
 
 ####### get arguments      ###
-my ( $config_file, $mode, $debug );
+my ( $config_file, $mode, $debug , $rerun);
 GetOptions(
 	'config=s' => \$config_file,
 	'mode=s'   => \$mode,
-	'debug'    => \$debug
+	'debug'    => \$debug,
+	'rerun=s' => \$rerun,#out|done|both
 );
 
 ####### general parameters ###
@@ -27,6 +28,7 @@ my $task_scheduler = TaskScheduler->new( $project, $debug );
 my $job_manager    = JobManager->new();
 my $params         = {
 	config    => $config,
+	rerun => $rerun,
 	scheduler => $task_scheduler,
 	project   => $project,
 	memory    => 1,

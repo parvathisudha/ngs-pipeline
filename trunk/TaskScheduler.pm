@@ -64,6 +64,7 @@ sub make_script {
 	my $program = $job->program->to_string;
 	my $project = $self->{'PROJECT'};
 	my $user_id = $project->{'CONFIG'}->{'USER'};
+	my $done = $job->_done_name;
 	my $command = <<COMMAND;
 #!/bin/sh
 #
@@ -86,19 +87,30 @@ export PATH=\$PATH:/data/software/vcftools_0.1.4a/bin
 export PATH=\$PATH:/data/software/tabix
 export PERL5LIB=\$PERL5LIB:/data/software/breakdancer
 
+rm -f $done
+
 $program
+
+echo 'done' > $done
 COMMAND
-	my $script_name = $self->_script_name($job_name);	
+	my $script_name = $job->_script_name;	
 	open( OUT, ">$script_name" )
 	  or die "Can't open $script_name for writting\n";
 	print OUT $command;
-	print OUT "\n" . "echo 'done' > $script_name.done\n";
+
 	close OUT;
 }
 
 sub _script_name {
 	my ( $self, $job_name ) = @_;
 	return $self->{'PROJECT'}->script_dir() . "/task.$job_name.script";
+}
+
+sub _done_name {
+	my ( $self, $job_name ) = @_;
+	my $name = $job_name;
+	$name =~ s/_(\d+)//;
+	return $self->{'PROJECT'}->script_dir() . "/task.$name.done";
 }
 
 return 1;

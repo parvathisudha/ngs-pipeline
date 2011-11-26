@@ -121,7 +121,16 @@ sub name {
 sub submit {
 	my ( $self, ) = @_;
 	unless ( $self->virtual ) {
-		return 1 if ( -e $self->out );
+		my $rerun = $self->{rerun};
+		if($rerun eq 'out' ){
+			return 1 if -e $self->out;
+		}
+		elsif($rerun eq 'done'){
+			return 1 if -e $self->_done_name;
+		}
+		elsif($rerun eq 'both'){
+			return 1 if ( (-e $self->out)  && (-e $self->_done_name) );
+		}
 		$self->scheduler()->submit_job($self);
 	}
 }
@@ -262,6 +271,19 @@ sub read_intervals {
 	}
 	close IN;
 	return @data;
+}
+
+sub _script_name {
+	my ( $self,  ) = @_;
+	my $job_name = $self->job_name; 
+	return $self->project->script_dir() . "/task.$job_name.script";
+}
+
+sub _done_name {
+	my ( $self, $job_name ) = @_;
+	my $name = $self->job_name; 
+	$name =~ s/_(\d+)//;
+	return $self->project->script_dir() . "/task.$name.done";
 }
 
 return 1;

@@ -26,7 +26,7 @@ use Data::Dumper;
 
 	package SaiToBam;
 	use Data::Dumper;
-	our @ISA = qw( BwaJob );
+	our @ISA = qw( Aligner );
 
 	sub new {
 		my ( $class, %params ) = @_;
@@ -123,6 +123,26 @@ use Data::Dumper;
 		$self->program->additional_params( ["-v LowQual $input > $output"] );
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package Gunzip;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("gunzip");
+		$self->program->path("/bin");
+		$self->memory(1);
+		my $input  = $self->in;
+		my $output = $self->out;
+		$self->program->additional_params( ["-cd $input > $output"] );
 		return $self;
 	}
 	1;
@@ -648,7 +668,7 @@ use Data::Dumper;
 				previous => \@sai
 			);
 		}
-		elsif ( $lane->{PL} =~ m/solid/i )  {#
+		elsif ( $lane->{PL} =~ m/solid/i ) {    #
 			$aligned = Bowtie->new(
 				lane     => $lane,
 				params   => $params,
@@ -664,7 +684,7 @@ use Data::Dumper;
 #######################################################
 {
 
-	package BwaJob;
+	package Aligner;
 	our @ISA = qw( Job );
 
 	sub new {
@@ -715,7 +735,7 @@ use Data::Dumper;
 {
 
 	package Align;
-	our @ISA = qw( BwaJob );
+	our @ISA = qw( Aligner );
 
 	sub new {
 		my ( $class, %params ) = @_;
@@ -771,37 +791,70 @@ use Data::Dumper;
 {
 
 	package Bowtie;
-	our @ISA = qw( BwaJob );
+	our @ISA = qw( Aligner );
 
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
 		$self->memory(5);
-		my $lane       = $self->lane();
-		my $out        = $self->project()->file_prefix() . "." . $lane->{ID} . '.bam';
-		$self->program->path($self->project->{CONFIG}->{BOWTIE});
-		$self->program->name(bowtie);	
+		my $lane = $self->lane();
+		my $out  = $self->project()->file_prefix() . "." . $lane->{ID} . '.bam';
+		$self->program->path( $self->project->{CONFIG}->{BOWTIE} );
+		$self->program->name(bowtie);
 		my $view =
-		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";	
-		if($lane->{F3_CFASTA} && $lane->{R3_CFASTA}){
+		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
+
+		if ( $lane->{F3_CFASTA} && $lane->{R3_CFASTA} ) {
 			$self->program->basic_params(
 				[
 					"-f " . $lane->{F3_CFASTA} . " " . $lane->{R3_CFASTA},
 					"--Q1 " . $lane->{F3_QUAL},
 					"--Q2 " . $lane->{R3_QUAL},
-					"| $view -bS - >", $out
+					"| $view -bS - >",
+					$out
 				]
-			);			
-		}	
+			);
+		}
 		$self->out($out);
-		$self->output_by_type( 'bam', $out );				
+		$self->output_by_type( 'bam', $out );
 		return $self;
 	}
-	sub lane {
-		my ( $self, $lane ) = @_;
-		$self->{lane} = $lane if $lane;
-		return $self->{lane};
+	1;
+}
+#######################################################
+{
+
+	package Tophat;
+	our @ISA = qw( Aligner );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->memory(10);
+		my $proc = 8;
+		$self->processors($proc);
+		my $qsub_param = "-pe mpi $proc";
+		my $lane       = $self->lane();
+		my $out_dir = $self->project->dir . '/' . $lane->{ID};
+		$self->project->mkdir($out_dir);
+		my $out = $out_dir . '/tophat_out/accepted_hits.bam';
+		$self->program->path( $self->project->{CONFIG}->{TOPHAT} );
+		$self->program->name('tophat');
+		
+		$self->program->basic_params(
+			[
+				"-p $proc",
+				"-r $PI",
+				"",
+				"",
+			]
+		);
+
+		$self->out($out);
+		$self->output_by_type( 'bam', $out );
+		return $self;
 	}
 	1;
 }
@@ -836,6 +889,7 @@ use Data::Dumper;
 	}
 	1;
 }
+
 #######################################################
 {
 

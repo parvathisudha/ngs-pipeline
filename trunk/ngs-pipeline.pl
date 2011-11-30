@@ -55,6 +55,7 @@ my $root_job = RootJob->new( params => $params, previous => undef );
 my @lanes_processing;
 
 for my $lane ( @{ $project->get_lanes() } ) {
+	next if $lane->{PL} eq 'virtual';
 	my $process_lane = ProcessLane->new(
 		params   => $params,
 		previous => [$root_job],

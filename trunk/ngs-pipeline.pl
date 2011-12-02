@@ -13,12 +13,12 @@ use Jobs;
 use JobManager;
 
 ####### get arguments      ###
-my ( $config_file, $mode, $debug , $rerun);
+my ( $config_file, $mode, $debug, $rerun );
 GetOptions(
 	'config=s' => \$config_file,
 	'mode=s'   => \$mode,
 	'debug'    => \$debug,
-	'rerun=s' => \$rerun,#out|done|both
+	'rerun=s'  => \$rerun,         #out|done|both
 );
 
 ####### general parameters ###
@@ -28,7 +28,7 @@ my $task_scheduler = TaskScheduler->new( $project, $debug );
 my $job_manager    = JobManager->new();
 my $params         = {
 	config    => $config,
-	rerun => $rerun,
+	rerun     => $rerun,
 	scheduler => $task_scheduler,
 	project   => $project,
 	memory    => 1,
@@ -72,6 +72,16 @@ my $join_lane_bams = MergeSamFiles->new(
 my $mark_duplicates = MarkDuplicates->new(
 	params   => $params,
 	previous => [$join_lane_bams],
+);
+
+my $bam2cfg = Bam2cfg->new(
+	params   => $params,
+	previous => [$mark_duplicates],
+);
+
+my $bam2cfg = BreakdancerMax->new(
+	params   => $params,
+	previous => [$bam2cfg],
 );
 
 my @chr = $project->read_intervals();
@@ -167,7 +177,7 @@ my $variations = CombineVariants->new(
 my $phase_variations = ReadBackedPhasing->new(
 	params   => $params,
 	previous => [$variations],
-	bam => $mark_duplicates->output_by_type('bam'),
+	bam      => $mark_duplicates->output_by_type('bam'),
 );
 
 my $filter_low_qual = FilterLowQual->new(
@@ -194,7 +204,7 @@ my $variant_annotator = VariantAnnotator->new(
 
 my $effect_prediction = SnpEff->new(
 	params   => $params,
-	previous => [$variant_annotator],#
+	previous => [$variant_annotator],    #
 );
 
 my $effect_annotator = VariantAnnotator->new(
@@ -203,7 +213,17 @@ my $effect_annotator = VariantAnnotator->new(
 		"--snpEffFile " . $effect_prediction->output_by_type('vcf'),
 	],
 	params   => $params,
-	previous => [ $filter_low_qual, $effect_prediction ]# 
+	previous => [ $filter_low_qual, $effect_prediction ]    #
+);
+
+my $bgzip = Bgzip->new(
+	params   => $params,
+	previous => [ $effect_annotator ]    #
+);
+
+my $tabix = Tabix->new(
+	params   => $params,
+	previous => [ $bgzip ]    #
 );
 
 $job_manager->start();

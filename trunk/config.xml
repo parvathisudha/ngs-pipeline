@@ -24,6 +24,7 @@
 <SNPEFF>/data/software/snpEff_v2_0_2</SNPEFF>
 <SNPEFF_GENOME>grch37_gencode8</SNPEFF_GENOME>
 <CUMULATIVE_COVERAGE>/data/software/coverage_cumulative.pl</CUMULATIVE_COVERAGE>
+<TABIX>/data/software/tabix</TABIX>
 
 <USER>reshetov</USER>
 <EMAIL>reshetovdenis@gmail.com</EMAIL>

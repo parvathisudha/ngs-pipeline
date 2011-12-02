@@ -150,6 +150,130 @@ use Data::Dumper;
 #######################################################
 {
 
+	package Bgzip;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("bgzip");
+		$self->program->path($self->project()->{'CONFIG'}->{'TABIX'});
+		$self->memory(1);
+		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $gz = "$vcf.gz";
+		$self->output_by_type( 'gz', $gz);
+		$self->out( $gz);
+		$self->output_by_type( 'vcf', $vcf);
+		$self->program->additional_params( ["-c $vcf > $gz"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+	package GenomeCoverageBed;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("genomeCoverageBed");
+		$self->program->path($self->project()->{'CONFIG'}->{'BEDTOOLS'});
+		$self->memory(1);
+		my $bam  = $self->first_previous->output_by_type( 'bam');
+		my $cov  = "$bam.cov";
+		$self->output_by_type( 'cov', $cov);
+		$self->output_by_type( 'bam', $bam);
+		$self->out( $cov );
+		my $genome = $self->project()->{'CONFIG'}->{'BEDGENOME'};
+		$self->program->additional_params( ["ibam $bam -g $genome"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+	package Tabix;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("tabix");
+		$self->program->path($self->project()->{'CONFIG'}->{'TABIX'});
+		$self->memory(1);
+		my $gz  = $self->first_previous->output_by_type( 'gz');
+		my $tbi = "$gz.tbi";
+		$self->output_by_type( 'gz', $gz);
+		$self->output_by_type( 'tbi', $tbi);
+		$self->out( $tbi);
+		$self->program->additional_params( ["-p vcf $gz"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package Bam2cfg;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		bless $self, $class;
+		$self->program->name("bam2cfg.pl");
+		$self->program->path($self->project()->{'CONFIG'}->{'BREAKDANCER'});
+		$self->memory(1);
+		my $input  = $self->first_previous->output_by_type( 'bam');
+		$self->output_by_type( 'bam', $input);
+		my $output = $input . '.cfg';
+		$self->output_by_type( 'cfg', $output);
+		$self->out( $output);
+		$self->program->additional_params( ["$input > $output"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package BreakdancerMax;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params,);
+		bless $self, $class;
+		$self->program->name("breakdancer-max");
+		$self->program->path($self->project()->{'CONFIG'}->{'BREAKDANCER'});
+		$self->memory(5);
+		my $bam  = $self->first_previous->output_by_type( 'bam');
+		my $cfg = $self->first_previous->output_by_type( 'cfg');
+		
+		my $max = $cfg . '.max';
+		my $fastq = $cfg . '.fastq';
+		my $bed = $cfg . '.bed';
+		
+		$self->output_by_type( 'bam', $bam);
+		$self->output_by_type( 'cfg', $cfg);
+		$self->output_by_type( 'max', $max);
+		$self->output_by_type( 'fastq', $fastq);
+		$self->output_by_type( 'bed', $bed);
+		$self->out( $max );
+		
+		$self->program->additional_params( ["-d $fastq -g $bed $cfg > $max"] );
+		
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package GATKJob;
 	our @ISA = qw( Job );
 

@@ -89,6 +89,22 @@ sub prefix {
 }
 1;
 
+package PerlProgram;
+our @ISA = qw( Program );
+
+sub new {
+	my ( $class, %params ) = @_;
+	my $self = $class->SUPER::new(%params);
+	bless $self, $class;
+	return $self;
+}
+
+sub prefix {
+	my ( $self, ) = @_;
+	return "perl";
+}
+1;
+
 package PicardProgram;
 our @ISA = qw( JavaProgram );
 

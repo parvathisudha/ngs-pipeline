@@ -893,7 +893,7 @@ use Data::Dumper;
 		my $colorspace = "";
 		$colorspace = "-c" if $self->platform eq 'Solid';
 		my $bwa_priority = 10;
-		my $qsub_param   = "-pe mpi $proc -p $bwa_priority";
+		my $qsub_param   = "-pe mpi $proc";
 		$self->program->name(bwa);
 		my $illumina_fastq_qualities_flag = "";
 		$illumina_fastq_qualities_flag = "-I" if $self->lane->{ILLUMINA_FASTQ};

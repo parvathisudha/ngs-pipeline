@@ -213,7 +213,7 @@ my $effect_annotator = VariantAnnotator->new(
 		"--snpEffFile " . $effect_prediction->output_by_type('vcf'),
 	],
 	params   => $params,
-	previous => [ $filter_low_qual, $effect_prediction ]    #
+	previous => [ $variant_annotator, $effect_prediction ]    #
 );
 
 my $bgzip = Bgzip->new(

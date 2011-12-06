@@ -16,11 +16,12 @@ sub new {
 	$self->{output_by_type} = {};
 	my $program = $self->program ? $self->program : Program->new();
 	$self->program($program);
-	$self->program->additional_params($self->{additional_params}) if $self->{additional_params};
+	$self->program->additional_params( $self->{additional_params} )
+	  if $self->{additional_params};
 	$self->manager()->register($self);
-	$self->out($params{out}) if $params{out};
-	$self->in($params{in}) if $params{in};
-	$self->bam($params{bam}) if $params{bam};
+	$self->out( $params{out} ) if $params{out};
+	$self->in( $params{in} )   if $params{in};
+	$self->bam( $params{bam} ) if $params{bam};
 	$self->memory(1);
 	$self->initialize();
 	return $self;
@@ -36,10 +37,12 @@ sub previous {
 	$self->{previous} = $previous if $previous;
 	return $self->{previous};
 }
+
 sub first_previous {
-	my ( $self,  ) = @_;
-	return ${$self->{previous}}[0];
+	my ( $self, ) = @_;
+	return ${ $self->{previous} }[0];
 }
+
 #@Override
 sub initialize {
 	my ( $self, ) = @_;
@@ -85,16 +88,19 @@ sub out {
 	$self->{output_by_type}->{main} = $output if $output;
 	return $self->{output_by_type}->{main};
 }
+
 sub in {
 	my ( $self, $in ) = @_;
 	$self->{in} = $in if $in;
 	return $self->{in};
 }
+
 sub bam {
 	my ( $self, $bam ) = @_;
 	$self->{bam} = $bam if $bam;
 	return $self->{bam};
 }
+
 sub project {
 	my ( $self, $project ) = @_;
 	$self->{project} = $project if $project;
@@ -120,19 +126,23 @@ sub name {
 
 sub submit {
 	my ( $self, ) = @_;
-	unless ( $self->virtual ) {
-		my $rerun = $self->{rerun};
-		if($rerun eq 'out' ){
-			return 1 if -e $self->out;
-		}
-		elsif($rerun eq 'done'){
-			return 1 if -e $self->_done_name;
-		}
-		elsif($rerun eq 'both'){
-			return 1 if ( (-e $self->out)  && (-e $self->_done_name) );
-		}
-		$self->scheduler()->submit_job($self);
+	$self->scheduler()->submit_job($self) if $self->to_submit;
+}
+
+sub to_submit {
+	my ( $self, ) = @_;
+	return 0 if $self->virtual;
+	my $rerun = $self->{rerun};
+	if ( $rerun eq 'out' ) {
+		return 0 if -s $self->out;
 	}
+	elsif ( $rerun eq 'done' ) {
+		return 0 if -s $self->_done_name;
+	}
+	elsif ( $rerun eq 'both' ) {
+		return 0 if ( ( -s $self->out ) && ( -s $self->_done_name ) );
+	}
+	return 1;
 }
 
 sub qsub_params {
@@ -149,7 +159,7 @@ sub virtual {
 
 sub memory {
 	my ( $self, $memory ) = @_;
-	$self->program->memory ($memory) if $memory;
+	$self->program->memory($memory) if $memory;
 	return $self->program->memory;
 }
 
@@ -274,14 +284,14 @@ sub read_intervals {
 }
 
 sub _script_name {
-	my ( $self,  ) = @_;
-	my $job_name = $self->job_name; 
+	my ( $self, ) = @_;
+	my $job_name = $self->job_name;
 	return $self->project->script_dir() . "/task.$job_name.script";
 }
 
 sub _done_name {
 	my ( $self, $job_name ) = @_;
-	my $name = $self->job_name; 
+	my $name = $self->job_name;
 	$name =~ s/_(\d+)//;
 	return $self->project->script_dir() . "/task.$name.done";
 }

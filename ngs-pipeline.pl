@@ -52,6 +52,7 @@ my $eur          = $project->{'CONFIG'}->{'EURKG'};
 
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
+
 my @lanes_processing;
 
 for my $lane ( @{ $project->get_lanes() } ) {

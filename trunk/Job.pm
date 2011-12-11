@@ -132,12 +132,13 @@ sub submit {
 sub to_submit {
 	my ( $self, ) = @_;
 	return 0 if $self->virtual;
-	return 0 if $self->completed && ! $self->has_unfinished_predessesors;
+	return 0 if $self->completed && !$self->has_unfinished_predessesors;
 	return 1;
 }
 
-sub completed{
+sub completed {
 	my ( $self, ) = @_;
+	return 1 if $self->virtual;
 	my $rerun = $self->{rerun};
 	if ( $rerun eq 'out' ) {
 		return 1 if -s $self->out;
@@ -148,17 +149,19 @@ sub completed{
 	elsif ( $rerun eq 'both' ) {
 		return 1 if ( ( -s $self->out ) && ( -s $self->_done_name ) );
 	}
-	return 0;	
+	return 0;
 }
 
-sub has_unfinished_predessesors{
+sub has_unfinished_predessesors {
 	my ( $self, ) = @_;
-	return 0 unless $self->previous; 
-	for my $job (@{$self->previous}){
-		if(! $job->completed){
-			return 1;
+	return 0 unless $self->previous;
+	for my $job ( @{ $self->previous } ) {
+		if ( $job->completed ) {
+			if ( $job->has_unfinished_predessesors ) {
+				return 1;
+			}
 		}
-		elsif($job->has_unfinished_predessesors){
+		else {
 			return 1;
 		}
 	}

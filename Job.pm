@@ -132,17 +132,37 @@ sub submit {
 sub to_submit {
 	my ( $self, ) = @_;
 	return 0 if $self->virtual;
+	return 0 if $self->completed && ! $self->has_unfinished_predessesors;
+	return 1;
+}
+
+sub completed{
+	my ( $self, ) = @_;
 	my $rerun = $self->{rerun};
 	if ( $rerun eq 'out' ) {
-		return 0 if -s $self->out;
+		return 1 if -s $self->out;
 	}
 	elsif ( $rerun eq 'done' ) {
-		return 0 if -s $self->_done_name;
+		return 1 if -s $self->_done_name;
 	}
 	elsif ( $rerun eq 'both' ) {
-		return 0 if ( ( -s $self->out ) && ( -s $self->_done_name ) );
+		return 1 if ( ( -s $self->out ) && ( -s $self->_done_name ) );
 	}
-	return 1;
+	return 0;	
+}
+
+sub has_unfinished_predessesors{
+	my ( $self, ) = @_;
+	return 0 unless $self->previous; 
+	for my $job (@{$self->previous}){
+		if(! $job->completed){
+			return 1;
+		}
+		elsif($job->has_unfinished_predessesors){
+			return 1;
+		}
+	}
+	return 0;
 }
 
 sub qsub_params {

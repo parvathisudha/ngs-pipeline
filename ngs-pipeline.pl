@@ -61,14 +61,15 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		previous => [$root_job],
 		lane     => $lane
 	);
-
 	push( @lanes_processing, $process_lane->last_job );
 }
+
 my $join_lane_bams = MergeSamFiles->new(
 	params   => $params,
 	previous => [@lanes_processing],
 	out      => $project->file_prefix() . ".bam",
 );
+
 my $mark_duplicates = MarkDuplicates->new(
 	params   => $params,
 	previous => [$join_lane_bams],

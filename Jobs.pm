@@ -741,7 +741,7 @@ use Data::Dumper;
 }
 #######################################################
 {
-
+	use Data::Dumper;
 	package ProcessLane;
 	our @ISA = qw( Job );
 
@@ -984,7 +984,7 @@ use Data::Dumper;
 }
 #######################################################
 {
-
+	use Data::Dumper;
 	package SortSam;
 	our @ISA = qw( PicardJob );
 
@@ -1001,6 +1001,7 @@ use Data::Dumper;
 		$self->memory(5);
 		my $previous = $self->previous();
 		my $input    = $$previous[0]->out();
+		
 		$output = $input . ".sorted.bam";
 		$self->program->additional_params(
 			[

@@ -69,8 +69,9 @@ sub clean{
 	}
 	for my $file (@files){
 		unless(exists $output->{$file}){
-			system("echo deleted $file") unless $self->debug;
-			print "echo deleted $file\n";
+			my $command = "echo deleted > $file";
+			system($command) unless $self->debug;
+			print "$command\n";
 		}
 		
 	}

@@ -308,6 +308,11 @@ use Data::Dumper;
 		my ( $self, ) = @_;
 		return $self->walker;
 	}
+	sub idx_from_vcf{
+		my ( $self, $vcf) = @_;
+		return "$vcf.idx";
+	}
+
 	1;
 }
 #######################################################
@@ -585,6 +590,8 @@ use Data::Dumper;
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 		$self->output_by_type( 'vcf', $output );
+		$self->output_by_type( 'idx', $self->idx_from_vcf($output) );
+		
 	}
 	1;
 }
@@ -643,6 +650,7 @@ use Data::Dumper;
 			[ $input, "-o $output", "--assumeIdenticalSamples", ] );
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
+		$self->output_by_type( 'idx', $self->idx_from_vcf($output) );
 	}
 	1;
 }
@@ -715,6 +723,7 @@ use Data::Dumper;
 		);
 		$self->out($output);
 		$self->output_by_type( 'vcf', $output );
+		$self->output_by_type( 'idx', $self->idx_from_vcf($output) );
 	}
 	1;
 }
@@ -735,6 +744,12 @@ use Data::Dumper;
 		$self->program->tmp_dir( $self->project()->tmp_dir() );
 		$self->program->name( $class . ".jar" );
 		return $self;
+	}
+	sub bai_from_bam{
+		my ($self, $bam) = @_;
+		my $bai = $bam;
+		$bai =~ s/bam$/bai/;
+		return $bai;
 	}
 
 	1;
@@ -774,6 +789,7 @@ use Data::Dumper;
 					type     => 'FORWARD'
 				);
 				$align->align_fastq();
+				
 				push( @sai, $align );
 			}
 			if ( $lane->{REVERSE} ) {
@@ -907,6 +923,7 @@ use Data::Dumper;
 		$self->out($out);
 		$self->output_by_type( 'fastq',  $in );
 		$self->output_by_type( 'genome', $genome );
+		$self->do_not_delete('genome');
 	}
 
 	1;
@@ -1011,6 +1028,8 @@ use Data::Dumper;
 		);
 		$self->out($output);
 		$self->output_by_type( 'bam', $output );
+		my $bai = $self->bai_from_bam($output);
+		$self->output_by_type( 'bai', $bai );
 	}
 	1;
 }
@@ -1039,6 +1058,7 @@ use Data::Dumper;
 			[ "INPUT=$input", "OUTPUT=$output", ] );
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
+		$self->output_by_type( 'bai', $output );
 	}
 	1;
 }
@@ -1063,12 +1083,15 @@ use Data::Dumper;
 		my @input    = map { "INPUT=" . $_->out } @$previous;
 		my $input    = join( " ", @input );
 		my $output   = $self->out;
+		my $bai = $self->bai_from_bam($output);
+		$self->output_by_type( 'bai', $bai );
 		$self->program->additional_params(
 			[
 				"$input",            "OUTPUT=$output",
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
 			]
 		);
+		
 	}
 	1;
 }
@@ -1101,7 +1124,9 @@ use Data::Dumper;
 		);
 		$self->out($output);
 		$self->output_by_type( "metrics", $metrics );
-		$self->output_by_type( 'bam',     $output ),;
+		$self->output_by_type( 'bam',     $output );
+		my $bai = $self->bai_from_bam($output);
+		$self->output_by_type( 'bai', $bai );
 	}
 	1;
 }

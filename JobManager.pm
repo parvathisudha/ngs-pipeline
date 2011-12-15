@@ -3,16 +3,22 @@ use strict;
 use Data::Dumper;
 
 sub new {
-	my ( $class, ) = @_;
+	my ( $class, $debug) = @_;
 	my $self = {
 		string_ids => {},
 		jobs => [],
 		count      => 0,
+		debug => $debug,
 	};
 
 	#Should include
 	bless $self, $class;
 	return $self;
+}
+
+sub debug{
+	my ( $self, ) = @_;
+	return $self->{debug};
 }
 
 sub register {
@@ -45,6 +51,28 @@ sub start {
 	my $jobs = $self->jobs();
 	for my $job(@$jobs){
 		$job->submit();
+	}
+}
+sub clean{
+	my ( $self,  ) = @_;
+	my $jobs = $self->jobs();
+	my $output = {};
+	my @deletion;
+	my @files;
+	for my $job (@$jobs){
+		for my $out ($job->do_not_delete){
+			$output->{$out} = 1;
+		}
+		for my $file ($job->get_output_files){
+			push (@files, $file);
+		}
+	}
+	for my $file (@files){
+		unless(exists $output->{$file}){
+			system("rm -f $file") unless $self->debug;
+			print "rm -f $file\n";
+		}
+		
 	}
 }
 

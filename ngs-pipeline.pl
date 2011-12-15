@@ -264,7 +264,7 @@ $effect_prediction->do_not_delete('vcf');
 $effect_prediction->do_not_delete('idx');
 $effect_annotator->do_not_delete('vcf');
 $effect_annotator->do_not_delete('idx');
-$bgzip->do_not_delete('bgzip');
+$bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
 
 $job_manager->start();

@@ -924,6 +924,7 @@ use Data::Dumper;
 		$self->output_by_type( 'fastq',  $in );
 		$self->output_by_type( 'genome', $genome );
 		$self->do_not_delete('genome');
+		$self->do_not_delete('fastq');
 	}
 
 	1;

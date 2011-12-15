@@ -274,7 +274,9 @@ $effect_annotator->do_not_delete('idx');
 $bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
 
-$job_manager->start();
+if ($mode eq 'ALL'){
+	$job_manager->start();
+}
 
 if ($mode eq 'CLEAN'){
 	$job_manager->clean();

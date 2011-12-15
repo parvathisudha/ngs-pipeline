@@ -25,7 +25,7 @@ GetOptions(
 my $config         = XMLin("$config_file");
 my $project        = Project->new( $config, $debug );
 my $task_scheduler = TaskScheduler->new( $project, $debug );
-my $job_manager    = JobManager->new();
+my $job_manager    = JobManager->new($debug);
 my $params         = {
 	config    => $config,
 	rerun     => $rerun,
@@ -80,8 +80,9 @@ my $bam2cfg = Bam2cfg->new(
 	params   => $params,
 	previous => [$mark_duplicates],
 );
+$bam2cfg->do_not_delete('cfg');
 
-my $bam2cfg = BreakdancerMax->new(
+my $brdMax = BreakdancerMax->new(
 	params   => $params,
 	previous => [$bam2cfg],
 );
@@ -149,6 +150,7 @@ my $snps_variant_recalibrator = VariantRecalibrator->new(
 		"-mode SNP",
 	]
 );
+
 my $snps_apply_recalibration = ApplyRecalibration->new(
 	params            => $params,
 	previous          => [$snps_variant_recalibrator],
@@ -164,6 +166,7 @@ my $indels_variant_recalibrator = VariantRecalibrator->new(
 		"-mode INDEL",
 	]
 );
+
 my $indels_apply_recalibration = ApplyRecalibration->new(
 	params            => $params,
 	previous          => [$indels_variant_recalibrator],
@@ -220,13 +223,53 @@ my $effect_annotator = VariantAnnotator->new(
 
 my $bgzip = Bgzip->new(
 	params   => $params,
-	previous => [ $effect_annotator ]    #
+	previous => [$effect_annotator]                           #
 );
 
 my $tabix = Tabix->new(
 	params   => $params,
-	previous => [ $bgzip ]    #
+	previous => [$bgzip]                                      #
 );
 
+#result files:
+$mark_duplicates->do_not_delete('metrics');
+$mark_duplicates->do_not_delete('bam');
+$mark_duplicates->do_not_delete('bai');
+$brdMax->do_not_delete('max');
+$brdMax->do_not_delete('bed');
+$brdMax->do_not_delete('fastq');
+$snps_variant_recalibrator->do_not_delete('vcf');
+$snps_variant_recalibrator->do_not_delete('idx');
+$snps_variant_recalibrator->do_not_delete('recal_file');
+$snps_variant_recalibrator->do_not_delete('tranches_file');
+$snps_variant_recalibrator->do_not_delete('rscript_file');
+$snps_apply_recalibration->do_not_delete('vcf');
+$snps_apply_recalibration->do_not_delete('idx');
+$indels_variant_recalibrator->do_not_delete('vcf');
+$indels_variant_recalibrator->do_not_delete('idx');
+$indels_variant_recalibrator->do_not_delete('recal_file');
+$indels_variant_recalibrator->do_not_delete('tranches_file');
+$indels_variant_recalibrator->do_not_delete('rscript_file');
+$indels_apply_recalibration->do_not_delete('vcf');
+$indels_apply_recalibration->do_not_delete('idx');
+$variations->do_not_delete('vcf');
+$variations->do_not_delete('idx');
+$phase_variations->do_not_delete('vcf');
+$phase_variations->do_not_delete('idx');
+$filter_low_qual->do_not_delete('vcf');
+$filter_low_qual->do_not_delete('idx');
+$variant_annotator->do_not_delete('vcf');
+$variant_annotator->do_not_delete('idx');
+$effect_prediction->do_not_delete('vcf');
+$effect_prediction->do_not_delete('idx');
+$effect_annotator->do_not_delete('vcf');
+$effect_annotator->do_not_delete('idx');
+$bgzip->do_not_delete('bgzip');
+$tabix->do_not_delete('tbi');
+
 $job_manager->start();
+
+if ($mode eq 'CLEAN'){
+	$job_manager->clean();
+}
 

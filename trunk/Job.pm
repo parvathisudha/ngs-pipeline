@@ -14,6 +14,7 @@ sub new {
 	bless $self, $class;
 	$self->string_id($class);
 	$self->{output_by_type} = {};
+	$self->{do_not_delete} = [];
 	my $program = $self->program ? $self->program : Program->new();
 	$self->program($program);
 	$self->program->additional_params( $self->{additional_params} )
@@ -59,6 +60,12 @@ sub program {
 	return $self->{program};
 }
 
+sub do_not_delete {
+	my ( $self, $do_not_delete ) = @_;
+	push(@{$self->{do_not_delete}}, $self->output_by_type( $do_not_delete));
+	return @{$self->{do_not_delete}} unless $do_not_delete;
+}
+
 sub params {
 	my ( $self, $params ) = @_;
 	$self->{params} = $params if $params;
@@ -87,6 +94,15 @@ sub out {
 	my ( $self, $output ) = @_;
 	$self->{output_by_type}->{main} = $output if $output;
 	return $self->{output_by_type}->{main};
+}
+
+sub get_output_files{
+	my ( $self, ) = @_;
+	my @files;
+	while ((my $key, my $value) = each %{$self->{output_by_type}}) {
+		push (@files, $value);
+	}
+	return @files;	
 }
 
 sub in {

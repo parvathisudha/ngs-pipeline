@@ -473,7 +473,21 @@ use Data::Dumper;
 	}
 	1;
 }
+#######################################################
+{
 
+	package VariantFiltration;
+	our @ISA = qw( SelectVariants );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	1;
+}
 #######################################################
 {
 

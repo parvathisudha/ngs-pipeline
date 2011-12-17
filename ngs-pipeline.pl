@@ -235,11 +235,11 @@ my $effect_annotator_rare = SelectVariants->new(
 
 my $constraints_out = $effect_prediction->output_by_type('vcf') . ".constraints.vcf";
 my $evolution_constraints = intersectBed->new(
+	out => $constraints_out,
 	additional_params => [
 		"-a " . $effect_prediction->output_by_type('vcf'),
 		"-b " . $project->{'CONFIG'}->{'CONSTRAINTS'},
 		"-u",
-		"> $constraints_out",
 	],
 	params   => $params,
 	previous => [ $effect_prediction ]    #

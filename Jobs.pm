@@ -759,7 +759,9 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
-		
+		$self->program->basic_params ( [
+			"> " . $self->out,
+		]);
 		return $self;
 	}
 	

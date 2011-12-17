@@ -222,12 +222,12 @@ my $effect_annotator = VariantAnnotator->new(
 );
 
 my $effect_annotator_rare_out = $effect_prediction->output_by_type('vcf') . ".rare.vcf";
-my $effect_annotator_rare = SelectVariants->new(
+my $effect_annotator_rare = VariantFiltration->new(
 	in => $effect_prediction->output_by_type('vcf'),
 	out => $effect_annotator_rare_out, 
 	additional_params => [
-		"-select \"! KG_FREQ.AF >= 0.05\"",
-		"-select \"! EUR_FREQ.AF >= 0.05\"",
+		"-select \"KG_FREQ.AF > 0.05\"",
+		"-select \"EUR_FREQ.AF > 0.05\"",
 	],
 	params   => $params,
 	previous => [ $effect_prediction ]    #

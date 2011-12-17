@@ -221,7 +221,7 @@ my $effect_annotator = VariantAnnotator->new(
 	previous => [ $variant_annotator, $effect_prediction ]    #
 );
 
-my $constraints_out = $effect_prediction->output_by_type('vcf') . ".constraints.bed";
+my $constraints_out = $effect_prediction->output_by_type('vcf') . ".constraints.vcf";
 my $evolution_constraints = intersectBed->new(
 	additional_params => [
 		"-a " . $effect_prediction->output_by_type('vcf'),

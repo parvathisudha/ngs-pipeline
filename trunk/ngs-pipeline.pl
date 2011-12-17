@@ -221,6 +221,18 @@ my $effect_annotator = VariantAnnotator->new(
 	previous => [ $variant_annotator, $effect_prediction ]    #
 );
 
+my $effect_annotator_rare_out = $effect_prediction->output_by_type('vcf') . ".rare.vcf";
+my $effect_annotator_rare = SelectVariants->new(
+	in => $effect_prediction->output_by_type('vcf'),
+	out => $effect_annotator_rare_out, 
+	additional_params => [
+		"-select \"! KG_FREQ.AF >= 0.05\"",
+		"-select \"! EUR_FREQ.AF >= 0.05\"",
+	],
+	params   => $params,
+	previous => [ $effect_prediction ]    #
+);
+
 my $constraints_out = $effect_prediction->output_by_type('vcf') . ".constraints.vcf";
 my $evolution_constraints = intersectBed->new(
 	additional_params => [
@@ -287,6 +299,7 @@ $effect_annotator->do_not_delete('idx');
 $bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
 $evolution_constraints->do_not_delete('vcf');
+$effect_annotator_rare->do_not_delete('vcf');
 
 if ($mode eq 'ALL'){
 	$job_manager->start();

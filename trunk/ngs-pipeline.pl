@@ -228,7 +228,8 @@ my $effect_annotator_rare = VariantFiltration->new(
 	additional_params => [
 		"--filterExpression  \"KG_FREQ.AF > 0.05\"",
 		"--filterExpression  \"EUR_FREQ.AF > 0.05\"",
-		"--filterName \"RareSNPsInKGandEURKG\"",
+		"--filterName \"RareSNPsInKG\"",
+		"--filterName \"RareSNPsInEURKG\"",
 	],
 	params   => $params,
 	previous => [ $effect_prediction ]    #

@@ -35,6 +35,7 @@
 <GENOME_COLOR>/data/genomes/bwa/human_g1k_v37_color/human_g1k_v37.fasta</GENOME_COLOR>
 <BEDGENOME>/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta.genome</BEDGENOME>
 <GATKGENOMEBED>F:/rogaev/programming/pipeline/human_g1k_v37.bed</GATKGENOMEBED>
+<CONSTRAINTS>/data/genomes/29mammals/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
 
 
 </PARAMETERS>

@@ -730,6 +730,45 @@ use Data::Dumper;
 #######################################################
 {
 
+	package BedToolsJob;
+	use Data::Dumper;
+	use Program;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self =
+		  $class->SUPER::new( %params, program => new BedToolsProgram() );
+		bless $self, $class;
+		$self->program->path( $self->project()->{'CONFIG'}->{'BEDTOOLS'} );
+		$self->program->name( $class . "");
+		return $self;
+	}
+
+	1;
+}
+#######################################################
+{
+
+	package intersectBed;
+	use Data::Dumper;
+	use Program;
+	our @ISA = qw( BedToolsJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		
+		return $self;
+	}
+	
+
+	1;
+}
+#######################################################
+{
+
 	package PicardJob;
 	use Data::Dumper;
 	use Program;

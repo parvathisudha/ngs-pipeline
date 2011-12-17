@@ -221,6 +221,19 @@ my $effect_annotator = VariantAnnotator->new(
 	previous => [ $variant_annotator, $effect_prediction ]    #
 );
 
+my $constraints_out = $effect_prediction->output_by_type('vcf') . ".constraints.bed";
+my $evolution_constraints = intersectBed->new(
+	additional_params => [
+		"-a " . $effect_prediction->output_by_type('vcf'),
+		"-b " . $project->{'CONFIG'}->{'CONSTRAINTS'},
+		"-u",
+		"> $constraints_out",
+	],
+	params   => $params,
+	previous => [ $effect_prediction ]    #
+);
+$evolution_constraints->output_by_type('vcf', $constraints_out);
+
 my $bgzip = Bgzip->new(
 	params   => $params,
 	previous => [$effect_annotator]                           #
@@ -273,6 +286,7 @@ $effect_annotator->do_not_delete('vcf');
 $effect_annotator->do_not_delete('idx');
 $bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
+$evolution_constraints->do_not_delete('vcf');
 
 if ($mode eq 'ALL'){
 	$job_manager->start();

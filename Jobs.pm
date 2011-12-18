@@ -217,6 +217,27 @@ use Data::Dumper;
 }
 #######################################################
 {
+	package FilterFreq;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		bless $self, $class;
+		$self->program->name("filter_vcf.pl");
+		$self->program->path($self->project()->{'CONFIG'}->{'FILTER_FREQ'});
+		$self->memory(1);
+		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $rare = "$vcf.rare.vcf";
+		$self->output_by_type( 'vcf', $rare);
+		$self->out( $rare);
+		$self->program->additional_params( ["$vcf $rare 0.05 0.05"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
 
 	package Bam2cfg;
 	our @ISA = qw( Job );

@@ -231,7 +231,7 @@ use Data::Dumper;
 		my $rare = "$vcf.rare.vcf";
 		$self->output_by_type( 'vcf', $rare);
 		$self->out( $rare);
-		$self->program->additional_params( ["$vcf $rare 0.05 0.05"] );
+		$self->program->additional_params( ["$vcf $rare"] );
 		return $self;
 	}
 	1;

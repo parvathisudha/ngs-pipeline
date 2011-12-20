@@ -19,6 +19,8 @@ sub new {
 	$self->program($program);
 	$self->program->additional_params( $self->{additional_params} )
 	  if $self->{additional_params};
+	  $self->program->basic_params( $self->{basic_params} )
+	  if $self->{basic_params};
 	$self->manager()->register($self);
 	$self->out( $params{out} ) if $params{out};
 	$self->in( $params{in} )   if $params{in};

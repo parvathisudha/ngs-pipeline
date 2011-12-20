@@ -225,6 +225,7 @@ my $effect_annotator_rare_out = $effect_prediction->output_by_type('vcf') . ".ra
 my $effect_annotator_rare = FilterFreq->new(
 	out => $effect_annotator_rare_out,
 	params   => $params,
+	basic_params => [ "0.01", "0.01", ],
 	previous => [ $effect_annotator ]    #
 ); 
 #my $effect_annotator_rare = SelectVariants->new(
@@ -256,6 +257,7 @@ $evolution_constraints->output_by_type('vcf', $constraints_out);
 my $constraints_rare = FilterFreq->new(
 	out => $constraints_out,
 	params   => $params,
+	basic_params => [ "0.01", "0.01", ],
 	previous => [ $evolution_constraints ]    #
 ); 
 

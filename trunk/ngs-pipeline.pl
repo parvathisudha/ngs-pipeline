@@ -222,6 +222,11 @@ my $effect_annotator = VariantAnnotator->new(
 );
 
 my $effect_annotator_rare_out = $effect_prediction->output_by_type('vcf') . ".rare.vcf";
+my $effect_annotator_rare = FilterFreq->new(
+	out => $effect_annotator_rare_out,
+	params   => $params,
+	previous => [ $effect_annotator ]    #
+); 
 #my $effect_annotator_rare = SelectVariants->new(
 #	in => $effect_prediction->output_by_type('vcf'),
 #	out => $effect_annotator_rare_out, 
@@ -309,6 +314,7 @@ $tabix->do_not_delete('tbi');
 $evolution_constraints->do_not_delete('vcf');
 #$effect_annotator_rare->do_not_delete('vcf');
 $constraints_rare->do_not_delete('vcf');
+$effect_annotator_rare->do_not_delete('vcf');
 
 if ($mode eq 'ALL'){
 	$job_manager->start();

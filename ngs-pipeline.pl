@@ -221,45 +221,63 @@ my $effect_annotator = VariantAnnotator->new(
 	previous => [ $variant_annotator, $effect_prediction ]    #
 );
 
-my $effect_annotator_rare_out = $effect_prediction->output_by_type('vcf') . ".rare.vcf";
-my $effect_annotator_rare = FilterFreq->new(
-	out => $effect_annotator_rare_out,
-	params   => $params,
-	basic_params => [ "0.01", "0.01", ],
-	previous => [ $effect_annotator ]    #
-); 
-#my $effect_annotator_rare = SelectVariants->new(
-#	in => $effect_prediction->output_by_type('vcf'),
-#	out => $effect_annotator_rare_out, 
-#	additional_params => [
-#		"-select \"! (vc.hasAttribute('KG_FREQ.AF') && KG_FREQ.AF <= 0.05)\"",
-#		"-select \"! (vc.hasAttribute('EUR_FREQ.AF') && EUR_FREQ.AF <= 0.05)\"",
-#		
-#	],
-#	params   => $params,
-#	previous => [ $effect_prediction ]    #
-#);
 
-my $constraints_out = $effect_prediction->output_by_type('vcf') . ".constraints.vcf";
-my $evolution_constraints = intersectBed->new(
-	out => $constraints_out,
+##################### CODING ANALYSIS ##############
+my $constraints_out_for_cod = $effect_annotator->output_by_type('vcf') . ".constraints.vcf";
+my $evolution_constraints_for_cod = SelectVariants->new(
+	out => $constraints_out_for_cod, 
 	additional_params => [
-		"-a " . $effect_prediction->output_by_type('vcf'),
-		"-b " . $project->{'CONFIG'}->{'CONSTRAINTS'},
-		"-u",
+		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
 	],
 	params   => $params,
 	previous => [ $effect_prediction ]    #
 );
-$evolution_constraints->output_by_type('vcf', $constraints_out);
+
+#my $cod_constraints_rare = FilterFreq->new(
+#	params   => $params,
+#	basic_params => [ "0.01", "0.01", ],
+#	previous => [ $constraints_out_for_cod ]    #
+#); 
+#
+#my $constraints_rare_table = VariantsToTable->new(
+#	params   => $params,
+#	additional_params => [ "-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
+#	"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+#   "-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+#   "-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+#   "-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE -F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID",],
+#	previous => [ $cod_constraints_rare ]    #
+#); 
+
+######################################################
 
 
-my $constraints_rare = FilterFreq->new(
-	out => $constraints_out,
+##################### REGULATION ANALYSIS ###########
+my $constraints_out_for_reg = $effect_prediction->output_by_type('vcf') . ".constraints.vcf";
+my $evolution_constraints_for_reg = SelectVariants->new(
+	out => $constraints_out_for_reg, 
+	additional_params => [
+		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
+	],
+	params   => $params,
+	previous => [ $effect_prediction ]    #
+);
+
+my $reg_constraints_rare = FilterFreq->new(
 	params   => $params,
 	basic_params => [ "0.01", "0.01", ],
-	previous => [ $evolution_constraints ]    #
+	previous => [ $evolution_constraints_for_reg ]    #
 ); 
+
+my $constraints_rare_table = VariantsToTable->new(
+	params   => $params,
+	additional_params => [ "-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
+	"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+    "-F FILTER -F EFF",],
+	previous => [ $reg_constraints_rare ]    #
+); 
+
+######################################################
 
 my $bgzip = Bgzip->new(
 	params   => $params,
@@ -313,10 +331,10 @@ $effect_annotator->do_not_delete('vcf');
 $effect_annotator->do_not_delete('idx');
 $bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
-$evolution_constraints->do_not_delete('vcf');
+#$evolution_constraints->do_not_delete('vcf');
 #$effect_annotator_rare->do_not_delete('vcf');
-$constraints_rare->do_not_delete('vcf');
-$effect_annotator_rare->do_not_delete('vcf');
+#$constraints_rare->do_not_delete('vcf');
+#$effect_annotator_rare->do_not_delete('vcf');
 
 if ($mode eq 'ALL'){
 	$job_manager->start();

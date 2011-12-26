@@ -225,13 +225,34 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
 		$self->program->name("filter_vcf.pl");
-		$self->program->path($self->project()->{'CONFIG'}->{'FILTER_FREQ'});
+		$self->program->path($self->project()->{'CONFIG'}->{'ACCESSORY'});
 		$self->memory(1);
 		my $vcf  = $self->first_previous->output_by_type( 'vcf');
 		my $rare = "$vcf.rare.vcf";
 		$self->output_by_type( 'vcf', $rare);
 		$self->out( $rare);
 		$self->program->additional_params( ["$vcf $rare"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+	package GrepVcf;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		bless $self, $class;
+		$self->program->name("grep_vcf.pl");
+		$self->program->path($self->project()->{'CONFIG'}->{'ACCESSORY'});
+		$self->memory(1);
+		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $grep = "$vcf.grep.vcf";
+		$self->output_by_type( 'vcf', $grep);
+		$self->out( $grep);
+		$self->program->additional_params( ["$vcf $grep"] );
 		return $self;
 	}
 	1;
@@ -462,6 +483,37 @@ use Data::Dumper;
 		);
 		$self->out($output);
 		$self->output_by_type( 'bam', $output );
+	}
+	1;
+}
+#######################################################
+{
+
+	package VariantsToTable;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub sample {
+		my ($self) = @_;
+		return $self->{sample};
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(2);
+		my $input =
+		  $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
+		my $out = $self->out ? $self->out : "$input.txt"; 
+		$self->program->basic_params(
+			[ "-o " . $out, "-V $input", "--allowMissingData",] );
+		$self->output_by_type( 'txt', $out );
+		$self->out($out);
 	}
 	1;
 }
@@ -856,24 +908,26 @@ use Data::Dumper;
 		my $params    = $self->params();
 		my $aligned;
 		if ( $lane->{PL} =~ m/illumina/i ) {
-			my @sai;
-			if ( $lane->{FORWARD} ) {
+			my @sai;	
+			if ( $lane->{FORWARD} || $lane->{BAM1} ) {
+				my $type = $lane->{BAM1} ? 'BAM1' : 'FORWARD';
 				my $align = Align->new(
 					params   => $params,
 					previous => [$self],
 					lane     => $lane,
-					type     => 'FORWARD'
+					type     => $type,
 				);
 				$align->align_fastq();
 				
 				push( @sai, $align );
 			}
-			if ( $lane->{REVERSE} ) {
+			if ( $lane->{REVERSE} || $lane->{BAM2}  ) {
+				my $type = $lane->{BAM2} ? 'BAM2' : 'REVERSE';
 				my $align = Align->new(
 					params   => $params,
 					previous => [$self],
 					lane     => $lane,
-					type     => 'REVERSE'
+					type     => $type,
 				);
 				$align->align_fastq();
 				push( @sai, $align );
@@ -989,10 +1043,17 @@ use Data::Dumper;
 		$self->program->name(bwa);
 		my $illumina_fastq_qualities_flag = "";
 		$illumina_fastq_qualities_flag = "-I" if $self->lane->{ILLUMINA_FASTQ};
+		my $bam_param = "";
+		if($type eq 'BAM1'){
+			$bam_param = '-b1';
+		}
+		elsif($type eq 'BAM2'){
+			$bam_param = '-b2';
+		}
 		$self->program->basic_params(
 			[
 				'aln', '-q 5', "-t $proc", $illumina_fastq_qualities_flag,
-				$colorspace, "-f $out", $genome, $in
+				$colorspace, "-f $out", $genome, $bam_param, $in
 			]
 		);
 		$self->qsub_params($qsub_param);

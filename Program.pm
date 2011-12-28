@@ -22,7 +22,16 @@ sub additional_params {
 
 sub basic_params {
 	my ( $self, $basic_params ) = @_;
-	$self->{basic_params} = $basic_params if $basic_params;
+	if($basic_params){
+		if($self->{basic_params}){
+			my @p = (@{$self->{basic_params}}, @$basic_params);
+			$self->{basic_params} = \@p;
+		}
+		else{
+			$self->{basic_params} = $basic_params;
+		}
+	}
+	
 	return $self->{basic_params};
 }
 

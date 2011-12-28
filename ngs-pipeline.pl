@@ -262,7 +262,7 @@ my $evolution_constraints_for_reg = IntersectVcfBed->new(
 
 my $reg_constraints_rare = FilterFreq->new(
 	params   => $params,
-	basic_params => [ "0.01", "0.01", ],
+	basic_params => [ "0.01", "0.01", "0.01",],
 	previous => [ $evolution_constraints_for_reg ]    #
 ); 
 

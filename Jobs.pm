@@ -541,16 +541,6 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
-		return $self;
-	}
-
-	sub sample {
-		my ($self) = @_;
-		return $self->{sample};
-	}
-
-	sub initialize {
-		my ( $self, ) = @_;
 		$self->memory(2);
 		my $input =
 		  $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
@@ -558,7 +548,13 @@ use Data::Dumper;
 		$self->program->basic_params(
 			[ "-o " . $out, "-V $input", "--allowMissingData",] );
 		$self->output_by_type( 'txt', $out );
-		$self->out($out);
+		$self->out($out);		
+		return $self;
+	}
+
+	sub sample {
+		my ($self) = @_;
+		return $self->{sample};
 	}
 	1;
 }

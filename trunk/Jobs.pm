@@ -266,7 +266,7 @@ use Data::Dumper;
 		bless $self, $class;
 		$self->program->name("intersect.pl");
 		$self->program->path($self->project()->install_dir . "/accessory");
-		$bedtools = $$self->project()->{'CONFIG'}->{'BEDTOOLS'};
+		$bedtools = $self->project()->{'CONFIG'}->{'BEDTOOLS'};
 		$self->memory(1);
 		my $vcf  = $self->first_previous->output_by_type( 'vcf');
 		my $rare = $self->out;

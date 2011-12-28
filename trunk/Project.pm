@@ -1,6 +1,7 @@
 package Project;
 use strict;
 use Data::Dumper;
+use Cwd 'abs_path';
 
 #file names for all tasks
 
@@ -29,6 +30,11 @@ sub get_lanes{
 sub dir {
 	my ($self) = @_;
 	return $self->{'CONFIG'}->{'DIR'};
+}
+
+sub install_dir{
+	my ($self) = @_;
+	return abs_path($0);
 }
 
 sub script_dir {

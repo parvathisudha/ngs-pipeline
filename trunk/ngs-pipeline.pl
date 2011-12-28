@@ -253,12 +253,9 @@ my $effect_annotator = VariantAnnotator->new(
 
 
 ##################### REGULATION ANALYSIS ###########
-my $constraints_out_for_reg = $effect_prediction->output_by_type('vcf') . ".constraints.vcf";
-my $evolution_constraints_for_reg = SelectVariants->new(
-	out => $constraints_out_for_reg, 
-	additional_params => [
-		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
-	],
+my $evolution_constraints_for_reg = IntersectVcfBed->new(
+	out => $effect_prediction->output_by_type('vcf') . ".constraints.vcf", 
+	bed => $project->{'CONFIG'}->{'CONSTRAINTS'},
 	params   => $params,
 	previous => [ $effect_prediction ]    #
 );

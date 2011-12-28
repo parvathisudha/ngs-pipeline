@@ -878,7 +878,29 @@ use Data::Dumper;
 #######################################################
 {
 
-	package IntersectBed;
+	package intersectBed;
+	use Data::Dumper;
+	use Program;
+	our @ISA = qw( BedToolsJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		
+		$self->program->basic_params ( [
+			"> " . $self->out,
+		]);
+		return $self;
+	}
+	
+
+	1;
+}
+#######################################################
+{
+
+	package closestBed;
 	use Data::Dumper;
 	use Program;
 	our @ISA = qw( BedToolsJob );

@@ -1,2 +1,0 @@
-1. Graphic design that can do ssh connection
-2. Garbage deletion

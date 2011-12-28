@@ -34,7 +34,10 @@ sub dir {
 
 sub install_dir{
 	my ($self) = @_;
-	return abs_path($0);
+	$0=~/^(.+[\\\/])[^\\\/]+[\\\/]*$/;
+	my $path = $1 || "./";
+	$path =~ s/\/$//;
+	return $path;
 }
 
 sub script_dir {

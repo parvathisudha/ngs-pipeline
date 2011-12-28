@@ -270,7 +270,8 @@ my $constraints_rare_table = VariantsToTable->new(
 	params   => $params,
 	additional_params => [ "-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
 	"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-    "-F FILTER -F EFF",],
+    "-F FILTER -F EFF",
+    "--showFiltered"],
 	previous => [ $reg_constraints_rare ]    #
 ); 
 

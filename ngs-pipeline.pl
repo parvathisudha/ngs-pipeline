@@ -223,15 +223,15 @@ my $effect_annotator = VariantAnnotator->new(
 
 
 ##################### CODING ANALYSIS ##############
-my $constraints_out_for_cod = $effect_annotator->output_by_type('vcf') . ".constraints.vcf";
-my $evolution_constraints_for_cod = SelectVariants->new(
-	out => $constraints_out_for_cod, 
-	additional_params => [
-		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
-	],
-	params   => $params,
-	previous => [ $effect_prediction ]    #
-);
+#my $constraints_out_for_cod = $effect_annotator->output_by_type('vcf') . ".constraints.vcf";
+#my $evolution_constraints_for_cod = SelectVariants->new(
+#	out => $constraints_out_for_cod, 
+#	additional_params => [
+#		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
+#	],
+#	params   => $params,
+#	previous => [ $effect_annotator ]    #
+#);
 
 #my $cod_constraints_rare = FilterFreq->new(
 #	params   => $params,

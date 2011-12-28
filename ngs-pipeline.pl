@@ -22,8 +22,15 @@ GetOptions(
 );
 
 ####### general parameters ###
-my $config         = XMLin("$config_file");
-my $project        = Project->new( $config, $debug );
+my $params_file = "params.xml";
+my $config      = XMLin("$config_file");
+my $params      = XMLin("$params_file");
+for my $param ( keys %{ $params->{PARAMETERS} } ) {
+	$config->{PARAMETERS}->{$param} = $params->{PARAMETERS}->{$param}
+	  unless exists $config->{PARAMETERS}->{$param};
+}
+
+my $project        = Project->new( $config,        $debug );
 my $task_scheduler = TaskScheduler->new( $project, $debug );
 my $job_manager    = JobManager->new($debug);
 my $params         = {
@@ -221,11 +228,10 @@ my $effect_annotator = VariantAnnotator->new(
 	previous => [ $variant_annotator, $effect_prediction ]    #
 );
 
-
 ##################### CODING ANALYSIS ##############
 #my $constraints_out_for_cod = $effect_annotator->output_by_type('vcf') . ".constraints.vcf";
 #my $evolution_constraints_for_cod = SelectVariants->new(
-#	out => $constraints_out_for_cod, 
+#	out => $constraints_out_for_cod,
 #	additional_params => [
 #		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
 #	],
@@ -237,7 +243,7 @@ my $effect_annotator = VariantAnnotator->new(
 #	params   => $params,
 #	basic_params => [ "0.01", "0.01", ],
 #	previous => [ $constraints_out_for_cod ]    #
-#); 
+#);
 #
 #my $constraints_rare_table = VariantsToTable->new(
 #	params   => $params,
@@ -247,44 +253,55 @@ my $effect_annotator = VariantAnnotator->new(
 #   "-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 #   "-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE -F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID",],
 #	previous => [ $cod_constraints_rare ]    #
-#); 
+#);
 
 ######################################################
 
-
 ##################### REGULATION ANALYSIS ###########
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
-	out => $effect_prediction->output_by_type('vcf') . ".constraints.vcf", 
-	bed => $project->{'CONFIG'}->{'CONSTRAINTS'},
+	out      => $effect_prediction->output_by_type('vcf') . ".constraints.vcf",
+	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
 	params   => $params,
-	previous => [ $effect_prediction ]    #
+	previous => [$effect_prediction]                                           #
 );
 
 my $reg_constraints_rare = FilterFreq->new(
-	params   => $params,
-	basic_params => [ "0.01", "0.01", "0.01",],
-	previous => [ $evolution_constraints_for_reg ]    #
-); 
+	params       => $params,
+	basic_params => [ "0.01", "0.01", "0.01", ],
+	previous     => [$evolution_constraints_for_reg]                           #
+);
+
+my $near_genes = closestBed->new(
+	params       => $params,
+	out          => $reg_constraints_rare->output_by_type('vcf') . ".genes",
+	basic_params => [
+		"-a", $reg_constraints_rare->output_by_type('vcf'),
+		"-b", $project->{'CONFIG'}->{'GENES'}
+	],
+	previous => [$reg_constraints_rare]                                        #
+);
 
 my $constraints_rare_table = VariantsToTable->new(
-	params   => $params,
-	additional_params => [ "-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
-	"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-    "-F FILTER -F EFF",
-    "--showFiltered"],
-	previous => [ $reg_constraints_rare ]    #
-); 
+	params            => $params,
+	additional_params => [
+		"-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
+		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+		"-F FILTER -F EFF",
+		"--showFiltered"
+	],
+	previous => [$reg_constraints_rare]                                        #
+);
 
 ######################################################
 
 my $bgzip = Bgzip->new(
 	params   => $params,
-	previous => [$effect_annotator]                           #
+	previous => [$effect_annotator]                                            #
 );
 
 my $tabix = Tabix->new(
 	params   => $params,
-	previous => [$bgzip]                                      #
+	previous => [$bgzip]                                                       #
 );
 
 #result files:
@@ -329,16 +346,17 @@ $effect_annotator->do_not_delete('vcf');
 $effect_annotator->do_not_delete('idx');
 $bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
+
 #$evolution_constraints->do_not_delete('vcf');
 #$effect_annotator_rare->do_not_delete('vcf');
 #$constraints_rare->do_not_delete('vcf');
 #$effect_annotator_rare->do_not_delete('vcf');
 
-if ($mode eq 'ALL'){
+if ( $mode eq 'ALL' ) {
 	$job_manager->start();
 }
 
-if ($mode eq 'CLEAN'){
+if ( $mode eq 'CLEAN' ) {
 	$job_manager->clean();
 }
 

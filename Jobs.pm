@@ -129,6 +129,25 @@ use Data::Dumper;
 }
 #######################################################
 {
+	package Grep;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("grep");
+		$self->program->path("/bin");
+		$self->memory(1);
+		my $input  = $self->in;
+		my $output = $self->out;
+		$self->program->basic_params( ["$input > $output"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
 
 	package Gunzip;
 	our @ISA = qw( Job );
@@ -225,13 +244,40 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
 		$self->program->name("filter_vcf.pl");
-		$self->program->path($self->project()->{'CONFIG'}->{'ACCESSORY'});
+		$self->program->path($self->project()->install_dir . "/accessory");
 		$self->memory(1);
 		my $vcf  = $self->first_previous->output_by_type( 'vcf');
 		my $rare = "$vcf.rare.vcf";
 		$self->output_by_type( 'vcf', $rare);
 		$self->out( $rare);
 		$self->program->additional_params( ["$vcf $rare"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+	package IntersectVcfBed;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		bless $self, $class;
+		$self->program->name("intersect.pl");
+		$self->program->path($self->project()->install_dir . "/accessory");
+		$bedtools = $self->program->path($self->project()->{'CONFIG'}->{'BEDTOOLS'});
+		$self->memory(1);
+		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $rare = $self->out;
+		$self->output_by_type( 'vcf', $rare);
+		
+		$self->program->additional_params( [
+		"--in $vcf",
+		"--bedtools", $self->program->path($self->project()->{'CONFIG'}->{'BEDTOOLS'}),
+		"--bed", $self->{bed},
+		"--out", $rare
+		] );
 		return $self;
 	}
 	1;
@@ -837,7 +883,7 @@ use Data::Dumper;
 #######################################################
 {
 
-	package intersectBed;
+	package IntersectBed;
 	use Data::Dumper;
 	use Program;
 	our @ISA = qw( BedToolsJob );
@@ -846,6 +892,7 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
+		
 		$self->program->basic_params ( [
 			"> " . $self->out,
 		]);

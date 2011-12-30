@@ -15,7 +15,7 @@ sub new {
 	return $self;
 }
 
-sub info {
+sub array {
 	my ( $self, $types ) = @_;
 	my $data   = $self->{data};
 	#print Dumper $data;

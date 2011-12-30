@@ -11,13 +11,12 @@ sub new {
 		$self->{$key} = $value;
 	}
 	bless $self, $class;
-
 	if ( $self->{gene} ) {
-		my $gene2uniprot = read_annotation( 0, 2, $self->{uniprot} );
+		my $gene2uniprot = $self->read_annotation( 0, 2, $self->{uniprot} );
 		$self->{gene2uniprot} = $gene2uniprot;
 	}
 	if ( $self->{transcript} ) {
-		my $transcript2uniprot = read_annotation( 1, 2, $self->{uniprot} );
+		my $transcript2uniprot = $self->read_annotation( 1, 2, $self->{uniprot} );
 		$self->{transcript2uniprot} = $transcript2uniprot;
 	}
 	return $self;
@@ -27,7 +26,7 @@ sub protein_info {
 	my ( $self, $gene_id, $types) = @_;
 	my $uniprot_id = $self->gene_to_protein($gene_id);
 	my $info = ProteinInfo->new( id => $uniprot_id);
-	return $info;
+	return $info->array($types);
 }
 
 sub gene_to_protein{
@@ -43,10 +42,10 @@ sub gene_to_protein{
 sub read_annotation {
 	my ( $self, $id_column, $an_column, $file ) = @_;
 	my $data = {};
-	open IN, or die "Can't open $file\n";
+	open IN, $file or die "Can't open $file\n";
 	while (<IN>) {
 		chomp;
-		my @d = split //;
+		my @d = split /\t/;
 		next unless $d[$an_column];
 		$data->{ $d[$id_column] } = $d[$an_column];
 	}

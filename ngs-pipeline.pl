@@ -24,7 +24,10 @@ GetOptions(
 ####### general parameters ###
 my $params_file = "params.xml";
 my $config      = XMLin("$config_file");
-my $params      = XMLin("$params_file");
+$0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
+my $path = $1 || "./";
+$path =~ s/\/$//;
+my $params = XMLin("$path/$params_file");
 for my $param ( keys %{ $params->{PARAMETERS} } ) {
 	$config->{PARAMETERS}->{$param} = $params->{PARAMETERS}->{$param}
 	  unless exists $config->{PARAMETERS}->{$param};

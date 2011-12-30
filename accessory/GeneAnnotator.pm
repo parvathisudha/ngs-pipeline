@@ -13,11 +13,11 @@ sub new {
 	bless $self, $class;
 
 	if ( $self->{gene} ) {
-		my $gene2uniprot = read_annotation( 0, 2, $ensemble_to_uniprot );
+		my $gene2uniprot = read_annotation( 0, 2, $self->{uniprot} );
 		$self->{gene2uniprot} = $gene2uniprot;
 	}
 	if ( $self->{transcript} ) {
-		my $transcript2uniprot = read_annotation( 1, 2, $ensemble_to_uniprot );
+		my $transcript2uniprot = read_annotation( 1, 2, $self->{uniprot} );
 		$self->{transcript2uniprot} = $transcript2uniprot;
 	}
 	return $self;

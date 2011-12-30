@@ -12,7 +12,7 @@ GetOptions(
 
 my $annotation = GeneAnnotator->new(gene => '1', uniprot => $uniprot,);
 my $types = ['function', 'tissue specificity', 'pathway', 'disease'];
-open IN, $in or die "Can't open $in\n";
+open IN, $in or die "Can't open $in!!!\n";
 my $header = <IN>;
 chomp $header;
 my @to_print = ($header, @$types);

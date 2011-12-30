@@ -1,5 +1,6 @@
 use strict;
 use Getopt::Long;
+use GeneAnnotator;
 ####### get arguments      ###
 my ( $in, $id_column, $uniprot, $id_type);
 GetOptions(

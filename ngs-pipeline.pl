@@ -274,17 +274,23 @@ my $reg_constraints_rare = FilterFreq->new(
 	previous     => [$evolution_constraints_for_reg]                           #
 );
 
-my $near_genes = closestBed->new(
+my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
-	out          => $reg_constraints_rare->output_by_type('vcf') . ".genes",
-	basic_params => [
-		"-a", $reg_constraints_rare->output_by_type('vcf'),
-		"-b", $project->{'CONFIG'}->{'GENES'}
-	],
-	previous => [$reg_constraints_rare]                                        #
+	basic_params => [ "--regexp REGULATION", ],
+	previous     => [$reg_constraints_rare]                           #
 );
 
-my $constraints_rare_table = VariantsToTable->new(
+my $near_genes = closestBed->new(
+	params       => $params,
+	out          => $in_ensemble_regulatory->output_by_type('vcf') . ".genes",
+	basic_params => [
+		"-a", $in_ensemble_regulatory->output_by_type('vcf'),
+		"-b", $project->{'CONFIG'}->{'GENES'}
+	],
+	previous => [$in_ensemble_regulatory]                                        #
+);
+
+my $regulatory_rare_table = VariantsToTable->new(
 	params            => $params,
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
@@ -292,7 +298,21 @@ my $constraints_rare_table = VariantsToTable->new(
 		"-F FILTER -F EFF",
 		"--showFiltered"
 	],
-	previous => [$reg_constraints_rare]                                        #
+	previous => [$in_ensemble_regulatory]                                        #
+);
+
+my $regulatory_rare_table_with_genes = JoinTabular->new(
+	params            => $params,
+	out => $regulatory_rare_table->out . '.with_genes.txt',
+	additional_params => [
+				"--table", $regulatory_rare_table->out ,
+				"--annotation", $near_genes->out,
+				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
+				"--annotation_columns 13",
+				"--table_columns 0,1,2,3,4,5,6,7,8,9,10",
+				
+	],
+	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #
 );
 
 ######################################################

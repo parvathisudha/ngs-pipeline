@@ -129,6 +129,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package Grep;
 	our @ISA = qw( Job );
 
@@ -177,13 +178,13 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("bgzip");
-		$self->program->path($self->project()->{'CONFIG'}->{'TABIX'});
+		$self->program->path( $self->project()->{'CONFIG'}->{'TABIX'} );
 		$self->memory(1);
-		my $vcf  = $self->first_previous->output_by_type( 'vcf');
-		my $gz = "$vcf.gz";
-		$self->output_by_type( 'gz', $gz);
-		$self->out( $gz);
-		$self->output_by_type( 'vcf', $vcf);
+		my $vcf = $self->first_previous->output_by_type('vcf');
+		my $gz  = "$vcf.gz";
+		$self->output_by_type( 'gz', $gz );
+		$self->out($gz);
+		$self->output_by_type( 'vcf', $vcf );
 		$self->program->additional_params( ["-c $vcf > $gz"] );
 		return $self;
 	}
@@ -191,6 +192,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package GenomeCoverageBed;
 	our @ISA = qw( Job );
 
@@ -199,13 +201,13 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("genomeCoverageBed");
-		$self->program->path($self->project()->{'CONFIG'}->{'BEDTOOLS'});
+		$self->program->path( $self->project()->{'CONFIG'}->{'BEDTOOLS'} );
 		$self->memory(1);
-		my $bam  = $self->first_previous->output_by_type( 'bam');
-		my $cov  = "$bam.cov";
-		$self->output_by_type( 'cov', $cov);
-		$self->output_by_type( 'bam', $bam);
-		$self->out( $cov );
+		my $bam = $self->first_previous->output_by_type('bam');
+		my $cov = "$bam.cov";
+		$self->output_by_type( 'cov', $cov );
+		$self->output_by_type( 'bam', $bam );
+		$self->out($cov);
 		my $genome = $self->project()->{'CONFIG'}->{'BEDGENOME'};
 		$self->program->additional_params( ["ibam $bam -g $genome"] );
 		return $self;
@@ -214,6 +216,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package Tabix;
 	our @ISA = qw( Job );
 
@@ -222,13 +225,13 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("tabix");
-		$self->program->path($self->project()->{'CONFIG'}->{'TABIX'});
+		$self->program->path( $self->project()->{'CONFIG'}->{'TABIX'} );
 		$self->memory(1);
-		my $gz  = $self->first_previous->output_by_type( 'gz');
+		my $gz  = $self->first_previous->output_by_type('gz');
 		my $tbi = "$gz.tbi";
-		$self->output_by_type( 'gz', $gz);
-		$self->output_by_type( 'tbi', $tbi);
-		$self->out( $tbi);
+		$self->output_by_type( 'gz',  $gz );
+		$self->output_by_type( 'tbi', $tbi );
+		$self->out($tbi);
 		$self->program->additional_params( ["-p vcf $gz"] );
 		return $self;
 	}
@@ -236,6 +239,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package FilterFreq;
 	our @ISA = qw( Job );
 
@@ -244,12 +248,12 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
 		$self->program->name("filter_vcf.pl");
-		$self->program->path($self->project()->install_dir . "/accessory");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $vcf  = $self->first_previous->output_by_type('vcf');
 		my $rare = "$vcf.rare.vcf";
-		$self->output_by_type( 'vcf', $rare);
-		$self->out( $rare);
+		$self->output_by_type( 'vcf', $rare );
+		$self->out($rare);
 		$self->program->additional_params( ["$vcf $rare"] );
 		return $self;
 	}
@@ -257,6 +261,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package IntersectVcfBed;
 	our @ISA = qw( Job );
 
@@ -265,24 +270,26 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
 		$self->program->name("intersect.pl");
-		$self->program->path($self->project()->install_dir . "/accessory");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $vcf  = $self->first_previous->output_by_type('vcf');
 		my $rare = $self->out;
-		$self->output_by_type( 'vcf', $rare);
-		
-		$self->program->additional_params( [
-		"--in $vcf",
-		"--bedtools", $self->project()->{'CONFIG'}->{'BEDTOOLS'},
-		"--bed", $self->{bed},
-		"--out", $rare
-		] );
+		$self->output_by_type( 'vcf', $rare );
+
+		$self->program->additional_params(
+			[
+				"--in $vcf", "--bedtools",
+				$self->project()->{'CONFIG'}->{'BEDTOOLS'},
+				"--bed", $self->{bed}, "--out", $rare
+			]
+		);
 		return $self;
 	}
 	1;
 }
 #######################################################
 {
+
 	package GrepVcf;
 	our @ISA = qw( Job );
 
@@ -291,13 +298,35 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
 		$self->program->name("grep_vcf.pl");
-		$self->program->path($self->project()->{'CONFIG'}->{'ACCESSORY'});
+		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $vcf  = $self->first_previous->output_by_type( 'vcf');
+		my $vcf  = $self->first_previous->output_by_type('vcf');
 		my $grep = "$vcf.grep.vcf";
-		$self->output_by_type( 'vcf', $grep);
-		$self->out( $grep);
-		$self->program->additional_params( ["$vcf $grep"] );
+		$self->output_by_type( 'vcf', $grep );
+		$self->out($grep);
+		$self->program->additional_params( ["--in $vcf --out $grep"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package JoinTabular;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		bless $self, $class;
+		$self->program->name("join_tabular_files.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		$self->program->basic_params(
+			[
+				">", $self->out,
+			]
+		);
 		return $self;
 	}
 	1;
@@ -313,13 +342,13 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
 		$self->program->name("bam2cfg.pl");
-		$self->program->path($self->project()->{'CONFIG'}->{'BREAKDANCER'});
+		$self->program->path( $self->project()->{'CONFIG'}->{'BREAKDANCER'} );
 		$self->memory(1);
-		my $input  = $self->first_previous->output_by_type( 'bam');
-		$self->output_by_type( 'bam', $input);
+		my $input = $self->first_previous->output_by_type('bam');
+		$self->output_by_type( 'bam', $input );
 		my $output = $input . '.cfg';
-		$self->output_by_type( 'cfg', $output);
-		$self->out( $output);
+		$self->output_by_type( 'cfg', $output );
+		$self->out($output);
 		$self->program->additional_params( ["$input > $output"] );
 		return $self;
 	}
@@ -333,27 +362,27 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params,);
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("breakdancer-max");
-		$self->program->path($self->project()->{'CONFIG'}->{'BREAKDANCER'});
+		$self->program->path( $self->project()->{'CONFIG'}->{'BREAKDANCER'} );
 		$self->memory(5);
-		my $bam  = $self->first_previous->output_by_type( 'bam');
-		my $cfg = $self->first_previous->output_by_type( 'cfg');
-		
-		my $max = $cfg . '.max';
+		my $bam = $self->first_previous->output_by_type('bam');
+		my $cfg = $self->first_previous->output_by_type('cfg');
+
+		my $max   = $cfg . '.max';
 		my $fastq = $cfg . '.fastq';
-		my $bed = $cfg . '.bed';
-		
-		$self->output_by_type( 'bam', $bam);
-		$self->output_by_type( 'cfg', $cfg);
-		$self->output_by_type( 'max', $max);
-		$self->output_by_type( 'fastq', $fastq);
-		$self->output_by_type( 'bed', $bed);
-		$self->out( $max );
-		
+		my $bed   = $cfg . '.bed';
+
+		$self->output_by_type( 'bam',   $bam );
+		$self->output_by_type( 'cfg',   $cfg );
+		$self->output_by_type( 'max',   $max );
+		$self->output_by_type( 'fastq', $fastq );
+		$self->output_by_type( 'bed',   $bed );
+		$self->out($max);
+
 		$self->program->additional_params( ["-d $fastq -g $bed $cfg > $max"] );
-		
+
 		return $self;
 	}
 	1;
@@ -395,8 +424,9 @@ use Data::Dumper;
 		my ( $self, ) = @_;
 		return $self->walker;
 	}
-	sub idx_from_vcf{
-		my ( $self, $vcf) = @_;
+
+	sub idx_from_vcf {
+		my ( $self, $vcf ) = @_;
 		return "$vcf.idx";
 	}
 
@@ -544,11 +574,11 @@ use Data::Dumper;
 		$self->memory(2);
 		my $input =
 		  $self->in ? $self->in : $self->first_previous->output_by_type('vcf');
-		my $out = $self->out ? $self->out : "$input.txt"; 
+		my $out = $self->out ? $self->out : "$input.txt";
 		$self->program->basic_params(
-			[ "-o " . $out, "-V $input", "--allowMissingData",] );
+			[ "-o " . $out, "-V $input", "--allowMissingData", ] );
 		$self->output_by_type( 'txt', $out );
-		$self->out($out);		
+		$self->out($out);
 		return $self;
 	}
 
@@ -719,7 +749,7 @@ use Data::Dumper;
 		$self->output_by_type( 'bam', $input );
 		$self->output_by_type( 'vcf', $output );
 		$self->output_by_type( 'idx', $self->idx_from_vcf($output) );
-		
+
 	}
 	1;
 }
@@ -869,7 +899,7 @@ use Data::Dumper;
 		  $class->SUPER::new( %params, program => new BedToolsProgram() );
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'BEDTOOLS'} );
-		$self->program->name( $class . "");
+		$self->program->name( $class . "" );
 		return $self;
 	}
 
@@ -887,13 +917,10 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
-		
-		$self->program->basic_params ( [
-			"> " . $self->out,
-		]);
+
+		$self->program->basic_params( [ "> " . $self->out, ] );
 		return $self;
 	}
-	
 
 	1;
 }
@@ -909,13 +936,10 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
-		
-		$self->program->basic_params ( [
-			"> " . $self->out,
-		]);
+
+		$self->program->basic_params( [ "> " . $self->out, ] );
 		return $self;
 	}
-	
 
 	1;
 }
@@ -937,8 +961,9 @@ use Data::Dumper;
 		$self->program->name( $class . ".jar" );
 		return $self;
 	}
-	sub bai_from_bam{
-		my ($self, $bam) = @_;
+
+	sub bai_from_bam {
+		my ( $self, $bam ) = @_;
 		my $bai = $bam;
 		$bai =~ s/bam$/bai/;
 		return $bai;
@@ -949,6 +974,7 @@ use Data::Dumper;
 #######################################################
 {
 	use Data::Dumper;
+
 	package ProcessLane;
 	our @ISA = qw( Job );
 
@@ -972,7 +998,7 @@ use Data::Dumper;
 		my $params    = $self->params();
 		my $aligned;
 		if ( $lane->{PL} =~ m/illumina/i ) {
-			my @sai;	
+			my @sai;
 			if ( $lane->{FORWARD} || $lane->{BAM1} ) {
 				my $type = $lane->{BAM1} ? 'BAM1' : 'FORWARD';
 				my $align = Align->new(
@@ -982,10 +1008,10 @@ use Data::Dumper;
 					type     => $type,
 				);
 				$align->align_fastq();
-				
+
 				push( @sai, $align );
 			}
-			if ( $lane->{REVERSE} || $lane->{BAM2}  ) {
+			if ( $lane->{REVERSE} || $lane->{BAM2} ) {
 				my $type = $lane->{BAM2} ? 'BAM2' : 'REVERSE';
 				my $align = Align->new(
 					params   => $params,
@@ -1108,10 +1134,11 @@ use Data::Dumper;
 		my $illumina_fastq_qualities_flag = "";
 		$illumina_fastq_qualities_flag = "-I" if $self->lane->{ILLUMINA_FASTQ};
 		my $bam_param = "";
-		if($type eq 'BAM1'){
+
+		if ( $type eq 'BAM1' ) {
 			$bam_param = '-b1';
 		}
-		elsif($type eq 'BAM2'){
+		elsif ( $type eq 'BAM2' ) {
 			$bam_param = '-b2';
 		}
 		$self->program->basic_params(
@@ -1180,20 +1207,13 @@ use Data::Dumper;
 		$self->processors($proc);
 		my $qsub_param = "-pe mpi $proc";
 		my $lane       = $self->lane();
-		my $out_dir = $self->project->dir . '/' . $lane->{ID};
+		my $out_dir    = $self->project->dir . '/' . $lane->{ID};
 		$self->project->mkdir($out_dir);
 		my $out = $out_dir . '/tophat_out/accepted_hits.bam';
 		$self->program->path( $self->project->{CONFIG}->{TOPHAT} );
 		$self->program->name('tophat');
-		
-		$self->program->basic_params(
-			[
-				"-p $proc",
-				"-r $PI",
-				"",
-				"",
-			]
-		);
+
+		$self->program->basic_params( [ "-p $proc", "-r $PI", "", "", ] );
 
 		$self->out($out);
 		$self->output_by_type( 'bam', $out );
@@ -1204,6 +1224,7 @@ use Data::Dumper;
 #######################################################
 {
 	use Data::Dumper;
+
 	package SortSam;
 	our @ISA = qw( PicardJob );
 
@@ -1220,7 +1241,7 @@ use Data::Dumper;
 		$self->memory(5);
 		my $previous = $self->previous();
 		my $input    = $$previous[0]->out();
-		
+
 		$output = $input . ".sorted.bam";
 		$self->program->additional_params(
 			[
@@ -1285,7 +1306,7 @@ use Data::Dumper;
 		my @input    = map { "INPUT=" . $_->out } @$previous;
 		my $input    = join( " ", @input );
 		my $output   = $self->out;
-		my $bai = $self->bai_from_bam($output);
+		my $bai      = $self->bai_from_bam($output);
 		$self->output_by_type( 'bai', $bai );
 		$self->program->additional_params(
 			[
@@ -1293,7 +1314,7 @@ use Data::Dumper;
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate"
 			]
 		);
-		
+
 	}
 	1;
 }

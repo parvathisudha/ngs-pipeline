@@ -284,6 +284,7 @@ my $near_genes = closestBed->new(
 	params       => $params,
 	out          => $in_ensemble_regulatory->output_by_type('vcf') . ".genes",
 	basic_params => [
+		"-t first",
 		"-a", $in_ensemble_regulatory->output_by_type('vcf'),
 		"-b", $project->{'CONFIG'}->{'GENES'}
 	],

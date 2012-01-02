@@ -7,6 +7,7 @@
 <SAMTOOLS>/data/software/samtools-0.1.18</SAMTOOLS>
 <BEDTOOLS>/data/software/BEDTools-Version-2.12.0/bin</BEDTOOLS>
 <VCFCODINGSNPS>/data/software/vcfCodingSnps.v1.5</VCFCODINGSNPS>
+<PERLLIB>/data/software/pipeline/accessory</PERLLIB>
 <MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
 <GATK>/data/software/GenomeAnalysisTK-1.2-4-gd9ea764</GATK>
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>

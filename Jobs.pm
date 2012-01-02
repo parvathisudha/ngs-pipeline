@@ -241,11 +241,11 @@ use Data::Dumper;
 {
 
 	package FilterFreq;
-	our @ISA = qw( Job );
+	our @ISA = qw( PerlJob );
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("filter_vcf.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
@@ -263,11 +263,11 @@ use Data::Dumper;
 {
 
 	package IntersectVcfBed;
-	our @ISA = qw( Job );
+	our @ISA = qw( PerlJob );
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("intersect.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
@@ -290,12 +290,29 @@ use Data::Dumper;
 #######################################################
 {
 
-	package GrepVcf;
+	package PerlJob;
 	our @ISA = qw( Job );
 
 	sub new {
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		bless $self, $class;
+		#my $perl_lib = join (" ", map {"-I $_"} @{$self->{perl_lib}});
+		my $perl_lib = $self->project()->{'CONFIG'}->{'PERLLIB'};
+		$self->program->prefix( "perl -I $perl_lib" );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package GrepVcf;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params );
 		bless $self, $class;
 		$self->program->name("grep_vcf.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
@@ -313,11 +330,11 @@ use Data::Dumper;
 {
 
 	package JoinTabular;
-	our @ISA = qw( Job );
+	our @ISA = qw( PerlJob );
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("join_tabular_files.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
@@ -335,11 +352,11 @@ use Data::Dumper;
 {
 
 	package Bam2cfg;
-	our @ISA = qw( Job );
+	our @ISA = qw( PerlJob );
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
+		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("bam2cfg.pl");
 		$self->program->path( $self->project()->{'CONFIG'}->{'BREAKDANCER'} );

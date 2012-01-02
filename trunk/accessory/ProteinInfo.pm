@@ -43,7 +43,10 @@ sub _download_uniprot_xml {
 	return undef unless $self->{id};
 	my $xml  = get 'http://www.uniprot.org/uniprot/' . $self->{id} . '.xml';
 	my $data = XMLin($xml);
-	return $data->{entry}->{comment};
+	my $result = $data->{entry}->{comment};
+	push(@$result, {type => 'gene', text =>$data->{entry}->{gene}->{name}->{content}});
+	push(@$result, { type => 'description', text => $data->{entry}->{protein}->{recommendedName}->{fullName} });
+	return $result;
 }
 
 1;

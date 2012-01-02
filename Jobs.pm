@@ -341,9 +341,6 @@ use Data::Dumper;
 		$self->memory(1);
 		$self->program->basic_params(
 			[
-				"--in list.txt",
-				"--id_column 13 --uniprot ensembl_to_uniprot.txt",
-				"--id_type gene --skip_header",
 				">", $self->out,
 			]
 		);

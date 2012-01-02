@@ -329,6 +329,31 @@ use Data::Dumper;
 #######################################################
 {
 
+	package AnnotateProteins;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("gene_to_annotation.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		$self->program->basic_params(
+			[
+				"--in list.txt",
+				"--id_column 13 --uniprot ensembl_to_uniprot.txt",
+				"--id_type gene --skip_header",
+				">", $self->out,
+			]
+		);
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package JoinTabular;
 	our @ISA = qw( PerlJob );
 

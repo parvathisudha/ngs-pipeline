@@ -315,7 +315,17 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 	],
 	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #
 );
-
+my $annotate_proteins = AnnotateProteins->new(
+	params            => $params,
+	out => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
+	additional_params => [
+				"--in", $regulatory_rare_table_with_genes->out,
+				"--id_column 8",
+				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+				"--id_type gene",
+	],
+	previous => [$regulatory_rare_table_with_genes]                                        #
+);
 ######################################################
 
 my $bgzip = Bgzip->new(

@@ -310,6 +310,7 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
 				"--annotation_columns 13",
 				"--table_columns 0,1,2,3,4,5,6,7,8,9,10",
+				"--skip_annotation_header"
 				
 	],
 	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #

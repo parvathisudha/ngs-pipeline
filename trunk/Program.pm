@@ -109,8 +109,9 @@ sub new {
 }
 
 sub prefix {
-	my ( $self, ) = @_;
-	return "perl";
+	my ( $self, $prefix ) = @_;
+	$self->{prefix} = $prefix if $prefix;
+	return $self->{prefix};
 }
 1;
 package BedToolsProgram;

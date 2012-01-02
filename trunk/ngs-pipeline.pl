@@ -320,7 +320,7 @@ my $annotate_proteins = AnnotateProteins->new(
 	out => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
 	additional_params => [
 				"--in", $regulatory_rare_table_with_genes->out,
-				"--id_column 8",
+				"--id_column 11",
 				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 				"--id_type gene",
 	],

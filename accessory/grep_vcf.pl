@@ -2,11 +2,12 @@ use strict;
 use Getopt::Long;
 use GeneAnnotator;
 ####### get arguments      ###
-my ( $in, $out, $regexp );
+my ( $in, $out, $regexp, $regexp_v );
 GetOptions(
 	'in=s'     => \$in,
 	'out=s'    => \$out,
 	'regexp=s' => \$regexp,
+	'regexp_v=s' => \$regexp_v,
 );
 open IN,  "<$in";
 open OUT, ">$out";
@@ -16,7 +17,9 @@ while (<IN>) {
 		print OUT;
 	}
 	elsif (m/$regexp/) {
-		print OUT;
+		unless(m/$regexp_v/){
+			print OUT;
+		}
 	}
 }
 close IN;

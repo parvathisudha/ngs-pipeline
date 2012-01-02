@@ -276,7 +276,7 @@ my $reg_constraints_rare = FilterFreq->new(
 
 my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
-	basic_params => [ "--regexp REGULATION", ],
+	basic_params => [ "--regexp REGULATION", "--regexp_v MODERATE|HIGH"],
 	previous     => [$reg_constraints_rare]                           #
 );
 

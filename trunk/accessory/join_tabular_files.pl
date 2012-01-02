@@ -4,7 +4,7 @@ use GeneAnnotator;
 use Data::Dumper;
 ####### get arguments      ###
 my ( $table, $annotation, $table_id_columns, $table_columns,
-	$annotation_id_columns, $annotation_columns, $skip_header );
+	$annotation_id_columns, $annotation_columns, $skip_table_header, $skip_annotation_header );
 GetOptions(
 	'table=s'                 => \$table,
 	'annotation=s'            => \$annotation,
@@ -12,14 +12,15 @@ GetOptions(
 	'annotation_id_columns=s' => \$annotation_id_columns,
 	'annotation_columns=s'      => \$annotation_columns,
 	'table_columns=s'           => \$table_columns,
-	'skip_header'             => \$skip_header,
+	'skip_table_header'             => \$skip_table_header,
+	'skip_annotation_header'             => \$skip_annotation_header,
 );
 
 my $info = {};
 my @head_print;
 
 open ANN, "<$annotation" or die "Can't open $annotation\n";
-if ( !$skip_header ) {
+if ( !$skip_annotation_header ) {
 	my $header = <ANN>;
 	my $head_elements = get_elements( $header, $annotation_columns );
 	@head_print = @$head_elements;
@@ -31,12 +32,14 @@ while (<ANN>) {
 }
 close ANN;
 open TABLE, "<$table" or die "Can't open $table\n";
-if ( !$skip_header ) {
+if ( !$skip_table_header ) {
 	my $header = <TABLE>;
 	my $head_elements = get_elements( $header, $table_columns );
 	@head_print = (@head_print,@$head_elements) if $head_elements;
 	print join( "\t", @head_print ), if scalar @head_print;
+	print "\n";
 }
+
 while (<TABLE>) {
 	my $id  = get_id( $_, $table_id_columns );
 	my $table = get_elements(  $_, $table_columns );

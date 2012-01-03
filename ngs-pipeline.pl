@@ -294,7 +294,7 @@ my $near_genes = closestBed->new(
 my $regulatory_rare_table = VariantsToTable->new(
 	params            => $params,
 	additional_params => [
-		"-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
+		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
 		"-F FILTER -F EFF",
 		"--showFiltered"
@@ -311,7 +311,7 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
 				"--annotation_columns 13",
 				"--annotation_header GENE_ID",
-				"--table_columns 0,1,2,3,4,5,6,7,8,9,10",
+				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11",
 				"--skip_annotation_header",
 				"--annotation_header GENE_ID",
 				

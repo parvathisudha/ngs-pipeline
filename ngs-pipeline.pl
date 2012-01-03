@@ -329,6 +329,15 @@ my $annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$regulatory_rare_table_with_genes]                                        #
 );
+my $reformat_regulation = ReformatRegulation->new(
+	params            => $params,
+	out => $annotate_proteins->out . '.reform.txt',
+	additional_params => [
+				"--in", $annotate_proteins->out,
+				"--eff_column 10",
+	],
+	previous => [$annotate_proteins]                                        #
+);
 ######################################################
 
 my $bgzip = Bgzip->new(

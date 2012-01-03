@@ -309,7 +309,7 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 				"--table", $regulatory_rare_table->out ,
 				"--annotation", $near_genes->out,
 				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
-				"--annotation_columns 14",
+				"--annotation_columns 13",
 				"--annotation_header GENE_ID",
 				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11",
 				"--skip_annotation_header",
@@ -323,7 +323,7 @@ my $annotate_proteins = AnnotateProteins->new(
 	out => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
 	additional_params => [
 				"--in", $regulatory_rare_table_with_genes->out,
-				"--id_column 11",
+				"--id_column 12",
 				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 				"--id_type gene",
 	],

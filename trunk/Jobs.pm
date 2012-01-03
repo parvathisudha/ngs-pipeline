@@ -329,6 +329,28 @@ use Data::Dumper;
 #######################################################
 {
 
+	package ReformatRegulation;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("reformat_regulation_info.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		$self->program->basic_params(
+			[
+				">", $self->out,
+			]
+		);
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package AnnotateProteins;
 	our @ISA = qw( PerlJob );
 

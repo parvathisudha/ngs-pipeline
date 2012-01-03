@@ -334,7 +334,7 @@ my $reformat_regulation = ReformatRegulation->new(
 	out => $annotate_proteins->out . '.reform.txt',
 	additional_params => [
 				"--in", $annotate_proteins->out,
-				"--eff_column 10",
+				"--eff_column 11",
 	],
 	previous => [$annotate_proteins]                                        #
 );

@@ -9,3 +9,11 @@ perl /data/software/pipeline/ngs-pipeline.pl --config config.xml --mode ALL --re
 {{{
 perl /data/software/pipeline/ngs-pipeline.pl --config config.xml --mode CLEAN --rerun both
 }}}
+=== Result files ===
+DIR - project directory,
+PROJECT - project name
+(see config.xml for configuring)
+
+|| DIR/PROJECT.bam.dedup.bam || whole genome alignment ||
+|| DIR/PROJECT.variations.vcf.phased.vcf.filtered.vcf.annotated.vcf.annotated.vcf || SNPs and indels ||
+|| DIR/PROJECT.bam.dedup.bam.cfg.max || BreakDancer result ||

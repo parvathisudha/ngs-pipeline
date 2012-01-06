@@ -1,0 +1,15 @@
+#labels Featured
+#Installation instructions
+
+= Introduction =
+
+The pipeline was written in perl for submitting genome
+analysis tasks to Sun Grid Engine cluster.
+
+
+= Details =
+
+For getting code:
+* In console print
+svn checkout http://ngs-pipeline.googlecode.com/svn/trunk/ /data/software/pipeline
+where "/data/software/pipeline" is a path to the installation directory.

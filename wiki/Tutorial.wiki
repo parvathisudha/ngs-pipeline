@@ -1,0 +1,11 @@
+#labels Featured
+== Tutorial ==
+
+=== Submitting job ===
+{{{
+perl /data/software/pipeline/ngs-pipeline.pl --config config.xml --mode ALL --rerun both
+}}}
+=== Removing temporary files ===
+{{{
+perl /data/software/pipeline/ngs-pipeline.pl --config config.xml --mode CLEAN --rerun both
+}}}

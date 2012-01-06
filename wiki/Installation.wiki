@@ -13,3 +13,4 @@ analysis tasks to Sun Grid Engine cluster.
 svn checkout http://ngs-pipeline.googlecode.com/svn/trunk/ /data/software/pipeline
 }}}
 where "/data/software/pipeline" is a path to the installation directory.
+ * Download accessory files from [ftp://rogaevlab.ru/ngs-pipeline/GRCh37/ ftp://rogaevlab.ru/ngs-pipeline/GRCh37/]

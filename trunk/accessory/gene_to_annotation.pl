@@ -11,7 +11,7 @@ GetOptions(
 	'id_type=s' => \$id_type,
 	'skip_header' => \$skip_header,
 );
-my $annotation = GeneAnnotator->new(gene => '1', uniprot => $uniprot,);
+my $annotation = GeneAnnotator->new(id_type => $id_type, uniprot => $uniprot,);
 my $types = ['description','function', 'catalytic activity', 'tissue specificity', 'pathway', 'disease'];
 open IN, $in or die "Can't open $in\n";
 if(!$skip_header){

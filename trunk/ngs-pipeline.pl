@@ -277,6 +277,17 @@ my $constraints_rare_cod_table = VariantsToTable->new(
 	],
 	previous => [$constraints_rare_cod]                                        #
 );
+my $cod_annotate_proteins = AnnotateProteins->new(
+	params            => $params,
+	out => $constraints_rare_cod_table->out . '.uniprot.txt',
+	additional_params => [
+				"--in", $constraints_rare_cod_table->out,
+				"--id_column 16",
+				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+				"--id_type transcript",
+	],
+	previous => [$constraints_rare_cod_table]                                        #
+);
 ####### SYNONIMOUS WITH NEGATIVE SELECTION ###########
 #my $syn_constraints = IntersectVcfBed->new(
 #	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",
@@ -330,15 +341,26 @@ my $in_ensemble_regulatory = GrepVcf->new(
 	previous     => [$reg_constraints_rare]                           #
 );
 
+my $group_vcf = $project->{'CONFIG'}->{'SET'};
+
+my $regulatory_group_annotator = VariantAnnotator->new(
+	additional_params => [
+		"--resource:SET,VCF $group_vcf",
+		"-E SET.set",
+	],
+	params   => $params,
+	previous => [$filter_low_qual]
+);
+
 my $near_genes = closestBed->new(
 	params       => $params,
-	out          => $in_ensemble_regulatory->output_by_type('vcf') . ".genes",
+	out          => $regulatory_group_annotator->output_by_type('vcf') . ".genes",
 	basic_params => [
 		"-t first",
-		"-a", $in_ensemble_regulatory->output_by_type('vcf'),
+		"-a", $regulatory_group_annotator->output_by_type('vcf'),
 		"-b", $project->{'CONFIG'}->{'GENES'}
 	],
-	previous => [$in_ensemble_regulatory]                                        #
+	previous => [$regulatory_group_annotator]                                        #
 );
 
 my $regulatory_rare_table = VariantsToTable->new(
@@ -346,7 +368,7 @@ my $regulatory_rare_table = VariantsToTable->new(
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F EFF",
+		"-F FILTER -F EFF -F SET.set",
 		"--showFiltered"
 	],
 	previous => [$in_ensemble_regulatory]                                        #
@@ -361,7 +383,7 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
 				"--annotation_columns 13",
 				"--annotation_header GENE_ID",
-				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11",
+				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12",
 				"--skip_annotation_header",
 				"--annotation_header GENE_ID",
 				

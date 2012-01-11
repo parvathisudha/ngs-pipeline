@@ -11,13 +11,11 @@ sub new {
 		$self->{$key} = $value;
 	}
 	bless $self, $class;
-	if ( $self->{gene} ) {
-		my $gene2uniprot = $self->read_annotation( 0, 2, $self->{uniprot} );
-		$self->{gene2uniprot} = $gene2uniprot;
+	if ( $self->{id_type} eq 'gene' ) {
+		$self->{$self->{id_type}} = $self->read_annotation( 0, 2, $self->{uniprot} );
 	}
-	if ( $self->{transcript} ) {
-		my $transcript2uniprot = $self->read_annotation( 1, 2, $self->{uniprot} );
-		$self->{transcript2uniprot} = $transcript2uniprot;
+	elsif ( $self->{id_type} eq 'transcript') {
+		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{uniprot} );
 	}
 	return $self;
 }
@@ -31,8 +29,9 @@ sub protein_info {
 
 sub gene_to_protein{
 	my ( $self, $id) = @_;
-	if(exists $self->{gene2uniprot}->{$id}){
-		return $self->{gene2uniprot}->{$id};
+	my $base = $self->{id_type};
+	if(exists $self->{$base}->{$id}){
+		return $self->{$base}->{$id};
 	}
 	else{
 		return undef;

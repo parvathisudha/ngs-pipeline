@@ -60,6 +60,22 @@ my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi          = $project->{'CONFIG'}->{'CGI'};
 my $eur          = $project->{'CONFIG'}->{'EURKG'};
 
+
+
+#############################
+
+my @coding_classes = qw/
+MODERATE
+HIGH
+SYNONYMOUS_START
+NON_SYNONYMOUS_START
+START_GAINED
+SYNONYMOUS_CODING
+SYNONYMOUS_STOP
+NON_SYNONYMOUS_STOP
+/;
+my $coding_classes_string = join('|', @coding_classes); 
+
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
 
@@ -232,35 +248,69 @@ my $effect_annotator = VariantAnnotator->new(
 );
 
 ##################### CODING ANALYSIS ##############
-#my $constraints_out_for_cod = $effect_annotator->output_by_type('vcf') . ".constraints.vcf";
-#my $evolution_constraints_for_cod = SelectVariants->new(
-#	out => $constraints_out_for_cod,
-#	additional_params => [
-#		"-L", $project->{'CONFIG'}->{'CONSTRAINTS'},
-#	],
+my $constraints = IntersectVcfBed->new(
+	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",
+	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
+	params   => $params,
+	previous => [$effect_annotator]                                           #
+);
+my $constraints_rare = FilterFreq->new(
+	params       => $params,
+	basic_params => [ "0.01", "0.01", "0.01", ],
+	previous     => [$constraints]                           #
+);
+my $constraints_rare_cod = GrepVcf->new(
+	params       => $params,
+	basic_params => [ "--regexp '" . $coding_classes_string . "'"],
+	previous     => [$constraints_rare]                           #
+);
+my $constraints_rare_cod_table = VariantsToTable->new(
+	params            => $params,
+	additional_params => [
+		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+   		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+   		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID",
+		"--showFiltered"
+	],
+	previous => [$constraints_rare_cod]                                        #
+);
+####### SYNONIMOUS WITH NEGATIVE SELECTION ###########
+#my $syn_constraints = IntersectVcfBed->new(
+#	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",
+#	bed      => $project->{'CONFIG'}->{'SYN_CONSTRAINTS'},
 #	params   => $params,
-#	previous => [ $effect_annotator ]    #
+#	previous => [$effect_annotator]                                           #
 #);
-
-#my $cod_constraints_rare = FilterFreq->new(
-#	params   => $params,
-#	basic_params => [ "0.01", "0.01", ],
-#	previous => [ $constraints_out_for_cod ]    #
+#my $syn_constraints_rare = FilterFreq->new(
+#	params       => $params,
+#	basic_params => [ "0.01", "0.01", "0.01", ],
+#	previous     => [$syn_constraints]                           #
 #);
 #
-#my $constraints_rare_table = VariantsToTable->new(
-#	params   => $params,
-#	additional_params => [ "-F CHROM -F POS -F ID -F REF -F ALT -F CGI_FREQ\.AF",
-#	"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-#   "-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-#   "-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-#   "-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE -F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID",],
-#	previous => [ $cod_constraints_rare ]    #
+#my $in_gene_syn_constraints_rare = GrepVcf->new(
+#	params       => $params,
+#	basic_params => [ "--regexp '" . $coding_classes_string . "'"],
+#	previous     => [$syn_constraints_rare]                           #
+#);
+#
+#my $syn_constraints_rare_table = VariantsToTable->new(
+#	params            => $params,
+#	additional_params => [
+#		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+#		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+#		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+#		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+#   		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+#   		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID",
+#		"--showFiltered"
+#	],
+#	previous => [$in_gene_syn_constraints_rare]                                        #
 #);
 
-######################################################
-
-##################### REGULATION ANALYSIS ###########
+########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	out      => $effect_prediction->output_by_type('vcf') . ".constraints.vcf",
 	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
@@ -276,7 +326,7 @@ my $reg_constraints_rare = FilterFreq->new(
 
 my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
-	basic_params => [ "--regexp REGULATION", "--regexp_v 'MODERATE|HIGH'"],
+	basic_params => [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'"],
 	previous     => [$reg_constraints_rare]                           #
 );
 

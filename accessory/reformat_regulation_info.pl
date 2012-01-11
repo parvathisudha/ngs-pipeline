@@ -19,7 +19,7 @@ while(<IN>){
 	my @d = split /\t/;
 	
 	my $eff = $d[$eff_column];
-	my @eff = split (/,/ , $eff);
+	my @eff = split (/\),/ , $eff);
 	my @regs;
 	for my $e(@eff){
 		push (@regs, $1) if $e =~ m/REGULATION\[(.+?)\]/;

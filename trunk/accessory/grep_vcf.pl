@@ -17,7 +17,12 @@ while (<IN>) {
 		print OUT;
 	}
 	elsif (m/$regexp/) {
-		unless(m/$regexp_v/){
+		if($regexp_v){
+			unless(m/$regexp_v/){
+				print OUT;
+			}			
+		}
+		else{
 			print OUT;
 		}
 	}

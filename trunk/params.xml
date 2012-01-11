@@ -29,6 +29,7 @@
 <ACCESSORY>/data/software</ACCESSORY>
 <GENES>/data/genomes/GRCh37/Ensembl.v65.bed</GENES>
 <CONSTRAINTS>/data/genomes/29mammals/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
+<SYN_CONSTRAINTS>/data/genomes/29mammals/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</SYN_CONSTRAINTS>
 <BEDGENOME>/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta.genome</BEDGENOME>
 <GENOME>/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta</GENOME>
 <GENOME_COLOR>/data/genomes/bwa/human_g1k_v37_color/human_g1k_v37.fasta</GENOME_COLOR>

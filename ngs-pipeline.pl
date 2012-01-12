@@ -409,7 +409,7 @@ my $annotate_proteins = AnnotateProteins->new(
 );
 my $reformat_regulation = ReformatRegulation->new(
 	params            => $params,
-	out => $annotate_proteins->out . '.reform.txt',
+	out => $project->file_prefix() . ".reg.txt",,
 	additional_params => [
 				"--in", $annotate_proteins->out,
 				"--eff_column 11",
@@ -417,19 +417,19 @@ my $reformat_regulation = ReformatRegulation->new(
 	previous => [$annotate_proteins]                                        #
 );
 
-#my $regulation_with_genes_marked = JoinTabular->new(
-#	params            => $params,
-#	out => $reformat_regulation->out . '.marked.txt',
-#	additional_params => [
-#				"--table", $reformat_regulation->out ,
-#				"--annotation", $project->{'CONFIG'}->{'EURKG'},
-#				"--table_id_columns 13 --annotation_id_columns 0",
-#				"--annotation_columns 1,2,3",
-#				"--annotation_header GENE_ID",
-#				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",				
-#	],
-#	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #
-#);
+my $regulation_with_genes_marked = JoinTabular->new(
+	params            => $params,
+	out => $reformat_regulation->out . '.marked.txt',
+	additional_params => [
+				"--table", $reformat_regulation->out ,
+				"--annotation", $project->{'CONFIG'}->{'GOI'},
+				"--table_id_columns 13 --annotation_id_columns 0",
+				"--annotation_columns 1,2,3",
+				"--annotation_header GENE_ID",
+				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",				
+	],
+	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #
+);
 ######################################################
 
 my $bgzip = Bgzip->new(

@@ -387,7 +387,7 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 				"--table", $regulatory_rare_table->out ,
 				"--annotation", $near_genes->out,
 				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
-				"--annotation_columns 1",
+				"--annotation_columns 13",
 				"--annotation_header GENE_ID",
 				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13",
 				"--skip_annotation_header",

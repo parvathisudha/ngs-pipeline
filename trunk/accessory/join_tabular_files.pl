@@ -47,7 +47,7 @@ while (<TABLE>) {
 	my $id  = get_id( $_, $table_id_columns );
 	my $table = get_elements(  $_, $table_columns );
 	my @to_print = (@$table);
-	my @to_print = (@$table, @{$info->{$id}}) if $info->{$id};
+	@to_print = (@$table, @{$info->{$id}}) if $info->{$id};
 	print join( "\t", (@to_print)), "\n";
 }
 

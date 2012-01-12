@@ -426,7 +426,7 @@ my $regulation_with_genes_marked = JoinTabular->new(
 				"--table_id_columns 13 --annotation_id_columns 0",
 				"--annotation_columns 1,2,3",
 				"--annotation_header GENE_ID",
-				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20",				
+				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",				
 	],
 	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #
 );

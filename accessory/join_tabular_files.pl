@@ -45,7 +45,6 @@ if ( !$skip_table_header ) {
 }
 while (<TABLE>) {
 	my $id  = get_id( $_, $table_id_columns );
-	print "ID: $id\n";
 	my $table = get_elements(  $_, $table_columns );
 	my @to_print = (@$table);
 	@to_print = (@$table, @{$info->{$id}}) if $info->{$id};

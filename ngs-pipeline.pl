@@ -23,7 +23,7 @@ GetOptions(
 
 ####### general parameters ###
 my $params_file = "params.xml";
-my $config      = XMLin("$config_file", ForceArray => [ 'LANE',],);
+my $config = XMLin( "$config_file", ForceArray => [ 'LANE', ], );
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
 $path =~ s/\/$//;
@@ -59,22 +59,21 @@ my $dbSNP        = $project->{'CONFIG'}->{'DBSNP'};
 my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi          = $project->{'CONFIG'}->{'CGI'};
 my $eur          = $project->{'CONFIG'}->{'EURKG'};
-my $group_vcf = $project->{'CONFIG'}->{'SET'};
-
+my $group_vcf    = $project->{'CONFIG'}->{'SET'};
 
 #############################
 
 my @coding_classes = qw/
-MODERATE
-HIGH
-SYNONYMOUS_START
-NON_SYNONYMOUS_START
-START_GAINED
-SYNONYMOUS_CODING
-SYNONYMOUS_STOP
-NON_SYNONYMOUS_STOP
-/;
-my $coding_classes_string = join('|', @coding_classes); 
+  MODERATE
+  HIGH
+  SYNONYMOUS_START
+  NON_SYNONYMOUS_START
+  START_GAINED
+  SYNONYMOUS_CODING
+  SYNONYMOUS_STOP
+  NON_SYNONYMOUS_STOP
+  /;
+my $coding_classes_string = join( '|', @coding_classes );
 
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
@@ -252,51 +251,67 @@ my $constraints = IntersectVcfBed->new(
 	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",
 	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
 	params   => $params,
-	previous => [$effect_annotator]                                           #
+	previous => [$effect_annotator]                                            #
 );
 my $constraints_rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ "0.01", "0.01", "0.01", ],
-	previous     => [$constraints]                           #
+	previous     => [$constraints]                                             #
 );
 my $constraints_rare_cod = GrepVcf->new(
 	params       => $params,
-	basic_params => [ "--regexp '" . $coding_classes_string . "'"],
-	previous     => [$constraints_rare]                           #
+	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
+	previous     => [$constraints_rare]                                        #
 );
 my $constraints_rare_cod_ann = VariantAnnotator->new(
-	additional_params => [
-		"--resource:SET,VCF $group_vcf",
-		"-E SET.set",
-	],
-	params   => $params,
-	previous => [$constraints_rare_cod]
+	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
+	params            => $params,
+	previous          => [$constraints_rare_cod]
 );
 my $constraints_rare_cod_table = VariantsToTable->new(
 	params            => $params,
-	out => $project->file_prefix() . ".cod.txt",
+	out               => $project->file_prefix() . ".cod.txt",
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
 		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-   		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-   		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
 		"--showFiltered"
 	],
-	previous => [$constraints_rare_cod_ann]                                        #
+	previous => [$constraints_rare_cod_ann]    #
 );
 my $cod_annotate_proteins = AnnotateProteins->new(
 	params            => $params,
-	out => $constraints_rare_cod_table->out . '.uniprot.txt',
+	out               => $constraints_rare_cod_table->out . '.uniprot.txt',
 	additional_params => [
-				"--in", $constraints_rare_cod_table->out,
-				"--id_column 16",
-				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-				"--id_type transcript",
-				"--uniprot_dir", $project->{'CONFIG'}->{'UNIPROT'},
+		"--in",
+		$constraints_rare_cod_table->out,
+		"--id_column 16",
+		"--uniprot",
+		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+		"--id_type transcript",
+		"--uniprot_dir",
+		$project->{'CONFIG'}->{'UNIPROT'},
 	],
-	previous => [$constraints_rare_cod_table]                                        #
+	previous => [$constraints_rare_cod_table]    #
+);
+my $cod_annotate_proteins_genes = JoinTabular->new(
+	params            => $params,
+	out               => $cod_annotate_proteins->out . '.with_genes.txt',
+	additional_params => [
+		"--table",
+		$cod_annotate_proteins->out,
+		"--annotation",
+		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+		"--table_id_columns 16 --annotation_id_columns 1",
+		"--annotation_columns 0",
+		"--annotation_header GENE_ID",
+"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26",
+		"--skip_annotation_header",
+	],
+	previous => [$cod_annotate_proteins]    #
 );
 ####### SYNONIMOUS WITH NEGATIVE SELECTION ###########
 #my $syn_constraints = IntersectVcfBed->new(
@@ -347,28 +362,26 @@ my $reg_constraints_rare = FilterFreq->new(
 
 my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
-	basic_params => [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'"],
-	previous     => [$reg_constraints_rare]                           #
+	basic_params =>
+	  [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'" ],
+	previous => [$reg_constraints_rare]                                        #
 );
 
 my $regulatory_group_annotator = VariantAnnotator->new(
-	additional_params => [
-		"--resource:SET,VCF $group_vcf",
-		"-E SET.set",
-	],
-	params   => $params,
-	previous => [$in_ensemble_regulatory]
+	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
+	params            => $params,
+	previous          => [$in_ensemble_regulatory]
 );
 
 my $near_genes = closestBed->new(
-	params       => $params,
-	out          => $regulatory_group_annotator->output_by_type('vcf') . ".genes",
+	params => $params,
+	out    => $regulatory_group_annotator->output_by_type('vcf') . ".genes",
 	basic_params => [
-		"-t first",
-		"-a", $regulatory_group_annotator->output_by_type('vcf'),
-		"-b", $project->{'CONFIG'}->{'TWOKBTSS'}
+		"-t first",                                         "-a",
+		$regulatory_group_annotator->output_by_type('vcf'), "-b",
+		$project->{'CONFIG'}->{'TWOKBTSS'}
 	],
-	previous => [$regulatory_group_annotator]                                        #
+	previous => [$regulatory_group_annotator]    #
 );
 
 my $regulatory_rare_table = VariantsToTable->new(
@@ -379,69 +392,72 @@ my $regulatory_rare_table = VariantsToTable->new(
 		"-F FILTER -F EFF -F SET.set",
 		"--showFiltered"
 	],
-	previous => [$regulatory_group_annotator]                                        #
+	previous => [$regulatory_group_annotator]    #
 );
 
 my $regulatory_rare_table_with_genes = JoinTabular->new(
 	params            => $params,
-	out => $regulatory_rare_table->out . '.with_genes.txt',
+	out               => $regulatory_rare_table->out . '.with_genes.txt',
 	additional_params => [
-				"--table", $regulatory_rare_table->out ,
-				"--annotation", $near_genes->out,
-				"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
-				"--annotation_columns 13",
-				"--annotation_header GENE_ID",
-				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12",
-				"--skip_annotation_header",
-				"--annotation_header GENE_ID",
-				
+		"--table",      $regulatory_rare_table->out,
+		"--annotation", $near_genes->out,
+		"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
+		"--annotation_columns 13",
+		"--annotation_header GENE_ID",
+		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12",
+		"--skip_annotation_header",
+		"--annotation_header GENE_ID",
+
 	],
-	previous => [$in_ensemble_regulatory, $regulatory_rare_table]                                        #
+	previous => [ $in_ensemble_regulatory, $regulatory_rare_table ]    #
 );
 my $annotate_proteins = AnnotateProteins->new(
-	params            => $params,
-	out => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
+	params => $params,
+	out    => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
 	additional_params => [
-				"--in", $regulatory_rare_table_with_genes->out,
-				"--id_column 13",
-				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-				"--id_type gene",
-				"--uniprot_dir", $project->{'CONFIG'}->{'UNIPROT'},
+		"--in",
+		$regulatory_rare_table_with_genes->out,
+		"--id_column 13",
+		"--uniprot",
+		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+		"--id_type gene",
+		"--uniprot_dir",
+		$project->{'CONFIG'}->{'UNIPROT'},
 	],
-	previous => [$regulatory_rare_table_with_genes]                                        #
+	previous => [$regulatory_rare_table_with_genes]    #
 );
 my $reformat_regulation = ReformatRegulation->new(
 	params            => $params,
-	out => $project->file_prefix() . ".reg.txt",
-	additional_params => [
-				"--in", $annotate_proteins->out,
-				"--eff_column 11",
-	],
-	previous => [$annotate_proteins]                                        #
+	out               => $project->file_prefix() . ".reg.txt",
+	additional_params =>
+	  [ "--in", $annotate_proteins->out, "--eff_column 11", ],
+	previous => [$annotate_proteins]                   #
 );
 
 my $regulation_with_genes_marked = JoinTabular->new(
 	params            => $params,
-	out => $reformat_regulation->out . '.marked.txt',
+	out               => $reformat_regulation->out . '.marked.txt',
 	additional_params => [
-				"--table", $reformat_regulation->out ,
-				"--annotation", $project->{'CONFIG'}->{'GOI'},
-				"--table_id_columns 13 --annotation_id_columns 0",
-				"--annotation_columns 1,2,3",
-				"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",				
+		"--table",
+		$reformat_regulation->out,
+		"--annotation",
+		$project->{'CONFIG'}->{'GOI'},
+		"--table_id_columns 13 --annotation_id_columns 0",
+		"--annotation_columns 1,2,3",
+		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
 	],
-	previous => [$reformat_regulation,]                                        #
+	previous => [ $reformat_regulation, ]    #
 );
 ######################################################
 
 my $bgzip = Bgzip->new(
 	params   => $params,
-	previous => [$effect_annotator]                                            #
+	previous => [$effect_annotator]          #
 );
 
 my $tabix = Tabix->new(
 	params   => $params,
-	previous => [$bgzip]                                                       #
+	previous => [$bgzip]                     #
 );
 
 #result files:

@@ -3,15 +3,16 @@ use Getopt::Long;
 use GeneAnnotator;
 use Data::Dumper;
 ####### get arguments      ###
-my ( $in, $id_column, $uniprot, $id_type, $skip_header);
+my ( $in, $id_column, $uniprot, $id_type, $skip_header, $uniprot_dir);
 GetOptions(
 	'in=s' => \$in,
 	'id_column=s'   => \$id_column,
 	'uniprot=s'    => \$uniprot,
 	'id_type=s' => \$id_type,
 	'skip_header' => \$skip_header,
+	'uniprot_dir=s' => \$uniprot_dir,
 );
-my $annotation = GeneAnnotator->new(id_type => $id_type, uniprot => $uniprot,);
+my $annotation = GeneAnnotator->new(id_type => $id_type, uniprot => $uniprot, uniprot_dir=> $uniprot_dir );
 my $types = ['description','function', 'catalytic activity', 'tissue specificity', 'pathway', 'disease'];
 open IN, $in or die "Can't open $in\n";
 if(!$skip_header){

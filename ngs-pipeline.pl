@@ -23,7 +23,7 @@ GetOptions(
 
 ####### general parameters ###
 my $params_file = "params.xml";
-my $config      = XMLin("$config_file");
+my $config      = XMLin("$config_file", ForceArray => [ 'LANE',],);
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
 $path =~ s/\/$//;
@@ -293,6 +293,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 				"--id_column 16",
 				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 				"--id_type transcript",
+				"--uniprot_dir", $project->{'CONFIG'}->{'UNIPROT'},
 	],
 	previous => [$constraints_rare_cod_table]                                        #
 );
@@ -364,7 +365,7 @@ my $near_genes = closestBed->new(
 	basic_params => [
 		"-t first",
 		"-a", $regulatory_group_annotator->output_by_type('vcf'),
-		"-b", $project->{'CONFIG'}->{'GENES'}
+		"-b", $project->{'CONFIG'}->{'2KBTSS'}
 	],
 	previous => [$regulatory_group_annotator]                                        #
 );
@@ -404,6 +405,7 @@ my $annotate_proteins = AnnotateProteins->new(
 				"--id_column 13",
 				"--uniprot", $project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 				"--id_type gene",
+				"--uniprot_dir", $project->{'CONFIG'}->{'UNIPROT'},
 	],
 	previous => [$regulatory_rare_table_with_genes]                                        #
 );

@@ -23,7 +23,7 @@ sub new {
 sub protein_info {
 	my ( $self, $gene_id, $types) = @_;
 	my $uniprot_id = $self->gene_to_protein($gene_id);
-	my $info = ProteinInfo->new( id => $uniprot_id);
+	my $info = ProteinInfo->new( id => $uniprot_id, uniprot_dir => $self->{uniprot_dir});
 	return $info->array($types);
 }
 

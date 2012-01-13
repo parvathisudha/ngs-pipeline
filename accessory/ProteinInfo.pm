@@ -41,7 +41,19 @@ sub array {
 sub _download_uniprot_xml {
 	my ( $self, ) = @_;
 	return undef unless $self->{id};
-	my $xml  = get 'http://www.uniprot.org/uniprot/' . $self->{id} . '.xml';
+	my $xml;
+	if($self->{uniprot_dir}){
+		$xml  = $self->{uniprot_dir} . '/' . $self->{id} . '.xml';
+#		my $data = XMLin($xml, ForceArray => [ 'gene', 'comment' ],);
+#		print Dumper $data;
+#		$xml  = get 'http://www.uniprot.org/uniprot/' . $self->{id} . '.xml';
+#		my $data = XMLin($xml, ForceArray => [ 'gene', 'comment' ],);
+#		print Dumper $data;
+	}
+	else{
+		$xml  = get 'http://www.uniprot.org/uniprot/' . $self->{id} . '.xml';
+	}
+	
 	my $data = XMLin($xml, ForceArray => [ 'gene', 'comment' ],);
 	my $result = $data->{entry}->{comment};
 	push(@$result, { type => 'description', text => $data->{entry}->{protein}->{recommendedName}->{fullName} });

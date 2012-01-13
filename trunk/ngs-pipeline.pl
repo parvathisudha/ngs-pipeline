@@ -313,6 +313,20 @@ my $cod_annotate_proteins_genes = JoinTabular->new(
 	],
 	previous => [$cod_annotate_proteins]    #
 );
+my $cod_annotate_proteins_genes_mark = JoinTabular->new(
+	params            => $params,
+	out               => $cod_annotate_proteins_genes->out . '.marked.txt',
+	additional_params => [
+		"--table",
+		$cod_annotate_proteins_genes->out,
+		"--annotation",
+		$project->{'CONFIG'}->{'GOI'},
+		"--table_id_columns 27 --annotation_id_columns 0",
+		"--annotation_columns 1,2,3",
+		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27",
+	],
+	previous => [ $cod_annotate_proteins_genes, ]    #
+);
 ####### SYNONIMOUS WITH NEGATIVE SELECTION ###########
 #my $syn_constraints = IntersectVcfBed->new(
 #	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",

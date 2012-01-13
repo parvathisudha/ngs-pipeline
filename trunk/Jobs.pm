@@ -836,7 +836,9 @@ use Data::Dumper;
 		my $bam        = "";
 		$bam = "-I $input" if $input;
 		$self->program->additional_params(
-			[ "-o $output", $bam, "--variant $variations", "--requireStrictAlleleMatch"] );
+			[ "-o $output", $bam, "--variant $variations", 
+#			"--requireStrictAlleleMatch"
+			] );
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 		$self->output_by_type( 'vcf', $output );

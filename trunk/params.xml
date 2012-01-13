@@ -34,7 +34,7 @@
 <GENOME>/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta</GENOME>
 <GENOME_COLOR>/data/genomes/bwa/human_g1k_v37_color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
-<UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</UNIPROT>
+<UNIPROT>/data/genomes/swissprot/uniprot_sprot3</UNIPROT>
 </PARAMETERS>
 	<DATA>
     <LANE PL='virtual' >

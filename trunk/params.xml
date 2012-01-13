@@ -27,7 +27,7 @@
 <CUMULATIVE_COVERAGE>/data/software/coverage_cumulative.pl</CUMULATIVE_COVERAGE>
 <TABIX>/data/software/tabix</TABIX>
 <ACCESSORY>/data/software</ACCESSORY>
-<2KBTSS>/data/genomes/GRCh37/grch37.tss.2kb.2012013.bed</2KBTSS>
+<TWOKBTSS>/data/genomes/GRCh37/grch37.tss.2kb.2012013.bed</TWOKBTSS>
 <CONSTRAINTS>/data/genomes/29mammals/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
 <SYN_CONSTRAINTS>/data/genomes/29mammals/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</SYN_CONSTRAINTS>
 <BEDGENOME>/data/genomes/bwa/human_g1k_v37/human_g1k_v37.fasta.genome</BEDGENOME>

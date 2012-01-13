@@ -274,6 +274,7 @@ my $constraints_rare_cod_ann = VariantAnnotator->new(
 );
 my $constraints_rare_cod_table = VariantsToTable->new(
 	params            => $params,
+	out => $project->file_prefix() . ".cod.txt",
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
@@ -365,7 +366,7 @@ my $near_genes = closestBed->new(
 	basic_params => [
 		"-t first",
 		"-a", $regulatory_group_annotator->output_by_type('vcf'),
-		"-b", $project->{'CONFIG'}->{'2KBTSS'}
+		"-b", $project->{'CONFIG'}->{'TWOKBTSS'}
 	],
 	previous => [$regulatory_group_annotator]                                        #
 );
@@ -411,7 +412,7 @@ my $annotate_proteins = AnnotateProteins->new(
 );
 my $reformat_regulation = ReformatRegulation->new(
 	params            => $params,
-	out => $project->file_prefix() . ".reg.txt",,
+	out => $project->file_prefix() . ".reg.txt",
 	additional_params => [
 				"--in", $annotate_proteins->out,
 				"--eff_column 11",

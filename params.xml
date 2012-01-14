@@ -9,7 +9,7 @@
 <VCFCODINGSNPS>/data/software/vcfCodingSnps.v1.5</VCFCODINGSNPS>
 <PERLLIB>/data/software/pipeline/accessory</PERLLIB>
 <MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
-<GATK>/data/software/GenomeAnalysisTK-1.2-4-gd9ea764</GATK>
+<GATK>/data/software/gatk/dist</GATK>
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>
 <GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
 <BREAKDANCER>/data/software/breakdancer</BREAKDANCER>
@@ -22,7 +22,7 @@
 <EURKG>/data/genomes/1KG/EUR.snvs.sites.20111019.vcf</EURKG>
 <CGI>/data/genomes/cgi/69Genomes.reference.20111019_left_aligned.sites.vcf</CGI>
 <INDELS_MILLS_DEVINE>/data/genomes/gsa/1.1/b37/indels_mills_devine.b37.sites.vcf</INDELS_MILLS_DEVINE>
-<SNPEFF>/data/software/snpEff_v2_0_2</SNPEFF>
+<SNPEFF>/data/software/snpEff_2_0_5b</SNPEFF>
 <SNPEFF_GENOME>grch37_gencode8</SNPEFF_GENOME>
 <CUMULATIVE_COVERAGE>/data/software/coverage_cumulative.pl</CUMULATIVE_COVERAGE>
 <TABIX>/data/software/tabix</TABIX>

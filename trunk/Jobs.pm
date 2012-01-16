@@ -91,7 +91,7 @@ use Data::Dumper;
 		$self->program->additional_params(
 			[
 				"-config $config",
-				"-onlyCoding",
+				"-onlyCoding true",
 				"-stats $html",
 				"-o vcf",
 				$snpeff_genome,

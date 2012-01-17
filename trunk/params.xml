@@ -22,7 +22,7 @@
 <EURKG>/data/genomes/1KG/EUR.snvs.sites.20111019.vcf</EURKG>
 <CGI>/data/genomes/cgi/69Genomes.reference.20111019_left_aligned.sites.vcf</CGI>
 <INDELS_MILLS_DEVINE>/data/genomes/gsa/1.1/b37/indels_mills_devine.b37.sites.vcf</INDELS_MILLS_DEVINE>
-<SNPEFF>/data/software/snpEff_2_0_5b</SNPEFF>
+<SNPEFF>/data/software/snpEff_2_0_5</SNPEFF>
 <SNPEFF_GENOME>grch37_gencode10</SNPEFF_GENOME>
 <CUMULATIVE_COVERAGE>/data/software/coverage_cumulative.pl</CUMULATIVE_COVERAGE>
 <TABIX>/data/software/tabix</TABIX>

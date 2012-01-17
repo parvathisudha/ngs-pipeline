@@ -95,7 +95,7 @@ use Data::Dumper;
 				"-stats $html",
 				"-o vcf",
 				$snpeff_genome,
-				"$input > $output"
+				"$input -reg base > $output"
 			]
 		);
 		$self->out($output);

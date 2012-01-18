@@ -708,7 +708,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(2);
+		$self->memory(4);
 		my $bam =
 		    $self->bam
 		  ? $self->bam
@@ -719,7 +719,7 @@ use Data::Dumper;
 			[
 				"-I $bam",
 				"--variant $input",
-				"-L $input",
+#				"-L $input",
 				"-o $output",
 				"-enableMergeToMNP",
 				"--maxGenomicDistanceForMNP 2",

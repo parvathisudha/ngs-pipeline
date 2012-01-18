@@ -13,7 +13,7 @@
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>
 <GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
 <BREAKDANCER>/data/software/breakdancer</BREAKDANCER>
-<PICARD>/data/software/picard-tools-1.43</PICARD>
+<PICARD>/data/software/picard-tools-1.60</PICARD>
 <DBSNP>/data/genomes/gsa/1.1/b37/dbsnp_134_b37.leftAligned.vcf</DBSNP>
 <HAPMAP>/data/genomes/gsa/1.1/b37/hapmap_3.3.b37.sites.vcf</HAPMAP>
 <OMNI>/data/genomes/gsa/1.1/b37/1000G_omni2.5.b37.sites.vcf</OMNI>

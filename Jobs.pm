@@ -719,9 +719,9 @@ use Data::Dumper;
 			[
 				"-I $bam",
 				"--variant $input",
+				"-L $input",
 				"-o $output",
-				"-BTI variant",
-				"-BTIMR INTERSECTION",
+				"-enableMergeToMNP",
 				"--maxGenomicDistanceForMNP 2",
 			]
 		);

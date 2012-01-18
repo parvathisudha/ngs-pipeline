@@ -902,7 +902,6 @@ use Data::Dumper;
 				"--recal_file $recal_file",
 				"--tranches_file $tranches_file",
 				"--rscript_file $rscript_file",
-				"--path_to_resources $resources",
 			]
 		);
 		$self->out($tranches_file);

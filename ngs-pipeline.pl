@@ -181,7 +181,11 @@ my $snps_apply_recalibration = ApplyRecalibration->new(
 	previous          => [$snps_variant_recalibrator],
 	additional_params => [ "-mode SNP", ]
 );
-
+my $phase_variations = ReadBackedPhasing->new(
+	params   => $params,
+	previous => [$snps_apply_recalibration],
+	bam      => $mark_duplicates->output_by_type('bam'),
+);
 my $indels_variant_recalibrator = VariantRecalibrator->new(
 	params            => $params,
 	previous          => [$combine_indels],
@@ -201,18 +205,12 @@ my $indels_apply_recalibration = ApplyRecalibration->new(
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",
 	params   => $params,
-	previous => [ $snps_apply_recalibration, $indels_apply_recalibration ]
-);
-
-my $phase_variations = ReadBackedPhasing->new(
-	params   => $params,
-	previous => [$variations],
-	bam      => $mark_duplicates->output_by_type('bam'),
+	previous => [ $phase_variations, $indels_apply_recalibration ]
 );
 
 my $filter_low_qual = FilterLowQual->new(
 	params   => $params,
-	previous => [$phase_variations]
+	previous => [$variations]
 );
 
 my $variant_annotator = VariantAnnotator->new(

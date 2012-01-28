@@ -514,7 +514,7 @@ use Data::Dumper;
 		my $output   = $input . "." . $self->interval . ".intervals";
 		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
 		$self->program->additional_params(
-			[ "-o $output", "-I $input", "--known $KGIND" ] );
+			[ "-o $output", "-I $input", "-known $KGIND" ] );
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 	}
@@ -545,7 +545,7 @@ use Data::Dumper;
 			[
 				"-o $output",
 				"-I $input",
-				"--known $KGIND",
+				"-known $KGIND",
 				"-targetIntervals $targets"
 			]
 		);

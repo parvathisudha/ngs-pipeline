@@ -245,16 +245,10 @@ my $effect_annotator = VariantAnnotator->new(
 );
 
 ##################### CODING ANALYSIS ##############
-my $constraints = IntersectVcfBed->new(
-	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",
-	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
-	params   => $params,
-	previous => [$effect_annotator]                                            #
-);
 my $constraints_rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ "0.01", "0.01", "0.01", ],
-	previous     => [$constraints]                                             #
+	previous     => [$effect_annotator]                                             #
 );
 my $constraints_rare_cod = GrepVcf->new(
 	params       => $params,

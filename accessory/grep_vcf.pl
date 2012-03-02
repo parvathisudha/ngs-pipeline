@@ -1,6 +1,5 @@
 use strict;
 use Getopt::Long;
-use GeneAnnotator;
 ####### get arguments      ###
 my ( $in, $out, $regexp, $regexp_v );
 GetOptions(

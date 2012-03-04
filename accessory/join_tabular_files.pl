@@ -4,7 +4,8 @@ use GeneAnnotator;
 use Data::Dumper;
 ####### get arguments      ###
 my ( $table, $annotation, $table_id_columns, $table_columns,
-	$annotation_id_columns, $annotation_columns, $skip_table_header, $skip_annotation_header, $annotation_header );
+	$annotation_id_columns, $annotation_columns, $skip_table_header, $skip_annotation_header, $annotation_header,
+	$all_table, $all_annotation );
 GetOptions(
 	'table=s'                 => \$table,
 	'annotation=s'            => \$annotation,
@@ -15,6 +16,8 @@ GetOptions(
 	'skip_table_header'             => \$skip_table_header,
 	'skip_annotation_header'             => \$skip_annotation_header,
 	'annotation_header=s' => \$annotation_header,
+	'all_table' => \$all_table,
+	'all_annotation' => \$all_annotation,
 );
 
 my $info = {};
@@ -59,9 +62,10 @@ sub get_id {
 }
 
 sub get_elements {
-	my ( $array_str, $columns )  = @_;
+	my ( $array_str, $columns, $all )  = @_;
 	chomp $array_str;
 	my @array = split /\t/, $array_str;
+	return \@array if $all;
 	my @nums  = split /,/,  $columns;
 	my @data = map { $array[$_] } @nums;
 	return \@data;

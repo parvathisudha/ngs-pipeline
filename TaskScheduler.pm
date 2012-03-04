@@ -81,11 +81,11 @@ export PATH=\$PATH:/data/software/bowtie-0.12.7
 export PATH=\$PATH:/data/software/bwa-0.5.8c
 export PATH=\$PATH:/data/software/samtools-0.1.12a
 export PATH=\$PATH:/data/software/BEDTools-Version-2.10.1/bin
-export PATH=\$PATH:/data/software/vcfCodingSnps.v1.5
 export PATH=\$PATH:/data/software/tophat-1.2.0/bin
-export PATH=\$PATH:/data/software/vcftools_0.1.4a/bin
 export PATH=\$PATH:/data/software/tabix
 export PERL5LIB=\$PERL5LIB:/data/software/breakdancer
+export PERL5LIB=\$PERL5LIB:/data/software/vcftools_0.1.8a/perl
+export PATH=\$PATH:/data/software/vcftools_0.1.8a/bin
 
 rm -f $done
 

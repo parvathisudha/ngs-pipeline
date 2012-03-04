@@ -33,6 +33,8 @@
 <GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3</UNIPROT>
+<VEP>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEP>
+<VEPCACHE>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEPCACHE>
 </PARAMETERS>
 	<DATA>
     <LANE PL='virtual' >

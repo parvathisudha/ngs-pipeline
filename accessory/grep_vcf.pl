@@ -8,8 +8,8 @@ GetOptions(
 	'regexp=s' => \$regexp,
 	'regexp_v=s' => \$regexp_v,
 );
-open IN,  "<$in";
-open OUT, ">$out";
+open IN,  "<$in" or die "Can't open $in file!\n";
+open OUT, ">$out" or die "Can't open $out file!\n";
 
 while (<IN>) {
 	if (m/^#/) {

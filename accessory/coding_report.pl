@@ -15,6 +15,7 @@ my $vep_format = $1
   if $header =~
   m/Description=\"Consequence type as predicted by VEP. Format: (.+?)\"/;
 my @vep_format = split( '\|', $vep_format );
+my @blank_result = map {""} @vep_format;
 
 # Do some simple parsing. Most thorough but slowest way how to get the data.
 my @result_header = (
@@ -41,11 +42,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 	my $filter      = join( ',',  @{ $x->{'FILTER'} } );
 	my @csq         = split( ",", $x->{'INFO'}->{'CSQ'} );
 ###INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|PolyPhen|SIFT|CANONICAL|EXON|INTRON|CCDS">
-	for my $csq (@csq) {
-		my @vep_effect = split( '\|', $csq );
-		$vep_effect[$exon_num]   =~ s/\//|/;
-		$vep_effect[$intron_num] =~ s/\//|/;
-		my @to_print = (
+	my @first_to_print = (
 			$x->{'CHROM'},
 			$x->{'POS'},
 			$x->{'ID'},
@@ -66,9 +63,15 @@ while ( my $x = $vcf->next_data_hash() ) {
 			$x->{'INFO'}->{'SNPEFF_AMINO_ACID_CHANGE'},
 			$x->{'INFO'}->{'SNPEFF_EXON_ID'},
 			$x->{'INFO'}->{'SET'},
-			@vep_effect
 		);
-		print OUT join( "\t", @to_print ), "\n";
+	for my $csq (@csq) {
+		my @vep_effect = split( '\|', $csq );
+		$vep_effect[$exon_num]   =~ s/\//|/;
+		$vep_effect[$intron_num] =~ s/\//|/;
+		print OUT join( "\t", (@first_to_print, @vep_effect)), "\n";
+	}
+	unless(scalar @csq){
+		print OUT join( "\t", (@first_to_print, @blank_result)), "\n";
 	}
 }
 

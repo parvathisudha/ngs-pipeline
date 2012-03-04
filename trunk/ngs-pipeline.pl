@@ -63,7 +63,7 @@ my $group_vcf    = $project->{'CONFIG'}->{'SET'};
 
 #############################
 
-my @coding_classes = qw/
+my @snpeff_coding_classes = qw/
   MODERATE
   HIGH
   SYNONYMOUS_START
@@ -73,7 +73,20 @@ my @coding_classes = qw/
   SYNONYMOUS_STOP
   NON_SYNONYMOUS_STOP
   /;
-my $coding_classes_string = join( '|', @coding_classes );
+  
+my @vep_coding_classes = qw/
+FRAMESHIFT_CODING
+NON_SYNONYMOUS_CODING
+NON_SYNONYMOUS_CODING
+SPLICE_SITE
+STOP_GAINED
+STOP_LOST
+SPLICE_SITE
+ESSENTIAL_SPLICE_SITE
+COMPLEX_IN
+PARTIAL_CODON
+  /;
+my $coding_classes_string = join( '|', @vep_coding_classes );
 
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
@@ -250,11 +263,7 @@ my $rare = FilterFreq->new(
 	basic_params => [ "0.01", "0.01", "0.01", ],
 	previous     => [$effect_annotator]                                             #
 );
-#my $constraints_rare_cod = GrepVcf->new(
-#	params       => $params,
-#	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
-#	previous     => [$constraints_rare]                                        #
-#);
+
 my $rare_ann = VariantAnnotator->new(
 	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
 	params            => $params,
@@ -267,10 +276,15 @@ my $rare_ann_eff = VEP->new(
 	previous          => [$rare_ann]
 );
 
+my $coding = GrepVcf->new(
+	params       => $params,
+	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
+	previous     => [$rare_ann_eff]                                        #
+);
 
 my $rare_cod_table = CodingReport->new(
 	params            => $params,
-	previous => [$rare_ann_eff]    #
+	previous => [$coding]    #
 );
 
 #my $constraints_rare_cod_table = VariantsToTable->new(

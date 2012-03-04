@@ -356,7 +356,7 @@ use Data::Dumper;
 		"--coding_only",
 		"--buffer_size 30000",
 		"--force_overwrite",
-		"--dir /data/software/variant_effect_predictor.2.4/variant_effect_predictor",
+		"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},
 		"--output_file $vep",] );
 		return $self;
 	}

@@ -286,7 +286,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	additional_params => [
 		"--in",
 		$rare_cod_table->out,
-		"--id_column 16",
+		"--id_column 21",#!
 		"--uniprot",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 		"--id_type gene",
@@ -295,35 +295,35 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$rare_cod_table]    #
 );
-my $cod_annotate_proteins_genes = JoinTabular->new(
+#my $cod_annotate_proteins_genes = JoinTabular->new(
+#	params            => $params,
+#	out               => $cod_annotate_proteins->out . '.with_genes.txt',
+#	additional_params => [
+#		"--table",
+#		$cod_annotate_proteins->out,
+#		"--annotation",
+#		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+#		"--table_id_columns 16 --annotation_id_columns 1",
+#		"--annotation_columns 0",
+#		"--annotation_header GENE_ID",
+#"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26",
+#		"--skip_annotation_header",
+#	],
+#	previous => [$cod_annotate_proteins]    #
+#);
+my $cod_annotate_proteins_mark = JoinTabular->new(
 	params            => $params,
-	out               => $cod_annotate_proteins->out . '.with_genes.txt',
+	out               => $cod_annotate_proteins->out . '.marked.txt',
 	additional_params => [
 		"--table",
 		$cod_annotate_proteins->out,
 		"--annotation",
-		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-		"--table_id_columns 16 --annotation_id_columns 1",
-		"--annotation_columns 0",
-		"--annotation_header GENE_ID",
-"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26",
-		"--skip_annotation_header",
-	],
-	previous => [$cod_annotate_proteins]    #
-);
-my $cod_annotate_proteins_genes_mark = JoinTabular->new(
-	params            => $params,
-	out               => $cod_annotate_proteins_genes->out . '.marked.txt',
-	additional_params => [
-		"--table",
-		$cod_annotate_proteins_genes->out,
-		"--annotation",
 		$project->{'CONFIG'}->{'GOI'},
-		"--table_id_columns 27 --annotation_id_columns 0",
+		"--table_id_columns 21 --annotation_id_columns 0",
 		"--annotation_columns 1,2,3",
-		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27",
+		"--all_table",
 	],
-	previous => [ $cod_annotate_proteins_genes, ]    #
+	previous => [ $cod_annotate_proteins, ]    #
 );
 
 ########## REGULATION ANALYSIS ######################

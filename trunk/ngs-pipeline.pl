@@ -261,9 +261,16 @@ my $rare_ann = VariantAnnotator->new(
 	previous          => [$rare]
 );
 
+
+my $rare_ann_eff = VEP->new(
+	params            => $params,
+	previous          => [$rare_ann]
+);
+
+
 my $rare_cod_table = CodingReport->new(
 	params            => $params,
-	previous => [$rare_ann]    #
+	previous => [$rare_ann_eff]    #
 );
 
 #my $constraints_rare_cod_table = VariantsToTable->new(

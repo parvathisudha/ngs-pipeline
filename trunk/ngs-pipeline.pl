@@ -245,49 +245,55 @@ my $effect_annotator = VariantAnnotator->new(
 );
 
 ##################### CODING ANALYSIS ##############
-my $constraints_rare = FilterFreq->new(
+my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ "0.01", "0.01", "0.01", ],
 	previous     => [$effect_annotator]                                             #
 );
-my $constraints_rare_cod = GrepVcf->new(
-	params       => $params,
-	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
-	previous     => [$constraints_rare]                                        #
-);
-my $constraints_rare_cod_ann = VariantAnnotator->new(
+#my $constraints_rare_cod = GrepVcf->new(
+#	params       => $params,
+#	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
+#	previous     => [$constraints_rare]                                        #
+#);
+my $rare_ann = VariantAnnotator->new(
 	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
 	params            => $params,
-	previous          => [$constraints_rare_cod]
+	previous          => [$rare]
 );
-my $constraints_rare_cod_table = VariantsToTable->new(
+
+my $rare_cod_table = CodingReport->new(
 	params            => $params,
-	out               => $project->file_prefix() . ".cod.txt",
-	additional_params => [
-		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
-		"--showFiltered"
-	],
-	previous => [$constraints_rare_cod_ann]    #
+	previous => [$rare_ann]    #
 );
+
+#my $constraints_rare_cod_table = VariantsToTable->new(
+#	params            => $params,
+#	out               => $project->file_prefix() . ".cod.txt",
+#	additional_params => [
+#		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+#		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+#		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+#		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+#		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+#		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+#		"--showFiltered"
+#	],
+#	previous => [$constraints_rare_ann]    #
+#);
 my $cod_annotate_proteins = AnnotateProteins->new(
 	params            => $params,
-	out               => $constraints_rare_cod_table->out . '.uniprot.txt',
+	out               => $rare_cod_table->out . '.uniprot.txt',
 	additional_params => [
 		"--in",
-		$constraints_rare_cod_table->out,
+		$rare_cod_table->out,
 		"--id_column 16",
 		"--uniprot",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-		"--id_type transcript",
+		"--id_type gene",
 		"--uniprot_dir",
 		$project->{'CONFIG'}->{'UNIPROT'},
 	],
-	previous => [$constraints_rare_cod_table]    #
+	previous => [$rare_cod_table]    #
 );
 my $cod_annotate_proteins_genes = JoinTabular->new(
 	params            => $params,
@@ -319,38 +325,6 @@ my $cod_annotate_proteins_genes_mark = JoinTabular->new(
 	],
 	previous => [ $cod_annotate_proteins_genes, ]    #
 );
-####### SYNONIMOUS WITH NEGATIVE SELECTION ###########
-#my $syn_constraints = IntersectVcfBed->new(
-#	out      => $effect_annotator->output_by_type('vcf') . ".constraints.vcf",
-#	bed      => $project->{'CONFIG'}->{'SYN_CONSTRAINTS'},
-#	params   => $params,
-#	previous => [$effect_annotator]                                           #
-#);
-#my $syn_constraints_rare = FilterFreq->new(
-#	params       => $params,
-#	basic_params => [ "0.01", "0.01", "0.01", ],
-#	previous     => [$syn_constraints]                           #
-#);
-#
-#my $in_gene_syn_constraints_rare = GrepVcf->new(
-#	params       => $params,
-#	basic_params => [ "--regexp '" . $coding_classes_string . "'"],
-#	previous     => [$syn_constraints_rare]                           #
-#);
-#
-#my $syn_constraints_rare_table = VariantsToTable->new(
-#	params            => $params,
-#	additional_params => [
-#		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-#		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-#		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-#		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-#   		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-#   		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID",
-#		"--showFiltered"
-#	],
-#	previous => [$in_gene_syn_constraints_rare]                                        #
-#);
 
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(

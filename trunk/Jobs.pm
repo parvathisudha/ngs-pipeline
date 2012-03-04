@@ -329,6 +329,66 @@ use Data::Dumper;
 #######################################################
 {
 
+	package VEP;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params );
+		bless $self, $class;
+		$self->program->name("variant_effect_predictor.pl");
+		$self->program->path( $self->project()->{'CONFIG'}->{'VEP'} );
+		$self->memory(4);
+		my $vcf  = $self->first_previous->output_by_type('vcf');
+		my $vep = "$vcf.vep.vcf";
+		$self->output_by_type( 'vcf', $vep );
+		$self->out($vep);
+		$self->program->additional_params( [
+		"--input_file $vcf",
+		"--format vcf --sift=b --polyphen=b",
+		"--cache",
+		"--vcf",
+		"--per_gene",
+		"--hgnc",
+		"--ccds",
+		"--canonical",
+		"--numbers",
+		"--coding_only",
+		"--buffer_size 30000",
+		"--force_overwrite",
+		"--dir /data/software/variant_effect_predictor.2.4/variant_effect_predictor",
+		"--output_file $vep",] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package CodingReport;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params );
+		bless $self, $class;
+		$self->program->name("coding_report.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $vcf  = $self->first_previous->output_by_type('vcf');
+		my $table = "$vcf.cod.txt";
+		$self->output_by_type( 'txt', $table );
+		$self->out($table);
+		$self->program->additional_params( [
+		"--in $vcf",
+		"--out $table",] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package ReformatRegulation;
 	our @ISA = qw( PerlJob );
 

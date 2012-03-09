@@ -53,9 +53,10 @@ sub _download_uniprot_xml {
 	else{
 		$xml  = get 'http://www.uniprot.org/uniprot/' . $self->{id} . '.xml';
 	}
-	if (-e $xml){
+	if (-e $xml || $xml){
 		my $data = XMLin($xml, ForceArray => [ 'gene', 'comment' ],);
 		my $result = $data->{entry}->{comment};
+		print Dumper $data;
 		push(@$result, { type => 'description', text => $data->{entry}->{protein}->{recommendedName}->{fullName} });
 		return $result;		
 	}

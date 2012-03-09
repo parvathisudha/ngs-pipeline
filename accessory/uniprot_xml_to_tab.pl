@@ -2,7 +2,7 @@ use strict;
 use Data::Dumper;
 use XML::DOM;
 
-my $file       = "uniprot_sprot.xml";
+my $file       = $ARGV[0];
 my $dom_parser = new XML::DOM::Parser;
 my $doc        = $dom_parser->parsefile($file);
 my $root       = $doc->getDocumentElement();

@@ -72,7 +72,7 @@ sub print_info {
 		}
 		to_string($types);
 	}
-
+	$doc->dispose;
 }
 
 sub to_string {

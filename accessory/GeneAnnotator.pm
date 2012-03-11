@@ -1,5 +1,4 @@
 package GeneAnnotator;
-use ProteinInfo;
 use Data::Dumper;
 
 sub new {
@@ -12,19 +11,27 @@ sub new {
 	}
 	bless $self, $class;
 	if ( $self->{id_type} eq 'gene' ) {
-		$self->{$self->{id_type}} = $self->read_annotation( 0, 2, $self->{uniprot} );
+		$self->{$self->{id_type}} = $self->read_annotation( 0, 2, $self->{gene_to_protein} );
 	}
 	elsif ( $self->{id_type} eq 'transcript') {
-		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{uniprot} );
+		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{gene_to_protein} );
 	}
+	$self->{DB} = $self->read_uniprot_db;
 	return $self;
 }
 
+sub get_header {
+	my ( $self,) = @_;
+	return $self->{DB}->{accession};
+}
+
 sub protein_info {
-	my ( $self, $gene_id, $types) = @_;
-	my $uniprot_id = $self->gene_to_protein($gene_id);
-	my $info = ProteinInfo->new( id => $uniprot_id, uniprot_dir => $self->{uniprot_dir});
-	return $info->array($types);
+	my ( $self, $gene_id) = @_;
+	my $protein_id = $self->gene_to_protein($gene_id);
+	if($protein_id && exists $self->{DB}->{$protein_id}){
+		return $self->{DB}->{$protein_id};
+	}
+	return undef;
 }
 
 sub gene_to_protein{
@@ -36,6 +43,21 @@ sub gene_to_protein{
 	else{
 		return undef;
 	}
+}
+
+sub read_uniprot_db {
+	my ( $self,) = @_;
+	my $data = {};
+	my $file = $self->{uniprot_db};
+	open IN, $file or die "Can't open $file\n";
+	while (<IN>) {
+		chomp;
+		my ($id, $value) = ($1, $2) if m/(.+?)\t(.+)$/;
+		next unless $id;
+		$data->{ $id } = $value;
+	}
+	close IN;
+	return $data;
 }
 
 sub read_annotation {

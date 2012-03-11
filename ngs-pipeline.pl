@@ -288,20 +288,6 @@ my $rare_cod_table = CodingReport->new(
 	previous => [$coding]    #
 );
 
-#my $constraints_rare_cod_table = VariantsToTable->new(
-#	params            => $params,
-#	out               => $project->file_prefix() . ".cod.txt",
-#	additional_params => [
-#		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-#		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-#		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-#		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-#		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-#		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
-#		"--showFiltered"
-#	],
-#	previous => [$constraints_rare_ann]    #
-#);
 my $cod_annotate_proteins = AnnotateProteins->new(
 	params            => $params,
 	out               => $rare_cod_table->out . '.uniprot.txt',

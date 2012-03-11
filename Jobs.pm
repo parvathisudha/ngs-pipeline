@@ -376,9 +376,8 @@ use Data::Dumper;
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
 		my $vcf  = $self->first_previous->output_by_type('vcf');
-		my $table = "$vcf.cod.txt";
+		my $table = $self->out;
 		$self->output_by_type( 'txt', $table );
-		$self->out($table);
 		$self->program->additional_params( [
 		"--in $vcf",
 		"--out $table",] );

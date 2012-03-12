@@ -62,7 +62,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 			$x->{'INFO'}->{'SNPEFF_CODON_CHANGE'},
 			$x->{'INFO'}->{'SNPEFF_AMINO_ACID_CHANGE'},
 			$x->{'INFO'}->{'SNPEFF_EXON_ID'},
-			$x->{'INFO'}->{'SET'},
+			$x->{'INFO'}->{'SET.set'},
 		);
 	for my $csq (@csq) {
 		my @vep_effect = split( '\|', $csq );

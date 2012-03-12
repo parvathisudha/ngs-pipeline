@@ -303,22 +303,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$rare_cod_table]    #
 );
-#my $cod_annotate_proteins_genes = JoinTabular->new(
-#	params            => $params,
-#	out               => $cod_annotate_proteins->out . '.with_genes.txt',
-#	additional_params => [
-#		"--table",
-#		$cod_annotate_proteins->out,
-#		"--annotation",
-#		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-#		"--table_id_columns 16 --annotation_id_columns 1",
-#		"--annotation_columns 0",
-#		"--annotation_header GENE_ID",
-#"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26",
-#		"--skip_annotation_header",
-#	],
-#	previous => [$cod_annotate_proteins]    #
-#);
+
 my $cod_annotate_proteins_mark = JoinTabular->new(
 	params            => $params,
 	out               => $cod_annotate_proteins->out . '.marked.txt',

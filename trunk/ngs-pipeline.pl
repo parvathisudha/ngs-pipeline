@@ -87,7 +87,7 @@ COMPLEX_IN
 PARTIAL_CODON
   /;
 my $coding_classes_string = join( '|', @vep_coding_classes );
-
+my $snpeff_coding_classes_string = join( '|', @snpeff_coding_classes );
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
 
@@ -303,6 +303,43 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$rare_cod_table]    #
 );
+#For testing VEP branch. Generates report without VEP
+my $snpeff_coding = GrepVcf->new(
+	params       => $params,
+	basic_params => [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
+	previous     => [$rare_ann]                                        #
+);
+my $snpeff_coding_table = VariantsToTable->new(
+	params            => $params,
+	out               => $project->file_prefix() . ".cod.snpeff.txt",
+	additional_params => [
+		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+		"--showFiltered"
+	],
+	previous => [$snpeff_coding]    #
+);
+
+my $snpeff_coding_table_proteins = AnnotateProteins->new(
+	params            => $params,
+	out               => $snpeff_coding_table->out . '.uniprot.txt',
+	additional_params => [
+		"--in",
+		$rare_cod_table->out,
+		"--id_column 16",
+		"--gene_to_protein",
+		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+		"--id_type transcript",
+		"--uniprot_db",
+		$project->{'CONFIG'}->{'UNIPROT'},
+	],
+	previous => [$rare_cod_table]    #
+);
+
 
 my $cod_annotate_proteins_mark = JoinTabular->new(
 	params            => $params,

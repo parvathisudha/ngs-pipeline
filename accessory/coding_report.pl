@@ -32,6 +32,8 @@ my @result_header = (
 	@vep_format
 );
 
+my $num_vep_format = scalar @vep_format;
+
 open OUT, ">$out" or die "Can't open $out file for writing results\n";
 
 print OUT join( "\t", @result_header ), "\n";
@@ -68,6 +70,9 @@ while ( my $x = $vcf->next_data_hash() ) {
 		my @vep_effect = split( '\|', $csq );
 		$vep_effect[$exon_num]   =~ s/\//|/;
 		$vep_effect[$intron_num] =~ s/\//|/;
+		if (scalar @vep_effect == $num_vep_format - 1 ){
+			push(@vep_effect, "");
+		}
 		print OUT join( "\t", (@first_to_print, @vep_effect)), "\n";
 	}
 	unless(scalar @csq){

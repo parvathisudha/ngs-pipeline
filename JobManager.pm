@@ -27,6 +27,14 @@ sub register {
 	my $string_id = $job->string_id();
 	$string_id .= "_" . $self->new_job_id();
 	$self->{string_ids}->{$string_id} = $job;
+	$self->initialize_dependencies($job);
+}
+sub initialize_dependencies {
+	my ( $self, $job ) = @_;
+	my $previous = $job->previous();
+	for my $prev (@$previous){
+		$prev->next($job);
+	}
 }
 sub jobs {
 	my ( $self, ) = @_;

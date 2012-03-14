@@ -14,12 +14,14 @@ sub new {
 	bless $self, $class;
 	$self->string_id($class);
 	$self->{output_by_type} = {};
-	$self->{do_not_delete} = [];
+	$self->{do_not_delete}  = [];
+	$self->{active}         = 0;
+	$self->{next}           = [];
 	my $program = $self->program ? $self->program : Program->new();
 	$self->program($program);
 	$self->program->additional_params( $self->{additional_params} )
 	  if $self->{additional_params};
-	  $self->program->basic_params( $self->{basic_params} )
+	$self->program->basic_params( $self->{basic_params} )
 	  if $self->{basic_params};
 	$self->manager()->register($self);
 	$self->out( $params{out} ) if $params{out};
@@ -39,6 +41,12 @@ sub previous {
 	my ( $self, $previous ) = @_;
 	$self->{previous} = $previous if $previous;
 	return $self->{previous};
+}
+
+sub next {
+	my ( $self, $next ) = @_;
+	push( @{ $self->{next} }, $next ) if $next;
+	return $self->{next};
 }
 
 sub first_previous {
@@ -64,8 +72,8 @@ sub program {
 
 sub do_not_delete {
 	my ( $self, $do_not_delete ) = @_;
-	push(@{$self->{do_not_delete}}, $self->output_by_type( $do_not_delete));
-	return @{$self->{do_not_delete}} unless $do_not_delete;
+	push( @{ $self->{do_not_delete} }, $self->output_by_type($do_not_delete) );
+	return @{ $self->{do_not_delete} } unless $do_not_delete;
 }
 
 sub params {
@@ -98,13 +106,13 @@ sub out {
 	return $self->{output_by_type}->{main};
 }
 
-sub get_output_files{
+sub get_output_files {
 	my ( $self, ) = @_;
 	my @files;
-	while ((my $key, my $value) = each %{$self->{output_by_type}}) {
-		push (@files, $value);
+	while ( ( my $key, my $value ) = each %{ $self->{output_by_type} } ) {
+		push( @files, $value );
 	}
-	return @files;	
+	return @files;
 }
 
 sub in {
@@ -142,16 +150,29 @@ sub name {
 	return $self->string_id();
 }
 
-sub submit {
-	my ( $self, ) = @_;
-	$self->scheduler()->submit_job($self) if $self->to_submit;
+sub active {
+	my ( $self, $active ) = @_;
+	$self->{active} = $active if $active;
+	return $self->{active};
 }
 
-sub to_submit {
+sub submit {
 	my ( $self, ) = @_;
-	return 0 if $self->virtual;
-	return 0 if $self->completed && !$self->has_unfinished_predessesors;
-	return 1;
+	unless ( $self->virtual() ) {
+		if ( !$self->completed ) {
+			$self->active(1);
+		}
+		$self->scheduler()->submit_job($self) if $self->active();
+	}
+	$self->activize_descendents() if $self->active();
+}
+
+sub activize_descendents {
+	my ( $self, ) = @_;
+	my $descendents = $self->next();
+	for my $descendent (@$descendents){
+		$descendent->active(1);
+	}
 }
 
 sub completed {

@@ -292,7 +292,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	additional_params => [
 		"--in",
 		$rare_cod_table->out,
-		"--id_column 22",
+		"--id_column 21",
 		"--gene_to_protein",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 		"--id_type gene",
@@ -331,7 +331,7 @@ my $snpeff_coding_table_proteins = AnnotateProteins->new(
 		"--id_column 16",
 		"--gene_to_protein",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-		"--id_type gene",
+		"--id_type transcript",
 		"--uniprot_db",
 		$project->{'CONFIG'}->{'UNIPROT'},
 	],

@@ -6,6 +6,7 @@ sub new {
 	my ( $class, $debug) = @_;
 	my $self = {
 		string_ids => {},
+		outputs => {},
 		jobs => [],
 		count      => 0,
 		debug => $debug,
@@ -35,6 +36,16 @@ sub initialize_dependencies {
 	for my $prev (@$previous){
 		$prev->next($job);
 	}
+}
+sub ensure_output_uniqueness {
+	my ( $self, $job ) = @_;
+	if(exists $self->{outputs}->{$job->out}){
+		die "Duplicate outputs: " . $job->{out} . "\n";	
+	}
+	else{
+		$self->{outputs}->{$job->out} = 1;
+	}
+	return $self->{jobs};
 }
 sub jobs {
 	my ( $self, ) = @_;

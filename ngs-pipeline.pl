@@ -426,10 +426,10 @@ my $annotate_proteins = AnnotateProteins->new(
 		"--in",
 		$regulatory_rare_table_with_genes->out,
 		"--id_column 13",
-		"--uniprot",
+		"--gene_to_protein",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 		"--id_type gene",
-		"--uniprot_dir",
+		"--uniprot_db",
 		$project->{'CONFIG'}->{'UNIPROT'},
 	],
 	previous => [$regulatory_rare_table_with_genes]    #

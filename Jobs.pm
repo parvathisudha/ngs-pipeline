@@ -398,6 +398,7 @@ use Data::Dumper;
 		$self->program->name("reformat_regulation_info.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
+		$self->output_by_type( 'txt', $self->out );
 		$self->program->basic_params(
 			[
 				">", $self->out,
@@ -420,6 +421,7 @@ use Data::Dumper;
 		$self->program->name("gene_to_annotation.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
+		$self->output_by_type( 'txt', $self->out );
 		$self->program->basic_params(
 			[
 				">", $self->out,
@@ -442,6 +444,7 @@ use Data::Dumper;
 		$self->program->name("join_tabular_files.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
+		$self->output_by_type( 'txt', $self->out );
 		$self->program->basic_params(
 			[
 				">", $self->out,

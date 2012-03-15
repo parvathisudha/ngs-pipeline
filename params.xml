@@ -24,7 +24,7 @@
 <SNPEFF>/data/software/ngs-pipeline/accessory/snpEff_2_0_5</SNPEFF>
 <SNPEFF_GENOME>grch37_gencode10</SNPEFF_GENOME>
 <CUMULATIVE_COVERAGE>/data/genomes/ngs-pipeline/GRCh37/coverage_cumulative.pl</CUMULATIVE_COVERAGE>
-<TABIX>/data/genomes/ngs-pipeline/GRCh37/tabix</TABIX>
+<TABIX>/data/software/ngs-pipeline/accessory/tabix</TABIX>
 <ACCESSORY>/data/software</ACCESSORY>
 <TWOKBTSS>/data/genomes/ngs-pipeline/GRCh37/grch37.tss.2kb.2012013.bed</TWOKBTSS>
 <CONSTRAINTS>/data/genomes/ngs-pipeline/GRCh37/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>

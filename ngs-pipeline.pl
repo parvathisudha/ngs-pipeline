@@ -484,7 +484,7 @@ my $regulation_with_genes_marked = JoinTabular->new(
 		$project->{'CONFIG'}->{'GOI'},
 		"--table_id_columns 13 --annotation_id_columns 0",
 		"--annotation_columns 1,2,3",
-		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19",
+		"--all_table",
 	],
 	previous => [ $reformat_regulation, ]    #
 );

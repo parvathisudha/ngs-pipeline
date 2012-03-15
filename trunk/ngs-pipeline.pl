@@ -261,30 +261,38 @@ my $rare = FilterFreq->new(
 	basic_params => [ "0.01", "0.01", "0.01", ],
 	previous     => [$effect_annotator]                                             #
 );
+$rare->do_not_delete('vcf');
+$rare->do_not_delete('idx');
 
 my $rare_ann = VariantAnnotator->new(
 	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
 	params            => $params,
 	previous          => [$rare]
 );
-
+$rare_ann->do_not_delete('vcf');
+$rare_ann->do_not_delete('idx');
 
 my $rare_ann_eff = VEP->new(
 	params            => $params,
 	previous          => [$rare_ann]
 );
+$rare_ann_eff->do_not_delete('vcf');
+$rare_ann_eff->do_not_delete('idx');
 
 my $coding = GrepVcf->new(
 	params       => $params,
 	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
 	previous     => [$rare_ann_eff]                                        #
 );
+$coding->do_not_delete('vcf');
+$coding->do_not_delete('idx');
 
 my $rare_cod_table = CodingReport->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".cod.txt",
 	previous => [$coding]    #
 );
+$rare_cod_table->do_not_delete('txt');
 
 my $cod_annotate_proteins = AnnotateProteins->new(
 	params            => $params,
@@ -301,7 +309,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$rare_cod_table]    #
 );
-
+$cod_annotate_proteins->do_not_delete('txt');
 
 my $cod_annotate_proteins_mark = JoinTabular->new(
 	params            => $params,
@@ -317,6 +325,7 @@ my $cod_annotate_proteins_mark = JoinTabular->new(
 	],
 	previous => [ $cod_annotate_proteins, ]    #
 );
+$cod_annotate_proteins_mark->do_not_delete('txt');
 
 #For testing VEP branch. Generates report without VEP
 my $snpeff_coding = GrepVcf->new(
@@ -324,6 +333,9 @@ my $snpeff_coding = GrepVcf->new(
 	basic_params => [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
 	previous     => [$rare_ann]                                        #
 );
+$snpeff_coding->do_not_delete('vcf');
+$snpeff_coding->do_not_delete('idx');
+
 my $snpeff_coding_table = VariantsToTable->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".cod.snpeff.txt",
@@ -338,6 +350,7 @@ my $snpeff_coding_table = VariantsToTable->new(
 	],
 	previous => [$snpeff_coding]    #
 );
+$snpeff_coding_table->do_not_delete('txt');
 
 my $snpeff_coding_table_proteins = AnnotateProteins->new(
 	params            => $params,
@@ -354,7 +367,7 @@ my $snpeff_coding_table_proteins = AnnotateProteins->new(
 	],
 	previous => [$rare_cod_table]    #
 );
-
+$snpeff_coding_table_proteins->do_not_delete('txt');
 
 
 ########## REGULATION ANALYSIS ######################
@@ -364,12 +377,16 @@ my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	params   => $params,
 	previous => [$effect_prediction]                                           #
 );
+$evolution_constraints_for_reg->do_not_delete('vcf');
+$evolution_constraints_for_reg->do_not_delete('idx');
 
 my $reg_constraints_rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ "0.01", "0.01", "0.01", ],
 	previous     => [$evolution_constraints_for_reg]                           #
 );
+$reg_constraints_rare->do_not_delete('vcf');
+$reg_constraints_rare->do_not_delete('idx');
 
 my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
@@ -377,12 +394,16 @@ my $in_ensemble_regulatory = GrepVcf->new(
 	  [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'" ],
 	previous => [$reg_constraints_rare]                                        #
 );
+$in_ensemble_regulatory->do_not_delete('vcf');
+$in_ensemble_regulatory->do_not_delete('idx');
 
 my $regulatory_group_annotator = VariantAnnotator->new(
 	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
 	params            => $params,
 	previous          => [$in_ensemble_regulatory]
 );
+$regulatory_group_annotator->do_not_delete('vcf');
+$regulatory_group_annotator->do_not_delete('idx');
 
 my $near_genes = closestBed->new(
 	params => $params,
@@ -394,6 +415,8 @@ my $near_genes = closestBed->new(
 	],
 	previous => [$regulatory_group_annotator]    #
 );
+$near_genes->do_not_delete('vcf');
+$near_genes->do_not_delete('idx');
 
 my $regulatory_rare_table = VariantsToTable->new(
 	params            => $params,
@@ -405,6 +428,7 @@ my $regulatory_rare_table = VariantsToTable->new(
 	],
 	previous => [$regulatory_group_annotator]    #
 );
+$regulatory_rare_table->do_not_delete('txt');
 
 my $regulatory_rare_table_with_genes = JoinTabular->new(
 	params            => $params,
@@ -422,7 +446,9 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 	],
 	previous => [ $in_ensemble_regulatory, $regulatory_rare_table ]    #
 );
-my $annotate_proteins = AnnotateProteins->new(
+$regulatory_rare_table_with_genes->do_not_delete('txt');
+
+my $regulatory_rare_table_with_genes_proteins = AnnotateProteins->new(
 	params => $params,
 	out    => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
 	additional_params => [
@@ -437,13 +463,16 @@ my $annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$regulatory_rare_table_with_genes]    #
 );
+$regulatory_rare_table_with_genes_proteins->do_not_delete('txt');
+
 my $reformat_regulation = ReformatRegulation->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".reg.txt",
 	additional_params =>
-	  [ "--in", $annotate_proteins->out, "--eff_column 11", ],
-	previous => [$annotate_proteins]                   #
+	  [ "--in", $regulatory_rare_table_with_genes->out, "--eff_column 11", ],
+	previous => [$regulatory_rare_table_with_genes]                   #
 );
+$reformat_regulation->do_not_delete('txt');
 
 my $regulation_with_genes_marked = JoinTabular->new(
 	params            => $params,
@@ -459,6 +488,8 @@ my $regulation_with_genes_marked = JoinTabular->new(
 	],
 	previous => [ $reformat_regulation, ]    #
 );
+$regulation_with_genes_marked->do_not_delete('txt');
+
 ######################################################
 
 my $bgzip = Bgzip->new(

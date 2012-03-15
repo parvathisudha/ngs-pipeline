@@ -301,6 +301,23 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	],
 	previous => [$rare_cod_table]    #
 );
+
+
+my $cod_annotate_proteins_mark = JoinTabular->new(
+	params            => $params,
+	out               => $cod_annotate_proteins->out . '.marked.txt',
+	additional_params => [
+		"--table",
+		$cod_annotate_proteins->out,
+		"--annotation",
+		$project->{'CONFIG'}->{'GOI'},
+		"--table_id_columns 22 --annotation_id_columns 0",
+		"--annotation_columns 1,2,3",
+		"--all_table",
+	],
+	previous => [ $cod_annotate_proteins, ]    #
+);
+
 #For testing VEP branch. Generates report without VEP
 my $snpeff_coding = GrepVcf->new(
 	params       => $params,
@@ -339,20 +356,6 @@ my $snpeff_coding_table_proteins = AnnotateProteins->new(
 );
 
 
-my $cod_annotate_proteins_mark = JoinTabular->new(
-	params            => $params,
-	out               => $cod_annotate_proteins->out . '.marked.txt',
-	additional_params => [
-		"--table",
-		$cod_annotate_proteins->out,
-		"--annotation",
-		$project->{'CONFIG'}->{'GOI'},
-		"--table_id_columns 21 --annotation_id_columns 0",
-		"--annotation_columns 1,2,3",
-		"--all_table",
-	],
-	previous => [ $cod_annotate_proteins, ]    #
-);
 
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(

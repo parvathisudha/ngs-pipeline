@@ -1062,6 +1062,7 @@ use Data::Dumper;
 		bless $self, $class;
 
 		$self->program->basic_params( [ "> " . $self->out, ] );
+		$self->output_by_type( 'vcf', $out );
 		return $self;
 	}
 

@@ -60,6 +60,7 @@ my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi          = $project->{'CONFIG'}->{'CGI'};
 my $eur          = $project->{'CONFIG'}->{'EURKG'};
 my $group_vcf    = $project->{'CONFIG'}->{'SET'};
+my $max_freq = $project->{'CONFIG'}->{'MAXFREQ'};
 
 #############################
 
@@ -258,7 +259,7 @@ my $effect_annotator = VariantAnnotator->new(
 ##################### CODING ANALYSIS ##############
 my $rare = FilterFreq->new(
 	params       => $params,
-	basic_params => [ "0.01", "0.01", "0.01", ],
+	basic_params => [ $max_freq, $max_freq, $max_freq, ],
 	previous     => [$effect_annotator]                                             #
 );
 $rare->do_not_delete('vcf');
@@ -382,7 +383,7 @@ $evolution_constraints_for_reg->do_not_delete('idx');
 
 my $reg_constraints_rare = FilterFreq->new(
 	params       => $params,
-	basic_params => [ "0.01", "0.01", "0.01", ],
+	basic_params => [ $max_freq, $max_freq, $max_freq, ],
 	previous     => [$evolution_constraints_for_reg]                           #
 );
 $reg_constraints_rare->do_not_delete('vcf');

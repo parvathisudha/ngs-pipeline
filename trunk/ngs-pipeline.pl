@@ -389,6 +389,27 @@ my $reg_constraints_rare = FilterFreq->new(
 $reg_constraints_rare->do_not_delete('vcf');
 $reg_constraints_rare->do_not_delete('idx');
 
+
+my $reg_constraints_rare_table = VariantsToTable->new(
+	params            => $params,
+	out               => $project->file_prefix() . ".constrained.rare.txt",
+	additional_params => [
+		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+		"--showFiltered"
+	],
+	previous => [$snpeff_coding]    #
+);
+$reg_constraints_rare_table->do_not_delete('txt');
+
+
+
+
+
 my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
 	basic_params =>

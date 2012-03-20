@@ -402,7 +402,7 @@ my $reg_constraints_rare_table = VariantsToTable->new(
 		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
 		"--showFiltered"
 	],
-	previous => [$snpeff_coding]    #
+	previous => [$reg_constraints_rare]    #
 );
 $reg_constraints_rare_table->do_not_delete('txt');
 

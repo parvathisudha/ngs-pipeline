@@ -191,6 +191,38 @@ use Data::Dumper;
 #######################################################
 {
 
+	package Pindel2Vcf;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("pindel2vcf");
+		$self->program->path( $self->project()->{'CONFIG'}->{'PINDEL'} );
+		$self->memory(1);
+		$self->output_by_type( 'vcf', $self->out );
+		$self->program->additional_params(
+			[
+				"--reference",
+				$self->project()->{'CONFIG'}->{'GENOME'},
+				"--reference_name",
+				$self->project()->{'CONFIG'}->{'GENOME_NAME'},
+				"--reference_date",
+				$self->project()->{'CONFIG'}->{'DATE'},
+				"--pindel_output",
+				$self->in,
+				"--vcf",
+				$self->out,
+			]
+		);
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package Pindel;
 	our @ISA = qw( Job );
 
@@ -207,12 +239,12 @@ use Data::Dumper;
 		my $qsub_param = "-pe mpi $threads";
 		$self->qsub_params($qsub_param);
 		$self->out($out);
-		$self->output_by_type( 'SV',   $prefix . "_D" );
-		$self->output_by_type( 'SV', $prefix . "_INV" );
-		$self->output_by_type( 'SV',  $prefix . "_LI" );
-		$self->output_by_type( 'SV',  $prefix . "_SI" );
-		$self->output_by_type( 'SV',  $prefix . "_TD" );
-		$self->output_by_type( 'SV',  $prefix . "_BP" );
+		$self->output_by_type( 'SV_D',   $prefix . "_D" );
+		$self->output_by_type( 'SV_INV', $prefix . "_INV" );
+		$self->output_by_type( 'SV_LI',  $prefix . "_LI" );
+		$self->output_by_type( 'SV_SI',  $prefix . "_SI" );
+		$self->output_by_type( 'SV_TD',  $prefix . "_TD" );
+		$self->output_by_type( 'SV_BP',  $prefix . "_BP" );
 		$self->program->additional_params(
 			[
 				"--fasta",
@@ -227,12 +259,13 @@ use Data::Dumper;
 		);
 		return $self;
 	}
-	sub variation_files{
+
+	sub variation_files {
 		my ($self) = @_;
 		my @result;
-		while (($type, $file) = each %{$self->{output_by_type}}){
-			push(@result, $file) if $type eq 'SV';
-		} 
+		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
+			push( @result, $file ) if $type =~ m/SV/;
+		}
 		return \@result;
 	}
 	1;
@@ -989,6 +1022,29 @@ use Data::Dumper;
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 		$self->output_by_type( 'vcf', $output );
+	}
+	1;
+}
+#######################################################
+{
+
+	package LeftAlignVariants;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		$self->program->additional_params(
+			[ "--variant", $self->in, "--out", $self->out ] );
+		$self->output_by_type( 'vcf', $self->out );
+		$self->output_by_type( 'idx', $self->idx_from_vcf( $self->out ) );
 	}
 	1;
 }

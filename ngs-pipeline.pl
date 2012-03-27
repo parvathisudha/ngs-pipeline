@@ -53,6 +53,7 @@ system("date") unless $debug;
 
 ##############################
 my $KG           = $project->{'CONFIG'}->{'KG'};
+my $SVKG         = $project->{'CONFIG'}->{'SVKG'};
 my $hapmap       = $project->{'CONFIG'}->{'HAPMAP'};
 my $omni         = $project->{'CONFIG'}->{'OMNI'};
 my $dbSNP        = $project->{'CONFIG'}->{'DBSNP'};
@@ -129,27 +130,93 @@ my $brdMax = BreakdancerMax->new(
 my $dedup_index_link = Ln->new(
 	params   => $params,
 	previous => [$mark_duplicates],
-	in => $mark_duplicates->output_by_type('bai'),
-	out => $mark_duplicates->output_by_type('bam') . ".bai",
+	in       => $mark_duplicates->output_by_type('bai'),
+	out      => $mark_duplicates->output_by_type('bam') . ".bai",
 );
+
+$dedup_index_link->do_not_delete('link');
 
 my $pindel_config = PindelConfig->new(
 	params            => $params,
 	previous          => [$brdMax],
 	additional_params => [
-		"--bam", $mark_duplicates->output_by_type('bam'),
-		"--id",  $project->sample_id,
-		"--min_insert_size",  $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
+		"--bam",             $mark_duplicates->output_by_type('bam'),
+		"--id",              $project->sample_id,
+		"--min_insert_size", $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
 	]
 );
+$pindel_config->do_not_delete('cfg');
 
 my $pindel = Pindel->new(
-	params   => $params,
-	previous => [$pindel_config],
-	additional_params => [
-		"--breakdancer", $brdMax->out,
-	]	
+	params            => $params,
+	previous          => [$pindel_config],
+	additional_params => [ "--breakdancer", $brdMax->out, ]
 );
+$pindel->do_not_delete('SV_D');
+$pindel->do_not_delete('SV_INV');
+$pindel->do_not_delete('SV_LI');
+$pindel->do_not_delete('SV_SI');
+$pindel->do_not_delete('SV_TD');
+$pindel->do_not_delete('SV_BP');
+
+for my $pindel_out ( @{ $pindel->variation_files } ) {
+	my $pindel2vcf = Pindel2Vcf->new(
+		params   => $params,
+		previous => [$pindel],
+		in       => $pindel_out,
+		out      => $pindel_out . ".vcf",
+	);
+	$pindel2vcf->do_not_delete('vcf');
+	my $pindel_left_aligned = LeftAlignVariants->new(
+		params   => $params,
+		previous => [$pindel2vcf],
+		in       => $pindel2vcf->out,
+		out      => $pindel2vcf->out . ".la.vcf",
+	);
+	$pindel_left_aligned->do_not_delete('vcf');
+	$pindel_left_aligned->do_not_delete('idx');
+
+	my $pindel_annotator = VariantAnnotator->new(
+		additional_params => [
+			"--resource:CGI_FREQ,VCF $cgi",
+			"-E CGI_FREQ.AF",
+			"--resource:KG_FREQ,VCF $KG",
+			"-E KG_FREQ.AF",
+			"--resource:SVKG_FREQ,VCF $SVKG",
+			"-E SVKG_FREQ.AF",
+		],
+		params   => $params,
+		previous => [$pindel_left_aligned]
+	);
+
+	my $pindel_eff = VEP->new(
+		params   => $params,
+		previous => [$pindel_annotator]
+	);
+	$pindel_eff->do_not_delete('vcf');
+	$pindel_eff->do_not_delete('idx');
+
+	my $pindel_coding = GrepVcf->new(
+		params       => $params,
+		basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
+		previous     => [$pindel_eff]                                      #
+	);
+	$pindel_coding->do_not_delete('vcf');
+	$pindel_coding->do_not_delete('idx');
+
+	my $pindel_coding_table = VariantsToTable->new(
+		params            => $params,
+		out               => $project->file_prefix() . ".cod.snpeff.txt",
+		additional_params => [
+			"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+			"-F KG_FREQ\.AF -F SVKG_FREQ\.AF -F QUAL",
+			"-F FILTER -F CSQ",
+			"--showFiltered"
+		],
+		previous => [$pindel_coding]    #
+	);
+	$pindel_coding_table->do_not_delete('txt');
+}
 
 #------------- GATK SNP and INDEL calling --------
 

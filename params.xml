@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <CONFIG>
 <PARAMETERS>
+<DATE>2012</DATE>
 <BOWTIE>/data/software/bowtie-0.12.7</BOWTIE>
 <BWA>/data/software/ngs-pipeline/accessory/bwa-0.5.9</BWA>
 <BWA_PROCESSORS>4</BWA_PROCESSORS>
@@ -17,6 +18,7 @@
 <HAPMAP>/data/genomes/ngs-pipeline/GRCh37/hapmap_3.3.b37.sites.vcf</HAPMAP>
 <OMNI>/data/genomes/ngs-pipeline/GRCh37/1000G_omni2.5.b37.sites.vcf</OMNI>
 <KG>/data/genomes/ngs-pipeline/GRCh37/snvs.sites.freq.20120226.vcf</KG>
+<SVKG>/data/genomes/1KG/March2012/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.la.vcf</SVKG>
 <KGIND>/data/genomes/ngs-pipeline/GRCh37/1000G_indels_for_realignment.b37.vcf</KGIND>
 <EURKG>/data/genomes/ngs-pipeline/GRCh37/EUR.snvs.sites.20111019.vcf</EURKG>
 <CGI>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</CGI>

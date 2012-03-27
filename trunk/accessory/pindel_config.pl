@@ -2,12 +2,13 @@ use strict;
 use Getopt::Long;
 use Data::Dumper;
 ####### get arguments      ###
-my ( $in, $bam, $id, $out );
+my ( $in, $bam, $id, $out, $min_insert_size );
 GetOptions(
 	'in=s'  => \$in,
 	'bam=s' => \$bam,
 	'id=s'  => \$id,
 	'out=s' => \$out,
+	'min_insert_size=s' => \$min_insert_size,
 );
 
 my @mean;
@@ -22,6 +23,8 @@ close IN;
 
 my $mean         = average( \@mean );
 my $mean_rounded = sprintf "%.0f", $mean;
+
+$mean_rounded = $min_insert_size if $mean_rounded < $min_insert_size;
 
 open OUT, ">$out" or die "Can't open $out\n";
 

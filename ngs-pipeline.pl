@@ -139,6 +139,7 @@ my $pindel_config = PindelConfig->new(
 	additional_params => [
 		"--bam", $mark_duplicates->output_by_type('bam'),
 		"--id",  $project->sample_id,
+		"--min_insert_size",  $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
 	]
 );
 

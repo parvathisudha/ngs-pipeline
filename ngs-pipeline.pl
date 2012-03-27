@@ -145,6 +145,9 @@ my $pindel_config = PindelConfig->new(
 my $pindel = Pindel->new(
 	params   => $params,
 	previous => [$pindel_config],
+	additional_params => [
+		"--breakdancer", $brdMax->out,
+	]	
 );
 
 #------------- GATK SNP and INDEL calling --------

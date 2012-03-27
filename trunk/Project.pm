@@ -85,6 +85,13 @@ sub tmp_dir{
 	return $self->dir() . '/tmp';
 }
 
+sub sample_id{
+	my ($self) = @_;
+	my @lanes = @{ $self->get_lanes() };
+	my $lane = $lanes[0];
+	return $lane->{SM};
+}
+
 sub read_intervals {
 	my ( $self ) = @_;
 	my $file = $self->{'CONFIG'}->{'GATKGENOMEBED'};

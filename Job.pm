@@ -62,6 +62,7 @@ sub initialize {
 #@Override
 sub output_files {
 	my ( $self, ) = @_;
+	return [values %{$self->{output_by_type}}];
 }
 
 sub program {

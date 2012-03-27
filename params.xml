@@ -30,6 +30,7 @@
 <TWOKBTSS>/data/genomes/ngs-pipeline/GRCh37/grch37.tss.2kb.2012013.bed</TWOKBTSS>
 <CONSTRAINTS>/data/genomes/ngs-pipeline/GRCh37/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
 <BEDGENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta.genome</BEDGENOME>
+<GENOME_NAME>human_g1k_v37.fasta</GENOME_NAME>
 <GENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta</GENOME>
 <GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>

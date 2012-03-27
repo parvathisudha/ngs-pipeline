@@ -207,12 +207,12 @@ use Data::Dumper;
 		my $qsub_param = "-pe mpi $threads";
 		$self->qsub_params($qsub_param);
 		$self->out($out);
-		$self->output_by_type( 'D',   $prefix . "_D" );
-		$self->output_by_type( 'INV', $prefix . "_INV" );
-		$self->output_by_type( 'LI',  $prefix . "_LI" );
-		$self->output_by_type( 'SI',  $prefix . "_SI" );
-		$self->output_by_type( 'TD',  $prefix . "_TD" );
-		$self->output_by_type( 'BP',  $prefix . "_BP" );
+		$self->output_by_type( 'SV',   $prefix . "_D" );
+		$self->output_by_type( 'SV', $prefix . "_INV" );
+		$self->output_by_type( 'SV',  $prefix . "_LI" );
+		$self->output_by_type( 'SV',  $prefix . "_SI" );
+		$self->output_by_type( 'SV',  $prefix . "_TD" );
+		$self->output_by_type( 'SV',  $prefix . "_BP" );
 		$self->program->additional_params(
 			[
 				"--fasta",
@@ -226,6 +226,14 @@ use Data::Dumper;
 			]
 		);
 		return $self;
+	}
+	sub variation_files{
+		my ($self) = @_;
+		my @result;
+		while (($type, $file) = each %{$self->{output_by_type}}){
+			push(@result, $file) if $type eq 'SV';
+		} 
+		return \@result;
 	}
 	1;
 }

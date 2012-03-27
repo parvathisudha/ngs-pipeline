@@ -12,7 +12,7 @@
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>
 <GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
 <BREAKDANCER>/data/software/ngs-pipeline/accessory/breakdancer</BREAKDANCER>
-<PICARD>/data/software/ngs-pipeline/accessory/picard-tools-1.60</PICARD>
+<PICARD>/data/software/ngs-pipeline/accessory/picard-tools-1.65</PICARD>
 <DBSNP>/data/genomes/ngs-pipeline/GRCh37/dbsnp_134_b37.leftAligned.vcf</DBSNP>
 <HAPMAP>/data/genomes/ngs-pipeline/GRCh37/hapmap_3.3.b37.sites.vcf</HAPMAP>
 <OMNI>/data/genomes/ngs-pipeline/GRCh37/1000G_omni2.5.b37.sites.vcf</OMNI>

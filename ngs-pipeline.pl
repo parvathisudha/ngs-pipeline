@@ -60,7 +60,7 @@ my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi          = $project->{'CONFIG'}->{'CGI'};
 my $eur          = $project->{'CONFIG'}->{'EURKG'};
 my $group_vcf    = $project->{'CONFIG'}->{'SET'};
-my $max_freq = $project->{'CONFIG'}->{'MAXFREQ'};
+my $max_freq     = $project->{'CONFIG'}->{'MAXFREQ'};
 
 #############################
 
@@ -72,20 +72,20 @@ my @snpeff_coding_classes = qw/
   START_GAINED
   NON_SYNONYMOUS_STOP
   /;
-  
+
 my @vep_coding_classes = qw/
-FRAMESHIFT_CODING
-NON_SYNONYMOUS_CODING
-NON_SYNONYMOUS_CODING
-SPLICE_SITE
-STOP_GAINED
-STOP_LOST
-SPLICE_SITE
-ESSENTIAL_SPLICE_SITE
-COMPLEX_IN
-PARTIAL_CODON
+  FRAMESHIFT_CODING
+  NON_SYNONYMOUS_CODING
+  NON_SYNONYMOUS_CODING
+  SPLICE_SITE
+  STOP_GAINED
+  STOP_LOST
+  SPLICE_SITE
+  ESSENTIAL_SPLICE_SITE
+  COMPLEX_IN
+  PARTIAL_CODON
   /;
-my $coding_classes_string = join( '|', @vep_coding_classes );
+my $coding_classes_string        = join( '|', @vep_coding_classes );
 my $snpeff_coding_classes_string = join( '|', @snpeff_coding_classes );
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
@@ -113,6 +113,7 @@ my $mark_duplicates = MarkDuplicates->new(
 	previous => [$join_lane_bams],
 );
 
+#------------- BreakDancer -----------------------
 my $bam2cfg = Bam2cfg->new(
 	params   => $params,
 	previous => [$mark_duplicates],
@@ -123,6 +124,30 @@ my $brdMax = BreakdancerMax->new(
 	params   => $params,
 	previous => [$bam2cfg],
 );
+
+#------------- Pindel ----------------------------
+my $dedup_index_link = Ln->new(
+	params   => $params,
+	previous => [$mark_duplicates],
+	in => $mark_duplicates->output_by_type('bai'),
+	out => $mark_duplicates->output_by_type('bam') . ".bai",
+);
+
+my $pindel_config = PindelConfig->new(
+	params            => $params,
+	previous          => [$brdMax],
+	additional_params => [
+		"--bam", $mark_duplicates->output_by_type('bam'),
+		"--id",  $project->{'CONFIG'}->{'PROJECT'},
+	]
+);
+
+my $pindel = Pindel->new(
+	params   => $params,
+	previous => [$pindel_config],
+);
+
+#------------- GATK SNP and INDEL calling --------
 
 my @chr = $project->read_intervals();
 my @snps;
@@ -260,7 +285,7 @@ my $effect_annotator = VariantAnnotator->new(
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, $max_freq, ],
-	previous     => [$effect_annotator]                                             #
+	previous     => [$effect_annotator]                       #
 );
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');
@@ -274,8 +299,8 @@ $rare_ann->do_not_delete('vcf');
 $rare_ann->do_not_delete('idx');
 
 my $rare_ann_eff = VEP->new(
-	params            => $params,
-	previous          => [$rare_ann]
+	params   => $params,
+	previous => [$rare_ann]
 );
 $rare_ann_eff->do_not_delete('vcf');
 $rare_ann_eff->do_not_delete('idx');
@@ -283,15 +308,15 @@ $rare_ann_eff->do_not_delete('idx');
 my $coding = GrepVcf->new(
 	params       => $params,
 	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
-	previous     => [$rare_ann_eff]                                        #
+	previous     => [$rare_ann_eff]                                    #
 );
 $coding->do_not_delete('vcf');
 $coding->do_not_delete('idx');
 
 my $rare_cod_table = CodingReport->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".cod.txt",
-	previous => [$coding]    #
+	params   => $params,
+	out      => $project->file_prefix() . ".cod.txt",
+	previous => [$coding]                                              #
 );
 $rare_cod_table->do_not_delete('txt');
 
@@ -332,7 +357,7 @@ $cod_annotate_proteins_mark->do_not_delete('txt');
 my $snpeff_coding = GrepVcf->new(
 	params       => $params,
 	basic_params => [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
-	previous     => [$rare_ann]                                        #
+	previous     => [$rare_ann]                                               #
 );
 $snpeff_coding->do_not_delete('vcf');
 $snpeff_coding->do_not_delete('idx');
@@ -370,7 +395,6 @@ my $snpeff_coding_table_proteins = AnnotateProteins->new(
 );
 $snpeff_coding_table_proteins->do_not_delete('txt');
 
-
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	out      => $effect_prediction->output_by_type('vcf') . ".constraints.vcf",
@@ -389,7 +413,7 @@ my $reg_constraints_rare = FilterFreq->new(
 $reg_constraints_rare->do_not_delete('vcf');
 $reg_constraints_rare->do_not_delete('idx');
 
-
+#-------------------------------------------------------------------------------------
 my $reg_constraints_rare_table = VariantsToTable->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".constrained.rare.txt",
@@ -406,15 +430,13 @@ my $reg_constraints_rare_table = VariantsToTable->new(
 );
 $reg_constraints_rare_table->do_not_delete('txt');
 
-
-
-
+#-------------------------------------------------------------------------------------
 
 my $in_ensemble_regulatory = GrepVcf->new(
 	params       => $params,
 	basic_params =>
 	  [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'" ],
-	previous => [$reg_constraints_rare]                                        #
+	previous => [$reg_constraints_rare]    #
 );
 $in_ensemble_regulatory->do_not_delete('vcf');
 $in_ensemble_regulatory->do_not_delete('idx');
@@ -492,7 +514,7 @@ my $reformat_regulation = ReformatRegulation->new(
 	out               => $project->file_prefix() . ".reg.txt",
 	additional_params =>
 	  [ "--in", $regulatory_rare_table_with_genes->out, "--eff_column 11", ],
-	previous => [$regulatory_rare_table_with_genes]                   #
+	previous => [$regulatory_rare_table_with_genes]    #
 );
 $reformat_regulation->do_not_delete('txt');
 

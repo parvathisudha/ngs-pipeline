@@ -170,6 +170,68 @@ use Data::Dumper;
 #######################################################
 {
 
+	package Ln;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("ln");
+		$self->program->path("/bin");
+		die "The input file is not specified!\n",  unless $self->in;
+		die "The output file is not specified!\n", unless $self->out;
+		$self->memory(1);
+		$self->output_by_type( 'link', $self->out );
+		$self->program->additional_params( [ "-s", $self->in, $self->out ] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package Pindel;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("pindel");
+		$self->program->path( $self->project()->{'CONFIG'}->{'PINDEL'} );
+		$self->memory(8);
+		my $prefix     = $self->project->file_prefix() . ".pindel";
+		my $out        = $prefix;
+		my $threads    = 4;
+		my $qsub_param = "-pe mpi $threads";
+		$self->qsub_params($qsub_param);
+		$self->out($out);
+		$self->output_by_type( 'D',   $prefix . "_D" );
+		$self->output_by_type( 'INV', $prefix . "_INV" );
+		$self->output_by_type( 'LI',  $prefix . "_LI" );
+		$self->output_by_type( 'SI',  $prefix . "_SI" );
+		$self->output_by_type( 'TD',  $prefix . "_TD" );
+		$self->output_by_type( 'BP',  $prefix . "_BP" );
+		$self->program->additional_params(
+			[
+				"--fasta",
+				$self->project()->{'CONFIG'}->{'GENOME'},
+				"--config-file",
+				$self->first_previous->output_by_type('cfg'),
+				"--chromosome ALL",
+				"--output-prefix $prefix",
+				"--number_of_threads $threads",
+				"> $out"
+			]
+		);
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package Bgzip;
 	our @ISA = qw( Job );
 
@@ -297,9 +359,32 @@ use Data::Dumper;
 		my ( $class, %params ) = @_;
 		my $self = $class->SUPER::new( %params, program => new PerlProgram() );
 		bless $self, $class;
+
 		#my $perl_lib = join (" ", map {"-I $_"} @{$self->{perl_lib}});
 		my $perl_lib = $self->project()->{'CONFIG'}->{'PERLLIB'};
-		$self->program->prefix( "perl -I $perl_lib" );
+		$self->program->prefix("perl -I $perl_lib");
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package PindelConfig;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->program->name("pindel_config.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $in  = $self->first_previous->output_by_type('max');
+		my $out = "$in.pindel";
+		$self->output_by_type( 'cfg', $out );
+		$self->out($out);
+		$self->program->additional_params( ["--in $in --out $out"] );
 		return $self;
 	}
 	1;
@@ -312,7 +397,7 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params );
+		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
 		$self->program->name("grep_vcf.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
@@ -334,30 +419,33 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params );
+		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
 		$self->program->name("variant_effect_predictor.pl");
 		$self->program->path( $self->project()->{'CONFIG'}->{'VEP'} );
 		$self->memory(4);
-		my $vcf  = $self->first_previous->output_by_type('vcf');
+		my $vcf = $self->first_previous->output_by_type('vcf');
 		my $vep = "$vcf.vep.vcf";
 		$self->output_by_type( 'vcf', $vep );
 		$self->out($vep);
-		$self->program->additional_params( [
-		"--input_file $vcf",
-		"--format vcf --sift=b --polyphen=b",
-		"--cache",
-		"--vcf",
-		"--per_gene",
-		"--hgnc",
-		"--ccds",
-		"--canonical",
-		"--numbers",
-		"--coding_only",
-		"--buffer_size 30000",
-		"--force_overwrite",
-		"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},
-		"--output_file $vep",] );
+		$self->program->additional_params(
+			[
+				"--input_file $vcf",
+				"--format vcf --sift=b --polyphen=b",
+				"--cache",
+				"--vcf",
+				"--per_gene",
+				"--hgnc",
+				"--ccds",
+				"--canonical",
+				"--numbers",
+				"--coding_only",
+				"--buffer_size 30000",
+				"--force_overwrite",
+				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},
+				"--output_file $vep",
+			]
+		);
 		return $self;
 	}
 	1;
@@ -370,17 +458,15 @@ use Data::Dumper;
 
 	sub new {
 		my ( $class, %params ) = @_;
-		my $self = $class->SUPER::new( %params );
+		my $self = $class->SUPER::new(%params);
 		bless $self, $class;
 		$self->program->name("coding_report.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $vcf  = $self->first_previous->output_by_type('vcf');
+		my $vcf   = $self->first_previous->output_by_type('vcf');
 		my $table = $self->out;
 		$self->output_by_type( 'txt', $table );
-		$self->program->additional_params( [
-		"--in $vcf",
-		"--out $table",] );
+		$self->program->additional_params( [ "--in $vcf", "--out $table", ] );
 		return $self;
 	}
 	1;
@@ -399,11 +485,7 @@ use Data::Dumper;
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
 		$self->output_by_type( 'txt', $self->out );
-		$self->program->basic_params(
-			[
-				">", $self->out,
-			]
-		);
+		$self->program->basic_params( [ ">", $self->out, ] );
 		return $self;
 	}
 	1;
@@ -422,11 +504,7 @@ use Data::Dumper;
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
 		$self->output_by_type( 'txt', $self->out );
-		$self->program->basic_params(
-			[
-				">", $self->out,
-			]
-		);
+		$self->program->basic_params( [ ">", $self->out, ] );
 		return $self;
 	}
 	1;
@@ -445,11 +523,7 @@ use Data::Dumper;
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
 		$self->output_by_type( 'txt', $self->out );
-		$self->program->basic_params(
-			[
-				">", $self->out,
-			]
-		);
+		$self->program->basic_params( [ ">", $self->out, ] );
 		return $self;
 	}
 	1;
@@ -781,7 +855,8 @@ use Data::Dumper;
 			[
 				"-I $bam",
 				"--variant $input",
-#				"-L $input",
+
+				#				"-L $input",
 				"-o $output",
 				"-enableMergeToMNP",
 				"--maxGenomicDistanceForMNP 2",
@@ -898,9 +973,11 @@ use Data::Dumper;
 		my $bam        = "";
 		$bam = "-I $input" if $input;
 		$self->program->additional_params(
-			[ "-o $output", $bam, "--variant $variations", 
-			"--requireStrictAlleleMatch"
-			] );
+			[
+				"-o $output",            $bam,
+				"--variant $variations", "--requireStrictAlleleMatch"
+			]
+		);
 		$self->out($output);
 		$self->output_by_type( 'bam', $input );
 		$self->output_by_type( 'vcf', $output );

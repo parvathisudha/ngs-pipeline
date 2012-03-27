@@ -36,6 +36,7 @@
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
 <VEP>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEP>
 <VEPCACHE>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEPCACHE>
+<PINDEL>/data/software/ngs-pipeline/accessory/pindel024o</PINDEL>
 </PARAMETERS>
 	<DATA>
     <LANE PL='virtual' >

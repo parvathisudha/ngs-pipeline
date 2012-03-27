@@ -138,7 +138,7 @@ my $pindel_config = PindelConfig->new(
 	previous          => [$brdMax],
 	additional_params => [
 		"--bam", $mark_duplicates->output_by_type('bam'),
-		"--id",  $project->{'CONFIG'}->{'PROJECT'},
+		"--id",  $project->sample_id,
 	]
 );
 

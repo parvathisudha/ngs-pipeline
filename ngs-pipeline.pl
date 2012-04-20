@@ -272,49 +272,64 @@ my $combine_snps = CombineVariants->new(
 	params   => $params,
 	previous => \@snps
 );
-
 my $combine_indels = CombineVariants->new(
 	out      => $project->file_prefix() . ".INDEL.vcf",
 	params   => $params,
 	previous => \@indels
 );
 
-my $snps_variant_recalibrator = VariantRecalibrator->new(
-	params            => $params,
-	previous          => [$combine_snps],
-	additional_params => [
+#variant recalibration works only when operator VARIANT_RECALIBRATION
+#is set to 1 in config.xml
+
+my $snps_apply_recalibration   = $combine_snps;
+my $indels_apply_recalibration = $combine_indels;
+
+if ( $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} ) {
+
+	my $snps_variant_recalibrator = VariantRecalibrator->new(
+		params            => $params,
+		previous          => [$combine_snps],
+		additional_params => [
 "--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap",
 "--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni",
 "--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP",
 "-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ",
-		"-mode SNP",
-	]
-);
+			"-mode SNP",
+		]
+	);
+	$snps_variant_recalibrator->do_not_delete('recal_file');
+	$snps_variant_recalibrator->do_not_delete('tranches_file');
+	$snps_variant_recalibrator->do_not_delete('rscript_file');
+	$snps_apply_recalibration = ApplyRecalibration->new(
+		params            => $params,
+		previous          => [$snps_variant_recalibrator],
+		additional_params => [ "-mode SNP", ]
+	);
 
-my $snps_apply_recalibration = ApplyRecalibration->new(
-	params            => $params,
-	previous          => [$snps_variant_recalibrator],
-	additional_params => [ "-mode SNP", ]
-);
+	my $indels_variant_recalibrator = VariantRecalibrator->new(
+		params            => $params,
+		previous          => [$combine_indels],
+		additional_params => [
+"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
+			"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
+			"-mode INDEL",
+		]
+	);
+	$indels_variant_recalibrator->do_not_delete('recal_file');
+	$indels_variant_recalibrator->do_not_delete('tranches_file');
+	$indels_variant_recalibrator->do_not_delete('rscript_file');
+	$indels_apply_recalibration = ApplyRecalibration->new(
+		params            => $params,
+		previous          => [$indels_variant_recalibrator],
+		additional_params => [ "-mode INDEL", ]
+	);
+
+}
+
 my $phase_variations = ReadBackedPhasing->new(
 	params   => $params,
 	previous => [$snps_apply_recalibration],
 	bam      => $mark_duplicates->output_by_type('bam'),
-);
-my $indels_variant_recalibrator = VariantRecalibrator->new(
-	params            => $params,
-	previous          => [$combine_indels],
-	additional_params => [
-"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
-		"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
-		"-mode INDEL",
-	]
-);
-
-my $indels_apply_recalibration = ApplyRecalibration->new(
-	params            => $params,
-	previous          => [$indels_variant_recalibrator],
-	additional_params => [ "-mode INDEL", ]
 );
 
 my $variations = CombineVariants->new(
@@ -638,16 +653,8 @@ $combine_snps->do_not_delete('idx');
 $combine_indels->do_not_delete('vcf');
 $combine_indels->do_not_delete('idx');
 
-$snps_variant_recalibrator->do_not_delete('recal_file');
-$snps_variant_recalibrator->do_not_delete('tranches_file');
-$snps_variant_recalibrator->do_not_delete('rscript_file');
-
 $snps_apply_recalibration->do_not_delete('vcf');
 $snps_apply_recalibration->do_not_delete('idx');
-
-$indels_variant_recalibrator->do_not_delete('recal_file');
-$indels_variant_recalibrator->do_not_delete('tranches_file');
-$indels_variant_recalibrator->do_not_delete('rscript_file');
 
 $indels_apply_recalibration->do_not_delete('vcf');
 $indels_apply_recalibration->do_not_delete('idx');

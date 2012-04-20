@@ -41,6 +41,8 @@
 <VEPCACHE>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEPCACHE>
 <PINDEL>/data/software/ngs-pipeline/accessory/pindel024o</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
+<VARIANT_RECALIBRATION>1</VARIANT_RECALIBRATION>
+
 </PARAMETERS>
 	<DATA>
     <LANE PL='virtual' >

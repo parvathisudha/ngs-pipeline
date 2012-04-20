@@ -127,7 +127,7 @@ my $brdMax = BreakdancerMax->new(
 );
 
 if ( $mode eq 'PINDEL_TRUE' ) {
-
+print "MODE: $mode\n";
 	#------------- Pindel ----------------------------
 	my $dedup_index_link = Ln->new(
 		params   => $params,
@@ -679,7 +679,7 @@ $tabix->do_not_delete('tbi');
 #$constraints_rare->do_not_delete('vcf');
 #$effect_annotator_rare->do_not_delete('vcf');
 
-if ( $mode eq 'ALL' ) {
+if ( $mode eq 'ALL' || $mode eq 'PINDEL_TRUE') {
 	$job_manager->start();
 }
 

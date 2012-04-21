@@ -127,7 +127,8 @@ my $brdMax = BreakdancerMax->new(
 );
 
 if ( $mode eq 'PINDEL_TRUE' ) {
-print "MODE: $mode\n";
+	print "MODE: $mode\n";
+
 	#------------- Pindel ----------------------------
 	my $dedup_index_link = Ln->new(
 		params   => $params,
@@ -281,7 +282,7 @@ my $combine_indels = CombineVariants->new(
 #variant recalibration works only when operator VARIANT_RECALIBRATION
 #is set to 1 in config.xml
 
-my $snps_apply_recalibration   = $combine_snps;
+my $phase_variations           = $combine_snps;
 my $indels_apply_recalibration = $combine_indels;
 
 if ( $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} ) {
@@ -300,12 +301,13 @@ if ( $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} ) {
 	$snps_variant_recalibrator->do_not_delete('recal_file');
 	$snps_variant_recalibrator->do_not_delete('tranches_file');
 	$snps_variant_recalibrator->do_not_delete('rscript_file');
-	$snps_apply_recalibration = ApplyRecalibration->new(
+	my $snps_apply_recalibration = ApplyRecalibration->new(
 		params            => $params,
 		previous          => [$snps_variant_recalibrator],
 		additional_params => [ "-mode SNP", ]
 	);
-
+	$snps_apply_recalibration->do_not_delete('vcf');
+	$snps_apply_recalibration->do_not_delete('idx');
 	my $indels_variant_recalibrator = VariantRecalibrator->new(
 		params            => $params,
 		previous          => [$combine_indels],
@@ -323,14 +325,13 @@ if ( $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} ) {
 		previous          => [$indels_variant_recalibrator],
 		additional_params => [ "-mode INDEL", ]
 	);
+	$phase_variations = ReadBackedPhasing->new(
+		params   => $params,
+		previous => [$snps_apply_recalibration],
+		bam      => $mark_duplicates->output_by_type('bam'),
+	);
 
 }
-
-my $phase_variations = ReadBackedPhasing->new(
-	params   => $params,
-	previous => [$snps_apply_recalibration],
-	bam      => $mark_duplicates->output_by_type('bam'),
-);
 
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",
@@ -653,9 +654,6 @@ $combine_snps->do_not_delete('idx');
 $combine_indels->do_not_delete('vcf');
 $combine_indels->do_not_delete('idx');
 
-$snps_apply_recalibration->do_not_delete('vcf');
-$snps_apply_recalibration->do_not_delete('idx');
-
 $indels_apply_recalibration->do_not_delete('vcf');
 $indels_apply_recalibration->do_not_delete('idx');
 
@@ -679,7 +677,7 @@ $tabix->do_not_delete('tbi');
 #$constraints_rare->do_not_delete('vcf');
 #$effect_annotator_rare->do_not_delete('vcf');
 
-if ( $mode eq 'ALL' || $mode eq 'PINDEL_TRUE') {
+if ( $mode eq 'ALL' || $mode eq 'PINDEL_TRUE' ) {
 	$job_manager->start();
 }
 

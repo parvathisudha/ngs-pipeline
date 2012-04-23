@@ -215,7 +215,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 				  . $pindel_snpeff_prediction->output_by_type('vcf'),
 			],
 			params   => $params,
-			previous => [$pindel_snpeff_prediction]    #
+			previous => [$pindel2vcf, $pindel_snpeff_prediction]    #
 		);
 
 		my $pindel_coding = GrepVcf->new(
@@ -229,7 +229,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 
 		my $pindel_coding_table = VariantsToTable->new(
 			params            => $params,
-			out               => $project->file_prefix() . ".cod.snpeff.txt",
+			out               => $pindel_coding->output_by_type('vcf') . ".cod.snpeff.txt",
 			additional_params => [
 				"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 				"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",

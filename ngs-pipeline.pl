@@ -183,30 +183,46 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 		#	$pindel_left_aligned->do_not_delete('vcf');
 		#	$pindel_left_aligned->do_not_delete('idx');
 
-		my $pindel_annotator = VariantAnnotator->new(
-			additional_params => [
-				"--resource:CGI_FREQ,VCF $cgi",
-				"-E CGI_FREQ.AF",
-				"--resource:KG_FREQ,VCF $KG",
-				"-E KG_FREQ.AF",
-				"--resource:SVKG_FREQ,VCF $SVKG",
-				"-E SVKG_FREQ.AF",
-			],
+		#		my $pindel_annotator = VariantAnnotator->new(
+		#			additional_params => [
+		#				"--resource:CGI_FREQ,VCF $cgi",
+		#				"-E CGI_FREQ.AF",
+		#				"--resource:KG_FREQ,VCF $KG",
+		#				"-E KG_FREQ.AF",
+		#				"--resource:SVKG_FREQ,VCF $SVKG",
+		#				"-E SVKG_FREQ.AF",
+		#			],
+		#			params   => $params,
+		#			previous => [$pindel2vcf]
+		#		);
+
+		#		my $pindel_eff = VEP->new(
+		#			params   => $params,
+		#			previous => [$pindel_annotator]
+		#		);
+		#		$pindel_eff->do_not_delete('vcf');
+		#		$pindel_eff->do_not_delete('idx');
+
+		my $pindel_snpeff_prediction = SnpEff->new(
 			params   => $params,
-			previous => [$pindel2vcf]
+			previous => [$pindel2vcf],    #
 		);
 
-		my $pindel_eff = VEP->new(
+		my $pindel_effect_annotator = VariantAnnotator->new(
+			additional_params => [
+				"--annotation SnpEff",
+				"--snpEffFile "
+				  . $pindel_snpeff_prediction->output_by_type('vcf'),
+			],
 			params   => $params,
-			previous => [$pindel_annotator]
+			previous => [$pindel_snpeff_prediction]    #
 		);
-		$pindel_eff->do_not_delete('vcf');
-		$pindel_eff->do_not_delete('idx');
 
 		my $pindel_coding = GrepVcf->new(
 			params       => $params,
-			basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
-			previous     => [$pindel_eff]                                      #
+			basic_params =>
+			  [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
+			previous => [$pindel_effect_annotator]     #
 		);
 		$pindel_coding->do_not_delete('vcf');
 		$pindel_coding->do_not_delete('idx');
@@ -216,8 +232,11 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 			out               => $project->file_prefix() . ".cod.snpeff.txt",
 			additional_params => [
 				"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-				"-F KG_FREQ\.AF -F SVKG_FREQ\.AF -F QUAL",
-				"-F FILTER -F CSQ",
+				"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+				"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+				"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+				"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+				"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
 				"--showFiltered"
 			],
 			previous => [$pindel_coding]    #

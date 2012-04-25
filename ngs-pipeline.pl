@@ -470,7 +470,7 @@ $cod_annotate_proteins_mark->do_not_delete('txt');
 
 my $loci_cod_table = AddLoci->new(
 	params   => $params,
-	previous => [$coding],
+	previous => [$cod_annotate_proteins],
 	additional_params => [
 		"--loci $loci",
 		],

@@ -440,7 +440,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 	additional_params => [
 		"--in",
 		$rare_cod_table->out,
-		"--id_column 21",
+		"--id_column 22",
 		"--gene_to_protein",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 		"--id_type gene",

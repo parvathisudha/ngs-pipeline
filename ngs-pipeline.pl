@@ -61,6 +61,7 @@ my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi          = $project->{'CONFIG'}->{'CGI'};
 my $eur          = $project->{'CONFIG'}->{'EURKG'};
 my $group_vcf    = $project->{'CONFIG'}->{'SET'};
+my $control_group_vcf    = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq     = $project->{'CONFIG'}->{'MAXFREQ'};
 
 #############################
@@ -404,7 +405,7 @@ $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');
 
 my $rare_ann = VariantAnnotator->new(
-	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
+	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", "--resource:CONTROL,VCF $control_group_vcf", "-E CONTROL.set",],
 	params            => $params,
 	previous          => [$rare]
 );
@@ -484,7 +485,7 @@ my $snpeff_coding_table = VariantsToTable->new(
 		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$snpeff_coding]    #
@@ -555,7 +556,7 @@ $in_ensemble_regulatory->do_not_delete('vcf');
 $in_ensemble_regulatory->do_not_delete('idx');
 
 my $regulatory_group_annotator = VariantAnnotator->new(
-	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", ],
+	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", "--resource:SET,VCF $control_group_vcf", "-E CONTROL.set",],
 	params            => $params,
 	previous          => [$in_ensemble_regulatory]
 );
@@ -580,7 +581,7 @@ my $regulatory_rare_table = VariantsToTable->new(
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F EFF -F SET.set",
+		"-F FILTER -F EFF -F SET.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$regulatory_group_annotator]    #
@@ -594,9 +595,9 @@ my $regulatory_rare_table_with_genes = JoinTabular->new(
 		"--table",      $regulatory_rare_table->out,
 		"--annotation", $near_genes->out,
 		"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
-		"--annotation_columns 13",
+		"--annotation_columns 14",
 		"--annotation_header GENE_ID",
-		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12",
+		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13",
 		"--skip_annotation_header",
 		"--annotation_header GENE_ID",
 
@@ -611,7 +612,7 @@ my $regulatory_rare_table_with_genes_proteins = AnnotateProteins->new(
 	additional_params => [
 		"--in",
 		$regulatory_rare_table_with_genes->out,
-		"--id_column 13",
+		"--id_column 14",
 		"--gene_to_protein",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
 		"--id_type gene",
@@ -639,7 +640,7 @@ my $regulation_with_genes_marked = JoinTabular->new(
 		$reformat_regulation->out,
 		"--annotation",
 		$project->{'CONFIG'}->{'GOI'},
-		"--table_id_columns 13 --annotation_id_columns 0",
+		"--table_id_columns 14 --annotation_id_columns 0",
 		"--annotation_columns 1,2,3",
 		"--all_table",
 	],

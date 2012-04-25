@@ -515,6 +515,27 @@ use Data::Dumper;
 #######################################################
 {
 
+	package AddLoci;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->program->name("add_loci.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $in = $self->first_previous->output_by_type( 'txt' );
+		my $result = $in . '.loci.txt';
+		$self->output_by_type( 'txt', $result );
+		$self->program->additional_params( [ "--in $in", "--out $result", ] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package ReformatRegulation;
 	our @ISA = qw( PerlJob );
 

@@ -28,7 +28,7 @@ my @result_header = (
 	'SNPEFF_GENE_BIOTYPE', 'SNPEFF_GENE_NAME',
 	'SNPEFF_IMPACT',       'SNPEFF_TRANSCRIPT_ID',
 	'SNPEFF_CODON_CHANGE', 'SNPEFF_AMINO_ACID_CHANGE',
-	'SNPEFF_EXON_ID',      'SET',
+	'SNPEFF_EXON_ID',      'SET', 'CONTROL'
 	@vep_format
 );
 
@@ -65,6 +65,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 			$x->{'INFO'}->{'SNPEFF_AMINO_ACID_CHANGE'},
 			$x->{'INFO'}->{'SNPEFF_EXON_ID'},
 			$x->{'INFO'}->{'SET.set'},
+			$x->{'INFO'}->{'CONTROL.set'},
 		);
 	for my $csq (@csq) {
 		my @vep_effect = split( '\|', $csq );

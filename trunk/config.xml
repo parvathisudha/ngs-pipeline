@@ -3,6 +3,7 @@
 <PARAMETERS>
 <GATKGENOMEBED>F:/rogaev/programming/pipeline/human_g1k_v37.bed</GATKGENOMEBED>
 <SET>F:/rogaev/programming/pipeline/set.vcf</SET>
+<CONTROL>F:/rogaev/programming/pipeline/set.vcf</CONTROL>
 
 <USER>reshetov</USER>
 <EMAIL>reshetovdenis@gmail.com</EMAIL>

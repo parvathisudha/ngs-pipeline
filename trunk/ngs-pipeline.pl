@@ -63,6 +63,7 @@ my $eur          = $project->{'CONFIG'}->{'EURKG'};
 my $group_vcf    = $project->{'CONFIG'}->{'SET'};
 my $control_group_vcf    = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq     = $project->{'CONFIG'}->{'MAXFREQ'};
+my $loci     = $project->{'CONFIG'}->{'LOCI'};
 
 #############################
 
@@ -466,6 +467,16 @@ my $cod_annotate_proteins_mark = JoinTabular->new(
 	previous => [ $cod_annotate_proteins, ]    #
 );
 $cod_annotate_proteins_mark->do_not_delete('txt');
+
+my $loci_cod_table = AddLoci->new(
+	params   => $params,
+	previous => [$coding],
+	additional_params => [
+		"--loci $loci",
+		],
+);
+$rare_cod_table->do_not_delete('txt');
+
 
 #For testing VEP branch. Generates report without VEP
 my $snpeff_coding = GrepVcf->new(

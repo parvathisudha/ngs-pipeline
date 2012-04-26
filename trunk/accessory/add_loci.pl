@@ -41,7 +41,7 @@ sub get_locus{
         my ($chr, $start) = @_;
         my @cur_loci;
         for my $l (@{$loci_table->{$chr}}){
-                if($start > $$l[0] && $start < $$l[1]){
+                if($start >= $$l[0] && $start <= $$l[1]){
                         push(@cur_loci, $$l[2]);
                 }
         }

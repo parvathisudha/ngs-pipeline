@@ -17,6 +17,12 @@ sub new {
 		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{gene_to_protein} );
 	}
 	$self->{DB} = $self->read_uniprot_db;
+	my $ann_num = scalar @{$self->{DB}->{accession}};
+	my @empty_ar;
+	for (my $i = 0; $i <= $ann_num; $i++){
+		push (@empty_ar, '');
+	}
+	$self->{empty} = \@empty_ar;
 	return $self;
 }
 
@@ -31,7 +37,7 @@ sub protein_info {
 	if($protein_id && exists $self->{DB}->{$protein_id}){
 		return $self->{DB}->{$protein_id};
 	}
-	return undef;
+	return $self->{empty};
 }
 
 sub gene_to_protein{

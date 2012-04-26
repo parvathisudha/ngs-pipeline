@@ -17,7 +17,7 @@ sub new {
 		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{gene_to_protein} );
 	}
 	$self->{DB} = $self->read_uniprot_db;
-	$self->{empty} = "\t" x 7;
+	$self->{empty} = "\t" x 6;
 	return $self;
 }
 

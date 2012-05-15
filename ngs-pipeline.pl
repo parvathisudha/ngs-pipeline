@@ -418,7 +418,7 @@ $hgmd_vcf->do_not_delete('idx');
 
 my $hgmd_vcf_table = VariantsToTable->new(
 	params            => $params,
-	out               => $project->file_prefix() . ".cod.snpeff.txt",
+	out               => $project->file_prefix() . ".hgmd.txt",
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL -F FILTER",

@@ -1031,7 +1031,8 @@ use Data::Dumper;
 		$self->memory(4);
 		my $input      = $self->first_previous->output_by_type('bam');
 		my $variations = $self->first_previous->output_by_type('vcf');
-		my $output     = $variations . ".annotated.vcf";
+		my $output = $self->out ? $self->out : $variations . ".annotated.vcf";
+		  
 		my $bam        = "";
 		$bam = "-I $input" if $input;
 		$self->program->additional_params(

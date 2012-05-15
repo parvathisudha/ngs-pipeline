@@ -409,9 +409,13 @@ my $hgmd_vcf = VariantAnnotator->new(
 		"-E $HGMD.pmid",
 		"-E $HGMD.variantType",
 	],
+	out => $project->file_prefix() . ".hgmd.vcf",
 	params   => $params,
 	previous => [ $effect_annotator ]    #
 );
+$hgmd_vcf->do_not_delete('vcf');
+$hgmd_vcf->do_not_delete('idx');
+
 my $hgmd_vcf_table = VariantsToTable->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".cod.snpeff.txt",

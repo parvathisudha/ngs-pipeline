@@ -54,6 +54,7 @@ system("date") unless $debug;
 ##############################
 my $KG           = $project->{'CONFIG'}->{'KG'};
 my $SVKG         = $project->{'CONFIG'}->{'SVKG'};
+my $HGMD         = $project->{'CONFIG'}->{'HGMD'};
 my $hapmap       = $project->{'CONFIG'}->{'HAPMAP'};
 my $omni         = $project->{'CONFIG'}->{'OMNI'};
 my $dbSNP        = $project->{'CONFIG'}->{'DBSNP'};
@@ -395,7 +396,39 @@ my $effect_annotator = VariantAnnotator->new(
 	params   => $params,
 	previous => [ $variant_annotator, $effect_prediction ]    #
 );
-
+##################### HGMD VARIATIONS ##############
+my $hgmd_vcf = VariantAnnotator->new(
+	additional_params => [
+		"--resource:HGMD,VCF $HGMD",
+		"-E $HGMD.HGMDID",
+		"-E $HGMD.confidence",
+		"-E $HGMD.disease",
+		"-E $HGMD.hyperlink",
+		"-E $HGMD.mutationType",
+		"-E $HGMD.nucleotideChange",
+		"-E $HGMD.pmid",
+		"-E $HGMD.variantType",
+	],
+	params   => $params,
+	previous => [ $effect_annotator ]    #
+);
+my $hgmd_vcf_table = VariantsToTable->new(
+	params            => $params,
+	out               => $project->file_prefix() . ".cod.snpeff.txt",
+	additional_params => [
+		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL -F FILTER",
+		"-F HGMD\.HGMDID -F HGMD\.confidence -F HGMD\.disease -F HGMD\.hyperlink",
+		"-F HGMD\.mutationType -F HGMD\.nucleotideChange -F HGMD\.pmid -F HGMD\.variantType",		
+		"-F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
+		"--showFiltered"
+	],
+	previous => [$hgmd_vcf]    #
+);
+$hgmd_vcf_table->do_not_delete('txt');
 ##################### CODING ANALYSIS ##############
 my $rare = FilterFreq->new(
 	params       => $params,

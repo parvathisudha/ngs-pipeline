@@ -416,6 +416,14 @@ my $hgmd_vcf = VariantAnnotator->new(
 $hgmd_vcf->do_not_delete('vcf');
 $hgmd_vcf->do_not_delete('idx');
 
+my $hgmd_vcf_grep = GrepVcf->new(
+	params       => $params,
+	basic_params => [ "--regexp HGMDID" ],
+	previous     => [$hgmd_vcf]                                    #
+);
+$hgmd_vcf_grep->do_not_delete('vcf');
+$hgmd_vcf_grep->do_not_delete('idx');
+
 my $hgmd_vcf_table = VariantsToTable->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".hgmd.txt",
@@ -430,7 +438,7 @@ my $hgmd_vcf_table = VariantsToTable->new(
 		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
 		"--showFiltered"
 	],
-	previous => [$hgmd_vcf]    #
+	previous => [$hgmd_vcf_grep]    #
 );
 $hgmd_vcf_table->do_not_delete('txt');
 ##################### CODING ANALYSIS ##############

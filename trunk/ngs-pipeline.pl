@@ -177,27 +177,27 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 		);
 		$pindel2vcf->do_not_delete('vcf');
 
-		#	my $pindel_left_aligned = LeftAlignVariants->new(
-		#		params   => $params,
-		#		previous => [$pindel2vcf],
-		#		in       => $pindel2vcf->out,
-		#		out      => $pindel2vcf->out . ".la.vcf",
-		#	);
-		#	$pindel_left_aligned->do_not_delete('vcf');
-		#	$pindel_left_aligned->do_not_delete('idx');
+			my $pindel_left_aligned = LeftAlignVariants->new(
+				params   => $params,
+				previous => [$pindel2vcf],
+				in       => $pindel2vcf->out,
+				out      => $pindel2vcf->out . ".la.vcf",
+			);
+			$pindel_left_aligned->do_not_delete('vcf');
+			$pindel_left_aligned->do_not_delete('idx');
 
-		#		my $pindel_annotator = VariantAnnotator->new(
-		#			additional_params => [
-		#				"--resource:CGI_FREQ,VCF $cgi",
-		#				"-E CGI_FREQ.AF",
-		#				"--resource:KG_FREQ,VCF $KG",
-		#				"-E KG_FREQ.AF",
-		#				"--resource:SVKG_FREQ,VCF $SVKG",
-		#				"-E SVKG_FREQ.AF",
-		#			],
-		#			params   => $params,
-		#			previous => [$pindel2vcf]
-		#		);
+				my $pindel_annotator = VariantAnnotator->new(
+					additional_params => [
+						"--resource:CGI_FREQ,VCF $cgi",
+						"-E CGI_FREQ.AF",
+						"--resource:KG_FREQ,VCF $KG",
+						"-E KG_FREQ.AF",
+						"--resource:SVKG_FREQ,VCF $SVKG",
+						"-E SVKG_FREQ.AF",
+					],
+					params   => $params,
+					previous => [$pindel2vcf]
+				);
 
 		#		my $pindel_eff = VEP->new(
 		#			params   => $params,
@@ -218,7 +218,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 				  . $pindel_snpeff_prediction->output_by_type('vcf'),
 			],
 			params   => $params,
-			previous => [$pindel2vcf, $pindel_snpeff_prediction]    #
+			previous => [$pindel_annotator, $pindel_snpeff_prediction]    #
 		);
 
 		my $pindel_coding = GrepVcf->new(

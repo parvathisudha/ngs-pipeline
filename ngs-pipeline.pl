@@ -52,19 +52,19 @@ $project->make_folder_structure();
 system("date") unless $debug;
 
 ##############################
-my $KG           = $project->{'CONFIG'}->{'KG'};
-my $SVKG         = $project->{'CONFIG'}->{'SVKG'};
-my $HGMD         = $project->{'CONFIG'}->{'HGMD'};
-my $hapmap       = $project->{'CONFIG'}->{'HAPMAP'};
-my $omni         = $project->{'CONFIG'}->{'OMNI'};
-my $dbSNP        = $project->{'CONFIG'}->{'DBSNP'};
-my $indels_mills = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
-my $cgi          = $project->{'CONFIG'}->{'CGI'};
-my $eur          = $project->{'CONFIG'}->{'EURKG'};
-my $group_vcf    = $project->{'CONFIG'}->{'SET'};
-my $control_group_vcf    = $project->{'CONFIG'}->{'CONTROL'};
-my $max_freq     = $project->{'CONFIG'}->{'MAXFREQ'};
-my $loci     = $project->{'CONFIG'}->{'LOCI'};
+my $KG                = $project->{'CONFIG'}->{'KG'};
+my $SVKG              = $project->{'CONFIG'}->{'SVKG'};
+my $HGMD              = $project->{'CONFIG'}->{'HGMD'};
+my $hapmap            = $project->{'CONFIG'}->{'HAPMAP'};
+my $omni              = $project->{'CONFIG'}->{'OMNI'};
+my $dbSNP             = $project->{'CONFIG'}->{'DBSNP'};
+my $indels_mills      = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
+my $cgi               = $project->{'CONFIG'}->{'CGI'};
+my $eur               = $project->{'CONFIG'}->{'EURKG'};
+my $group_vcf         = $project->{'CONFIG'}->{'SET'};
+my $control_group_vcf = $project->{'CONFIG'}->{'CONTROL'};
+my $max_freq          = $project->{'CONFIG'}->{'MAXFREQ'};
+my $loci              = $project->{'CONFIG'}->{'LOCI'};
 
 #############################
 
@@ -168,6 +168,10 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 	$pindel->do_not_delete('SV_TD');
 	$pindel->do_not_delete('SV_BP');
 
+
+
+	#------------- Annotate Pindel output ----------------
+	my @pindel_vcfs_jobs;
 	for my $pindel_out ( @{ $pindel->variation_files } ) {
 		my $pindel2vcf = Pindel2Vcf->new(
 			params   => $params,
@@ -176,28 +180,28 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 			out      => $pindel_out . ".vcf",
 		);
 		$pindel2vcf->do_not_delete('vcf');
-
-			my $pindel_left_aligned = LeftAlignVariants->new(
-				params   => $params,
-				previous => [$pindel2vcf],
-				in       => $pindel2vcf->out,
-				out      => $pindel2vcf->out . ".la.vcf",
-			);
-			$pindel_left_aligned->do_not_delete('vcf');
-			$pindel_left_aligned->do_not_delete('idx');
-
-				my $pindel_annotator = VariantAnnotator->new(
-					additional_params => [
-						"--resource:CGI_FREQ,VCF $cgi",
-						"-E CGI_FREQ.AF",
-						"--resource:KG_FREQ,VCF $KG",
-						"-E KG_FREQ.AF",
-						"--resource:SVKG_FREQ,VCF $SVKG",
-						"-E SVKG_FREQ.AF",
-					],
-					params   => $params,
-					previous => [$pindel2vcf]
-				);
+		push(@pindel_vcfs_jobs,$pindel2vcf);
+		#			my $pindel_left_aligned = LeftAlignVariants->new(
+		#				params   => $params,
+		#				previous => [$pindel2vcf],
+		#				in       => $pindel2vcf->out,
+		#				out      => $pindel2vcf->out . ".la.vcf",
+		#			);
+		#			$pindel_left_aligned->do_not_delete('vcf');
+		#			$pindel_left_aligned->do_not_delete('idx');
+		#
+		#				my $pindel_annotator = VariantAnnotator->new(
+		#					additional_params => [
+		#						"--resource:CGI_FREQ,VCF $cgi",
+		#						"-E CGI_FREQ.AF",
+		#						"--resource:KG_FREQ,VCF $KG",
+		#						"-E KG_FREQ.AF",
+		#						"--resource:SVKG_FREQ,VCF $SVKG",
+		#						"-E SVKG_FREQ.AF",
+		#					],
+		#					params   => $params,
+		#					previous => [$pindel2vcf]
+		#				);
 
 		#		my $pindel_eff = VEP->new(
 		#			params   => $params,
@@ -218,21 +222,21 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 				  . $pindel_snpeff_prediction->output_by_type('vcf'),
 			],
 			params   => $params,
-			previous => [$pindel_annotator, $pindel_snpeff_prediction]    #
+			previous => [ $pindel2vcf, $pindel_snpeff_prediction ]    #
 		);
 
 		my $pindel_coding = GrepVcf->new(
 			params       => $params,
 			basic_params =>
 			  [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
-			previous => [$pindel_effect_annotator]     #
+			previous => [$pindel_effect_annotator]                    #
 		);
 		$pindel_coding->do_not_delete('vcf');
 		$pindel_coding->do_not_delete('idx');
 
 		my $pindel_coding_table = VariantsToTable->new(
-			params            => $params,
-			out               => $pindel_coding->output_by_type('vcf') . ".cod.snpeff.txt",
+			params => $params,
+			out    => $pindel_coding->output_by_type('vcf') . ".cod.snpeff.txt",
 			additional_params => [
 				"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 				"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
@@ -246,6 +250,12 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 		);
 		$pindel_coding_table->do_not_delete('txt');
 	}
+	#------------- Merge Pindel output ----------------
+	my $combine_pindel = CombineVariants->new(
+		out      => $project->file_prefix() . ".PINDEL.vcf",
+		params   => $params,
+		previous => \@pindel_vcfs_jobs,
+	);
 }
 
 #------------- GATK SNP and INDEL calling --------
@@ -409,17 +419,17 @@ my $hgmd_vcf = VariantAnnotator->new(
 		"-E HGMD.pmid",
 		"-E HGMD.variantType",
 	],
-	out => $project->file_prefix() . ".hgmd.vcf",
+	out      => $project->file_prefix() . ".hgmd.vcf",
 	params   => $params,
-	previous => [ $effect_annotator ]    #
+	previous => [$effect_annotator]                      #
 );
 $hgmd_vcf->do_not_delete('vcf');
 $hgmd_vcf->do_not_delete('idx');
 
 my $hgmd_vcf_grep = GrepVcf->new(
 	params       => $params,
-	basic_params => [ "--regexp HGMDID" ],
-	previous     => [$hgmd_vcf]                                    #
+	basic_params => ["--regexp HGMDID"],
+	previous     => [$hgmd_vcf]                          #
 );
 $hgmd_vcf_grep->do_not_delete('vcf');
 $hgmd_vcf_grep->do_not_delete('idx');
@@ -430,12 +440,12 @@ my $hgmd_vcf_table = VariantsToTable->new(
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL -F FILTER",
-		"-F HGMD\.HGMDID -F HGMD\.confidence -F HGMD\.disease -F HGMD\.hyperlink",
-		"-F HGMD\.mutationType -F HGMD\.nucleotideChange -F HGMD\.pmid -F HGMD\.variantType",		
+"-F HGMD\.HGMDID -F HGMD\.confidence -F HGMD\.disease -F HGMD\.hyperlink",
+"-F HGMD\.mutationType -F HGMD\.nucleotideChange -F HGMD\.pmid -F HGMD\.variantType",
 		"-F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
+"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$hgmd_vcf_grep]    #
@@ -445,15 +455,20 @@ $hgmd_vcf_table->do_not_delete('txt');
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, $max_freq, ],
-	previous     => [$effect_annotator]                       #
+	previous     => [$effect_annotator]                     #
 );
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');
 
 my $rare_ann = VariantAnnotator->new(
-	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", "--resource:CONTROL,VCF $control_group_vcf", "-E CONTROL.set",],
-	params            => $params,
-	previous          => [$rare]
+	additional_params => [
+		"--resource:SET,VCF $group_vcf",
+		"-E SET.set",
+		"--resource:CONTROL,VCF $control_group_vcf",
+		"-E CONTROL.set",
+	],
+	params   => $params,
+	previous => [$rare]
 );
 $rare_ann->do_not_delete('vcf');
 $rare_ann->do_not_delete('idx');
@@ -514,14 +529,11 @@ my $cod_annotate_proteins_mark = JoinTabular->new(
 $cod_annotate_proteins_mark->do_not_delete('txt');
 
 my $loci_cod_table = AddLoci->new(
-	params   => $params,
-	previous => [$cod_annotate_proteins],
-	additional_params => [
-		"--loci $loci",
-		],
+	params            => $params,
+	previous          => [$cod_annotate_proteins],
+	additional_params => [ "--loci $loci", ],
 );
 $rare_cod_table->do_not_delete('txt');
-
 
 #For testing VEP branch. Generates report without VEP
 my $snpeff_coding = GrepVcf->new(
@@ -541,7 +553,7 @@ my $snpeff_coding_table = VariantsToTable->new(
 		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
+"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$snpeff_coding]    #
@@ -612,9 +624,14 @@ $in_ensemble_regulatory->do_not_delete('vcf');
 $in_ensemble_regulatory->do_not_delete('idx');
 
 my $regulatory_group_annotator = VariantAnnotator->new(
-	additional_params => [ "--resource:SET,VCF $group_vcf", "-E SET.set", "--resource:SET,VCF $control_group_vcf", "-E CONTROL.set",],
-	params            => $params,
-	previous          => [$in_ensemble_regulatory]
+	additional_params => [
+		"--resource:SET,VCF $group_vcf",
+		"-E SET.set",
+		"--resource:SET,VCF $control_group_vcf",
+		"-E CONTROL.set",
+	],
+	params   => $params,
+	previous => [$in_ensemble_regulatory]
 );
 $regulatory_group_annotator->do_not_delete('vcf');
 $regulatory_group_annotator->do_not_delete('idx');

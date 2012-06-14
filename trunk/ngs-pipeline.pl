@@ -251,11 +251,11 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 		$pindel_coding_table->do_not_delete('txt');
 	}
 	#------------- Merge Pindel output ----------------
-	my $combine_pindel = CombineVariants->new(
-		out      => $project->file_prefix() . ".PINDEL.vcf",
-		params   => $params,
-		previous => \@pindel_vcfs_jobs,
-	);
+#	my $combine_pindel = CombineVariants->new(
+#		out      => $project->file_prefix() . ".PINDEL.vcf",
+#		params   => $params,
+#		previous => \@pindel_vcfs_jobs,
+#	);
 }
 
 #------------- GATK SNP and INDEL calling --------

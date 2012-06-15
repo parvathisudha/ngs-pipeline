@@ -170,7 +170,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 
 	#------------- Annotate Pindel output ----------------
 	my @pindel_vcfs_jobs;
-	for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
+	for my $pindel_out ( @{ $pindel->variation_files } ) {
 		my $pindel2vcf = Pindel2Vcf->new(
 			params   => $params,
 			previous => [$pindel],

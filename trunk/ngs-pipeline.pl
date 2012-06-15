@@ -168,8 +168,6 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 	$pindel->do_not_delete('SV_TD');
 	$pindel->do_not_delete('SV_BP');
 
-
-
 	#------------- Annotate Pindel output ----------------
 	my @pindel_vcfs_jobs;
 	for my $pindel_out ( @{ $pindel->variation_files } ) {
@@ -180,28 +178,28 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 			out      => $pindel_out . ".vcf",
 		);
 		$pindel2vcf->do_not_delete('vcf');
-		push(@pindel_vcfs_jobs,$pindel2vcf);
-		#			my $pindel_left_aligned = LeftAlignVariants->new(
-		#				params   => $params,
-		#				previous => [$pindel2vcf],
-		#				in       => $pindel2vcf->out,
-		#				out      => $pindel2vcf->out . ".la.vcf",
-		#			);
-		#			$pindel_left_aligned->do_not_delete('vcf');
-		#			$pindel_left_aligned->do_not_delete('idx');
-		#
-		#				my $pindel_annotator = VariantAnnotator->new(
-		#					additional_params => [
-		#						"--resource:CGI_FREQ,VCF $cgi",
-		#						"-E CGI_FREQ.AF",
-		#						"--resource:KG_FREQ,VCF $KG",
-		#						"-E KG_FREQ.AF",
-		#						"--resource:SVKG_FREQ,VCF $SVKG",
-		#						"-E SVKG_FREQ.AF",
-		#					],
-		#					params   => $params,
-		#					previous => [$pindel2vcf]
-		#				);
+		push( @pindel_vcfs_jobs, $pindel2vcf );
+		my $pindel_left_aligned = LeftAlignVariants->new(
+			params   => $params,
+			previous => [$pindel2vcf],
+			in       => $pindel2vcf->out,
+			out      => $pindel2vcf->out . ".la.vcf",
+		);
+		$pindel_left_aligned->do_not_delete('vcf');
+		$pindel_left_aligned->do_not_delete('idx');
+
+		my $pindel_annotator = VariantAnnotator->new(
+			additional_params => [
+				"--resource:CGI_FREQ,VCF $cgi",
+				"-E CGI_FREQ.AF",
+				"--resource:KG_FREQ,VCF $KG",
+				"-E KG_FREQ.AF",
+				"--resource:SVKG_FREQ,VCF $SVKG",
+				"-E SVKG_FREQ.AF",
+			],
+			params   => $params,
+			previous => [$pindel_left_aligned]
+		);
 
 		#		my $pindel_eff = VEP->new(
 		#			params   => $params,
@@ -250,12 +248,13 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 		);
 		$pindel_coding_table->do_not_delete('txt');
 	}
+
 	#------------- Merge Pindel output ----------------
-#	my $combine_pindel = CombineVariants->new(
-#		out      => $project->file_prefix() . ".PINDEL.vcf",
-#		params   => $params,
-#		previous => \@pindel_vcfs_jobs,
-#	);
+	#	my $combine_pindel = CombineVariants->new(
+	#		out      => $project->file_prefix() . ".PINDEL.vcf",
+	#		params   => $params,
+	#		previous => \@pindel_vcfs_jobs,
+	#	);
 }
 
 #------------- GATK SNP and INDEL calling --------

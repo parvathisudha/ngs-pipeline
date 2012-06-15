@@ -9,7 +9,7 @@
 <BEDTOOLS>/data/software/ngs-pipeline/accessory/BEDTools-Version-2.12.0/bin</BEDTOOLS>
 <PERLLIB>/data/software/pipeline/accessory</PERLLIB>
 <MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
-<GATK>/data/software/ngs-pipeline/accessory/gatk/dist</GATK>
+<GATK>/data/software/gatk_15June2012/dist</GATK>
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>
 <GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
 <BREAKDANCER>/data/software/ngs-pipeline/accessory/breakdancer</BREAKDANCER>

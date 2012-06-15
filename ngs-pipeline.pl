@@ -170,7 +170,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 
 	#------------- Annotate Pindel output ----------------
 	my @pindel_vcfs_jobs;
-	for my $pindel_out ( @{ $pindel->variation_files } ) {
+	for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
 		my $pindel2vcf = Pindel2Vcf->new(
 			params   => $params,
 			previous => [$pindel],
@@ -250,11 +250,11 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 	}
 
 	#------------- Merge Pindel output ----------------
-	#	my $combine_pindel = CombineVariants->new(
-	#		out      => $project->file_prefix() . ".PINDEL.vcf",
-	#		params   => $params,
-	#		previous => \@pindel_vcfs_jobs,
-	#	);
+		my $combine_pindel = CombineVariants->new(
+			out      => $project->file_prefix() . ".PINDEL.vcf",
+			params   => $params,
+			previous => \@pindel_vcfs_jobs,
+		);
 }
 
 #------------- GATK SNP and INDEL calling --------

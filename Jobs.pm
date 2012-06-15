@@ -268,6 +268,14 @@ use Data::Dumper;
 		}
 		return \@result;
 	}
+	sub deletions_and_insertions_files {
+		my ($self) = @_;
+		my @result;
+		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
+			push( @result, $file ) if ($type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/ || $type =~ m/SV_BP/);
+		}
+		return \@result;
+	}	
 	1;
 }
 #######################################################

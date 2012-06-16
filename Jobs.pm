@@ -1070,7 +1070,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(4);
+		$self->memory(8);
 		$self->program->additional_params(
 			[ "--variant", $self->in, "--out", $self->out ] );
 		$self->output_by_type( 'vcf', $self->out );

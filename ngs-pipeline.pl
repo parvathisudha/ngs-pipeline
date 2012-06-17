@@ -169,8 +169,8 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 	$pindel->do_not_delete('SV_BP');
 
 	#------------- Annotate Pindel output ----------------
-	my @pindel_vcfs_jobs;
-	for my $pindel_out ( @{ $pindel->variation_files } ) {
+	my @pindel_effect_jobs;
+	for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
 		my $pindel2vcf = Pindel2Vcf->new(
 			params   => $params,
 			previous => [$pindel],
@@ -178,7 +178,6 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 			out      => $pindel_out . ".vcf",
 		);
 		$pindel2vcf->do_not_delete('vcf');
-		push( @pindel_vcfs_jobs, $pindel2vcf );
 		my $pindel_left_aligned = LeftAlignVariants->new(
 			params   => $params,
 			previous => [$pindel2vcf],
@@ -222,6 +221,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 			params   => $params,
 			previous => [ $pindel2vcf, $pindel_snpeff_prediction ]    #
 		);
+		push( @pindel_effect_jobs, $pindel_effect_annotator );
 
 		my $pindel_coding = GrepVcf->new(
 			params       => $params,
@@ -250,11 +250,36 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 	}
 
 	#------------- Merge Pindel output ----------------
-		my $combine_pindel = CombineVariants->new(
-			out      => $project->file_prefix() . ".PINDEL.vcf",
-			params   => $params,
-			previous => \@pindel_vcfs_jobs,
-		);
+	my $combine_pindel = CombineVariants->new(
+		out      => $project->file_prefix() . ".PINDEL.vcf",
+		params   => $params,
+		previous => \@pindel_effect_jobs,
+	);
+	my $combine_pindel_coding = GrepVcf->new(
+		params       => $params,
+		basic_params => [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
+		previous     => [$combine_pindel]                                      #
+	);
+	$combine_pindel_coding->do_not_delete('vcf');
+	$combine_pindel_coding->do_not_delete('idx');
+
+	my $pindel_result_table = VariantsToTable->new(
+		params => $params,
+		out    => $combine_pindel_coding->output_by_type('vcf')
+		  . ".cod.snpeff.txt",
+		additional_params => [
+			"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+			"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+			"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+			"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+			"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+			"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+			"--showFiltered"
+		],
+		previous => [$combine_pindel_coding]    #
+	);
+	$pindel_result_table->do_not_delete('txt');
+
 }
 
 #------------- GATK SNP and INDEL calling --------

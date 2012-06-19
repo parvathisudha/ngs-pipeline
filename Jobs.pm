@@ -170,6 +170,26 @@ use Data::Dumper;
 #######################################################
 {
 
+	package Substitute;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("sed");
+		$self->program->path("/bin");
+		die "The input file is not specified!\n",  unless $self->in;
+		die "The output file is not specified!\n", unless $self->out;
+		$self->memory(1);
+		$self->program->additional_params( [ "-i \'s/" . $self->{from} . '/' . $self->{to} .'/\'', $self->in, $self->out ] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package Ln;
 	our @ISA = qw( Job );
 

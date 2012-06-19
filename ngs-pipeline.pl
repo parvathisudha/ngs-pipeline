@@ -184,7 +184,16 @@ for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
 		params   => $params,
 		previous => [$pindel_left_aligned]    #
 	);
-	push( @pindel_results, $sorted_pindel );
+	my $fix_pindel = Substitute->new(
+		params   => $params,
+		in => $sorted_pindel->output_by_type( 'vcf'),
+		out => $sorted_pindel->output_by_type( 'vcf') . '.sub.vcf',
+		from => 'TOTAL',
+		to => $project->{CONFIG}->{SAMPLE_NAME},
+		previous => [$sorted_pindel],
+	);
+	$fix_pindel->output_by_type( 'vcf', $fix_pindel->out );
+	push( @pindel_results, $fix_pindel );
 }
 
 #------------- Merge Pindel output ----------------

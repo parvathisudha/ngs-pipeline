@@ -209,7 +209,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 
 		my $pindel_snpeff_prediction = SnpEff->new(
 			params   => $params,
-			previous => [$pindel_left_aligned],    #
+			previous => [$pindel_annotator],    #
 		);
 
 		my $pindel_effect_annotator = VariantAnnotator->new(
@@ -219,7 +219,7 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 				  . $pindel_snpeff_prediction->output_by_type('vcf'),
 			],
 			params   => $params,
-			previous => [ $pindel_left_aligned, $pindel_snpeff_prediction ]    #
+			previous => [ $pindel_annotator, $pindel_snpeff_prediction ]    #
 		);
 		my $sorted_pindel = VcfSorter->new(
 			params   => $params,

@@ -352,6 +352,30 @@ use Data::Dumper;
 #######################################################
 {
 
+	package VcfSorter;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("vcfsorter.pl");
+		$self->program->path( $self->project()->{'CONFIG'}->{'VCF_SORTER'} );
+		$self->memory(8);
+		my $vcf  = $self->first_previous->output_by_type('vcf');
+		my $dict  = $self->project()->{'CONFIG'}->{'GENOME_DICT'};
+		my $sorted = "$vcf.s.vcf";
+		$self->output_by_type( 'vcf', $sorted );
+		$self->output_by_type( 'idx', $sorted . '.idx' );
+		$self->out($sorted);
+		$self->program->additional_params( ["$dict $vcf > $sorted"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package FilterFreq;
 	our @ISA = qw( PerlJob );
 

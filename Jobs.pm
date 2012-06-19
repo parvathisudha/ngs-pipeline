@@ -182,7 +182,7 @@ use Data::Dumper;
 		die "The input file is not specified!\n",  unless $self->in;
 		die "The output file is not specified!\n", unless $self->out;
 		$self->memory(1);
-		$self->program->additional_params( [ "-i \'s/" . $self->{from} . '/' . $self->{to} .'/\'', $self->in, $self->out ] );
+		$self->program->additional_params( [ "\'s/" . $self->{from} . '/' . $self->{to} .'/\'', $self->in, ">", $self->out ] );
 		return $self;
 	}
 	1;

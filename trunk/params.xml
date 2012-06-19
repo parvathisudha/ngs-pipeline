@@ -35,6 +35,7 @@
 <BEDGENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta.genome</BEDGENOME>
 <GENOME_NAME>human_g1k_v37.fasta</GENOME_NAME>
 <GENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta</GENOME>
+<GENOME_DICT>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.dict</GENOME_DICT>
 <GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
@@ -43,6 +44,9 @@
 <PINDEL>/data/software/pindel_19June2012_with_Eric_mod/trunk</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
 <VARIANT_RECALIBRATION>1</VARIANT_RECALIBRATION>
+<EMBOSS>/data/software/EMBOSS-6.4.0/emboss</EMBOSS>
+<EMBOSS_DATA>/data/software/EMBOSS-6.4.0/SHARE/EMBOSS/data</EMBOSS_DATA>
+<VCF_SORTER>/data/software</VCF_SORTER>
 
 </PARAMETERS>
 	<DATA>

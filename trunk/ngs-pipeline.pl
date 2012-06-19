@@ -221,7 +221,11 @@ if ( $mode eq 'PINDEL_TRUE' ) {
 			params   => $params,
 			previous => [ $pindel_left_aligned, $pindel_snpeff_prediction ]    #
 		);
-		push( @pindel_effect_jobs, $pindel_effect_annotator );
+		my $sorted_pindel = VcfSorter->new(
+			params   => $params,
+			previous => [ $pindel_effect_annotator ]    #
+		);
+		push( @pindel_effect_jobs, $sorted_pindel );
 
 		my $pindel_coding = GrepVcf->new(
 			params       => $params,

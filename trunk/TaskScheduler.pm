@@ -86,6 +86,7 @@ export PATH=\$PATH:/data/software/tabix
 export PERL5LIB=\$PERL5LIB:/data/software/breakdancer
 export PERL5LIB=\$PERL5LIB:/data/software/vcftools_0.1.8a/perl
 export PATH=\$PATH:/data/software/vcftools_0.1.8a/bin
+export EMBOSS_DATA=/data/software/EMBOSS-6.4.0/SHARE/EMBOSS/data
 
 rm -f $done
 

@@ -129,162 +129,72 @@ my $brdMax = BreakdancerMax->new(
 	previous => [$bam2cfg],
 );
 
-if ( $mode eq 'PINDEL_TRUE' ) {
-	print "MODE: $mode\n";
+#------------- Pindel ----------------------------
+my $dedup_index_link = Ln->new(
+	params   => $params,
+	previous => [$mark_duplicates],
+	in       => $mark_duplicates->output_by_type('bai'),
+	out      => $mark_duplicates->output_by_type('bam') . ".bai",
+);
 
-	#------------- Pindel ----------------------------
-	my $dedup_index_link = Ln->new(
+$dedup_index_link->do_not_delete('link');
+
+my $pindel_config = PindelConfig->new(
+	params            => $params,
+	previous          => [$brdMax],
+	additional_params => [
+		"--bam",             $mark_duplicates->output_by_type('bam'),
+		"--id",              $project->sample_id,
+		"--min_insert_size", $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
+	]
+);
+$pindel_config->do_not_delete('cfg');
+
+my $pindel = Pindel->new(
+	params            => $params,
+	previous          => [$pindel_config],
+	additional_params => [ "--breakdancer", $brdMax->out, ]
+);
+$pindel->do_not_delete('SV_D');
+$pindel->do_not_delete('SV_INV');
+$pindel->do_not_delete('SV_LI');
+$pindel->do_not_delete('SV_SI');
+$pindel->do_not_delete('SV_TD');
+$pindel->do_not_delete('SV_BP');
+
+#------------- Process Pindel output ----------------
+my @pindel_results;
+for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
+	my $pindel2vcf = Pindel2Vcf->new(
 		params   => $params,
-		previous => [$mark_duplicates],
-		in       => $mark_duplicates->output_by_type('bai'),
-		out      => $mark_duplicates->output_by_type('bam') . ".bai",
+		previous => [$pindel],
+		in       => $pindel_out,
+		out      => $pindel_out . ".vcf",
 	);
-
-	$dedup_index_link->do_not_delete('link');
-
-	my $pindel_config = PindelConfig->new(
-		params            => $params,
-		previous          => [$brdMax],
-		additional_params => [
-			"--bam",
-			$mark_duplicates->output_by_type('bam'),
-			"--id",
-			$project->sample_id,
-			"--min_insert_size",
-			$project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
-		]
-	);
-	$pindel_config->do_not_delete('cfg');
-
-	my $pindel = Pindel->new(
-		params            => $params,
-		previous          => [$pindel_config],
-		additional_params => [ "--breakdancer", $brdMax->out, ]
-	);
-	$pindel->do_not_delete('SV_D');
-	$pindel->do_not_delete('SV_INV');
-	$pindel->do_not_delete('SV_LI');
-	$pindel->do_not_delete('SV_SI');
-	$pindel->do_not_delete('SV_TD');
-	$pindel->do_not_delete('SV_BP');
-
-	#------------- Annotate Pindel output ----------------
-	my @pindel_effect_jobs;
-	for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
-		my $pindel2vcf = Pindel2Vcf->new(
-			params   => $params,
-			previous => [$pindel],
-			in       => $pindel_out,
-			out      => $pindel_out . ".vcf",
-		);
-		$pindel2vcf->do_not_delete('vcf');
-		my $pindel_left_aligned = LeftAlignVariants->new(
-			params   => $params,
-			previous => [$pindel2vcf],
-			in       => $pindel2vcf->out,
-			out      => $pindel2vcf->out . ".la.vcf",
-		);
-		$pindel_left_aligned->do_not_delete('vcf');
-		$pindel_left_aligned->do_not_delete('idx');
-
-		my $pindel_annotator = VariantAnnotator->new(
-			additional_params => [
-				"--resource:CGI_FREQ,VCF $cgi",
-				"-E CGI_FREQ.AF",
-				"--resource:KG_FREQ,VCF $KG",
-				"-E KG_FREQ.AF",
-				"--resource:SVKG_FREQ,VCF $SVKG",
-				"-E SVKG_FREQ.AF",
-			],
-			params   => $params,
-			previous => [$pindel_left_aligned]
-		);
-
-		#		my $pindel_eff = VEP->new(
-		#			params   => $params,
-		#			previous => [$pindel_annotator]
-		#		);
-		#		$pindel_eff->do_not_delete('vcf');
-		#		$pindel_eff->do_not_delete('idx');
-
-		my $pindel_snpeff_prediction = SnpEff->new(
-			params   => $params,
-			previous => [$pindel_annotator],    #
-		);
-
-		my $pindel_effect_annotator = VariantAnnotator->new(
-			additional_params => [
-				"--annotation SnpEff",
-				"--snpEffFile "
-				  . $pindel_snpeff_prediction->output_by_type('vcf'),
-			],
-			params   => $params,
-			previous => [ $pindel_annotator, $pindel_snpeff_prediction ]    #
-		);
-		my $sorted_pindel = VcfSorter->new(
-			params   => $params,
-			previous => [ $pindel_effect_annotator ]    #
-		);
-		push( @pindel_effect_jobs, $sorted_pindel );
-
-		my $pindel_coding = GrepVcf->new(
-			params       => $params,
-			basic_params =>
-			  [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
-			previous => [$pindel_effect_annotator]                    #
-		);
-		$pindel_coding->do_not_delete('vcf');
-		$pindel_coding->do_not_delete('idx');
-
-		my $pindel_coding_table = VariantsToTable->new(
-			params => $params,
-			out    => $pindel_coding->output_by_type('vcf') . ".cod.snpeff.txt",
-			additional_params => [
-				"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-				"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-				"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-				"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-				"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-				"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
-				"--showFiltered"
-			],
-			previous => [$pindel_coding]    #
-		);
-		$pindel_coding_table->do_not_delete('txt');
-	}
-
-	#------------- Merge Pindel output ----------------
-	my $combine_pindel = CombineVariants->new(
-		out      => $project->file_prefix() . ".PINDEL.vcf",
+	$pindel2vcf->do_not_delete('vcf');
+	my $pindel_left_aligned = LeftAlignVariants->new(
 		params   => $params,
-		previous => \@pindel_effect_jobs,
+		previous => [$pindel2vcf],
+		in       => $pindel2vcf->out,
+		out      => $pindel2vcf->out . ".la.vcf",
 	);
-	my $combine_pindel_coding = GrepVcf->new(
-		params       => $params,
-		basic_params => [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
-		previous     => [$combine_pindel]                                      #
+	$pindel_left_aligned->do_not_delete('vcf');
+	$pindel_left_aligned->do_not_delete('idx');
+	my $sorted_pindel = VcfSorter->new(
+		params   => $params,
+		previous => [$pindel_left_aligned]    #
 	);
-	$combine_pindel_coding->do_not_delete('vcf');
-	$combine_pindel_coding->do_not_delete('idx');
-
-	my $pindel_result_table = VariantsToTable->new(
-		params => $params,
-		out    => $combine_pindel_coding->output_by_type('vcf')
-		  . ".cod.snpeff.txt",
-		additional_params => [
-			"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-			"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-			"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-			"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-			"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-			"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
-			"--showFiltered"
-		],
-		previous => [$combine_pindel_coding]    #
-	);
-	$pindel_result_table->do_not_delete('txt');
-
+	push( @pindel_results, $sorted_pindel );
 }
+
+#------------- Merge Pindel output ----------------
+my $combined_pindel = CombineVariants->new(
+	out      => $project->file_prefix() . ".PINDEL.vcf",
+	params   => $params,
+	previous => \@pindel_results,
+);
+$combined_pindel->do_not_delete('vcf');
+$combined_pindel->do_not_delete('idx');
 
 #------------- GATK SNP and INDEL calling --------
 
@@ -339,59 +249,49 @@ my $combine_indels = CombineVariants->new(
 	previous => \@indels
 );
 
-#variant recalibration works only when operator VARIANT_RECALIBRATION
-#is set to 1 in config.xml
-
-my $phase_variations           = $combine_snps;
-my $indels_apply_recalibration = $combine_indels;
-
-if ( $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} ) {
-
-	my $snps_variant_recalibrator = VariantRecalibrator->new(
-		params            => $params,
-		previous          => [$combine_snps],
-		additional_params => [
+my $snps_variant_recalibrator = VariantRecalibrator->new(
+	params            => $params,
+	previous          => [$combine_snps],
+	additional_params => [
 "--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap",
 "--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni",
 "--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP",
 "-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ",
-			"-mode SNP",
-		]
-	);
-	$snps_variant_recalibrator->do_not_delete('recal_file');
-	$snps_variant_recalibrator->do_not_delete('tranches_file');
-	$snps_variant_recalibrator->do_not_delete('rscript_file');
-	my $snps_apply_recalibration = ApplyRecalibration->new(
-		params            => $params,
-		previous          => [$snps_variant_recalibrator],
-		additional_params => [ "-mode SNP", ]
-	);
-	$snps_apply_recalibration->do_not_delete('vcf');
-	$snps_apply_recalibration->do_not_delete('idx');
-	my $indels_variant_recalibrator = VariantRecalibrator->new(
-		params            => $params,
-		previous          => [$combine_indels],
-		additional_params => [
+		"-mode SNP",
+	]
+);
+$snps_variant_recalibrator->do_not_delete('recal_file');
+$snps_variant_recalibrator->do_not_delete('tranches_file');
+$snps_variant_recalibrator->do_not_delete('rscript_file');
+my $snps_apply_recalibration = ApplyRecalibration->new(
+	params            => $params,
+	previous          => [$snps_variant_recalibrator],
+	additional_params => [ "-mode SNP", ]
+);
+$snps_apply_recalibration->do_not_delete('vcf');
+$snps_apply_recalibration->do_not_delete('idx');
+my $indels_variant_recalibrator = VariantRecalibrator->new(
+	params            => $params,
+	previous          => [$combine_indels],
+	additional_params => [
 "--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
-			"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
-			"-mode INDEL",
-		]
-	);
-	$indels_variant_recalibrator->do_not_delete('recal_file');
-	$indels_variant_recalibrator->do_not_delete('tranches_file');
-	$indels_variant_recalibrator->do_not_delete('rscript_file');
-	$indels_apply_recalibration = ApplyRecalibration->new(
-		params            => $params,
-		previous          => [$indels_variant_recalibrator],
-		additional_params => [ "-mode INDEL", ]
-	);
-	$phase_variations = ReadBackedPhasing->new(
-		params   => $params,
-		previous => [$snps_apply_recalibration],
-		bam      => $mark_duplicates->output_by_type('bam'),
-	);
-
-}
+		"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
+		"-mode INDEL",
+	]
+);
+$indels_variant_recalibrator->do_not_delete('recal_file');
+$indels_variant_recalibrator->do_not_delete('tranches_file');
+$indels_variant_recalibrator->do_not_delete('rscript_file');
+my $indels_apply_recalibration = ApplyRecalibration->new(
+	params            => $params,
+	previous          => [$indels_variant_recalibrator],
+	additional_params => [ "-mode INDEL", ]
+);
+my $phase_variations = ReadBackedPhasing->new(
+	params   => $params,
+	previous => [$snps_apply_recalibration],
+	bam      => $mark_duplicates->output_by_type('bam'),
+);
 
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",
@@ -403,6 +303,28 @@ my $filter_low_qual = FilterLowQual->new(
 	params   => $params,
 	previous => [$variations]
 );
+
+#Merge GATK and Pindel outputs
+
+my $gatk_and_pindel_combined = CombineVariants->new(
+	out      => $project->file_prefix() . ".gp.vcf",
+	params   => $params,
+	previous => [ $filter_low_qual, $combined_pindel ]
+);
+$gatk_and_pindel_combined->program->clean_additional_params;
+$gatk_and_pindel_combined->program->additional_params(
+	[
+		"--variant:gatk" , $filter_low_qual->output_by_type('vcf'),
+		"--variant:pindel", $combined_pindel->output_by_type('vcf'),
+		"-o", $gatk_and_pindel_combined->output_by_type('vcf'),
+		"-genotypeMergeOptions PRIORITIZE",
+		"-priority gatk,pindel",
+	]
+);
+$gatk_and_pindel_combined->do_not_delete('vcf');
+$gatk_and_pindel_combined->do_not_delete('idx');
+
+
 
 my $variant_annotator = VariantAnnotator->new(
 	additional_params => [
@@ -418,7 +340,7 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E KG_FREQ.AF",
 	],
 	params   => $params,
-	previous => [$filter_low_qual]
+	previous => [$gatk_and_pindel_combined]
 );
 
 my $effect_prediction = SnpEff->new(

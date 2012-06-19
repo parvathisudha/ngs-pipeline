@@ -19,7 +19,10 @@ sub additional_params {
 	$self->{additional_params} = \@params if $additional_params;
 	return $self->{additional_params};
 }
-
+sub clean_additional_params {
+	my ( $self,  ) = @_;
+	$self->{additional_params} = [];
+}
 sub basic_params {
 	my ( $self, $basic_params ) = @_;
 	if($basic_params){

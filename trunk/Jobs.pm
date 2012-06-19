@@ -204,6 +204,7 @@ use Data::Dumper;
 		$self->output_by_type( 'vcf', $self->out );
 		$self->program->additional_params(
 			[
+				"-G",#only for the private version of pindel2vcf
 				"--reference",
 				$self->project()->{'CONFIG'}->{'GENOME'},
 				"--reference_name",

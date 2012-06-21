@@ -11,6 +11,7 @@ GetOptions(
 	'id_type=s'         => \$id_type,
 	'uniprot_db=s'     => \$uniprot_db,
 );
+
 my $annotation = GeneAnnotator->new(
 	id_type         => $id_type,
 	gene_to_protein => $gene_to_protein,
@@ -20,6 +21,7 @@ my $ann_header = $annotation->get_header();
 open IN, $in or die "Can't open $in\n";
 my $header = <IN>;
 chomp $header;
+$id_column = name_to_column($header, $id_column);
 print "$header\t$ann_header\n";
 
 while (<IN>) {
@@ -32,3 +34,12 @@ while (<IN>) {
 }
 close IN;
 
+sub name_to_column{
+	my ($h, $name) = @_;
+	my @header = split ('\t', $h);
+	my $i = 0;
+	for(my $i = 0; $i < scalar @header; $i++){
+		last if lc ($header[$i]) eq lc ($name);
+	}
+	return $i;
+}

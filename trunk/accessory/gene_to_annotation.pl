@@ -22,6 +22,7 @@ open IN, $in or die "Can't open $in\n";
 my $header = <IN>;
 chomp $header;
 $id_column = name_to_column($header, $id_column);
+warn $id_column, "\n";
 print "$header\t$ann_header\n";
 
 while (<IN>) {
@@ -37,9 +38,8 @@ close IN;
 sub name_to_column{
 	my ($h, $name) = @_;
 	my @header = split ('\t', $h);
-	my $i = 0;
 	for(my $i = 0; $i < scalar @header; $i++){
-		last if lc ($header[$i]) eq lc ($name);
+		return $i if lc(($header[$i])) eq lc ($name);
 	}
-	return $i;
+	return 0;
 }

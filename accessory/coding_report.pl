@@ -43,7 +43,7 @@ print OUT join( "\t", @result_header ), "\n";
 my $exon_num   = get_feature_num_by_title( \@vep_format, 'EXON' );
 my $intron_num = get_feature_num_by_title( \@vep_format, 'INTRON' );
 while ( my $x = $vcf->next_data_hash() ) {
-	my $ref = safe_excel_string( $x->{'REF'});
+	my $ref = safe_excel_string( [$x->{'REF'}]);
 	my $alt_alleles = safe_excel_string( $x->{'ALT'});
 	my $filter      = join( ',',  @{ $x->{'FILTER'} } );
 	my @csq         = split( ",", $x->{'INFO'}->{'CSQ'} );

@@ -43,12 +43,8 @@ print OUT join( "\t", @result_header ), "\n";
 my $exon_num   = get_feature_num_by_title( \@vep_format, 'EXON' );
 my $intron_num = get_feature_num_by_title( \@vep_format, 'INTRON' );
 while ( my $x = $vcf->next_data_hash() ) {
-	my $ref = length $x->{'REF'} < $excel_string_length_limit ? $x->{'REF'} : 'LONG_ALLELE';
-	my $alt_alleles = join( ',',  @{ $x->{'ALT'} } );
-	if(length $alt_alleles >= $excel_string_length_limit){
-		my $i = 1;
-		$alt_alleles = join( ',',  map {'LONG_ALLELE' . $i; $i++} @{ $x->{'ALT'} } );
-	}
+	my $ref = safe_excel_string( $x->{'REF'});
+	my $alt_alleles = safe_excel_string( $x->{'ALT'});
 	my $filter      = join( ',',  @{ $x->{'FILTER'} } );
 	my @csq         = split( ",", $x->{'INFO'}->{'CSQ'} );
 ###INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|PolyPhen|SIFT|CANONICAL|EXON|INTRON|CCDS">
@@ -56,7 +52,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 			$x->{'CHROM'},
 			$x->{'POS'},
 			$x->{'ID'},
-			$x->{'REF'},
+			$ref,
 			$alt_alleles,
 			$x->{'INFO'}->{'AF'},
 			$x->{'INFO'}->{'set'},
@@ -100,5 +96,14 @@ sub get_feature_num_by_title {
 		$i++;
 	}
 	return $i;
+}
+sub safe_excel_string{
+	my ($array) = @_;
+	my $result_string = join( ',',  @{ $array } );
+	if(length $result_string >= $excel_string_length_limit){
+		my $i = 1;
+		$result_string = join( ',',  map {'LONG_ALLELE' . $i; $i++} @{ $array } );
+	}	
+	return $result_string;
 }
 

@@ -101,8 +101,8 @@ sub safe_excel_string{
 	my ($array) = @_;
 	my $result_string = join( ',',  @{ $array } );
 	if(length $result_string >= $excel_string_length_limit){
-		my $i = 1;
-		$result_string = join( ',',  map {"LONG_ALLELE.$i"; $i++} @{ $array } );
+		my $i = 0;
+		$result_string = join( ',',  map {$i++; "LONG_ALLELE$i"} @{ $array } );
 	}	
 	return $result_string;
 }

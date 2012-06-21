@@ -102,7 +102,7 @@ sub safe_excel_string{
 	my $result_string = join( ',',  @{ $array } );
 	if(length $result_string >= $excel_string_length_limit){
 		my $i = 1;
-		$result_string = join( ',',  map {'LONG_ALLELE' . $i; $i++} @{ $array } );
+		$result_string = join( ',',  map {'LONG_ALLELE'} @{ $array } );
 	}	
 	return $result_string;
 }

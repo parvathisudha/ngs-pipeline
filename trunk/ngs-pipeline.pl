@@ -333,8 +333,6 @@ $gatk_and_pindel_combined->program->additional_params(
 $gatk_and_pindel_combined->do_not_delete('vcf');
 $gatk_and_pindel_combined->do_not_delete('idx');
 
-
-
 my $variant_annotator = VariantAnnotator->new(
 	additional_params => [
 		"--comp:KG,VCF $KG",

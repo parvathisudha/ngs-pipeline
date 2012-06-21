@@ -2,6 +2,9 @@ use strict;
 use Vcf;
 use Getopt::Long;
 use Data::Dumper;
+####### constants ############
+my $excel_string_length_limit = 32759;
+
 ####### get arguments      ###
 my ($in, $out);
 GetOptions( 'in=s' => \$in, 
@@ -40,7 +43,12 @@ print OUT join( "\t", @result_header ), "\n";
 my $exon_num   = get_feature_num_by_title( \@vep_format, 'EXON' );
 my $intron_num = get_feature_num_by_title( \@vep_format, 'INTRON' );
 while ( my $x = $vcf->next_data_hash() ) {
+	my $ref = length $x->{'REF'} < $excel_string_length_limit ? $x->{'REF'} : 'LONG_ALLELE';
 	my $alt_alleles = join( ',',  @{ $x->{'ALT'} } );
+	if(length $alt_alleles >= $excel_string_length_limit){
+		my $i = 1;
+		$alt_alleles = join( ',',  map {'LONG_ALLELE' . $i; $i++} @{ $x->{'ALT'} } );
+	}
 	my $filter      = join( ',',  @{ $x->{'FILTER'} } );
 	my @csq         = split( ",", $x->{'INFO'}->{'CSQ'} );
 ###INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|PolyPhen|SIFT|CANONICAL|EXON|INTRON|CCDS">
@@ -51,6 +59,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 			$x->{'REF'},
 			$alt_alleles,
 			$x->{'INFO'}->{'AF'},
+			$x->{'INFO'}->{'set'},
 			$x->{'INFO'}->{'CGI_FREQ.AF'},
 			$x->{'INFO'}->{'KG_FREQ.AF'},
 			$x->{'INFO'}->{'EUR_FREQ.AF'},

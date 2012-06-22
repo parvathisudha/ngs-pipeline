@@ -47,6 +47,8 @@
 <EMBOSS>/data/software/EMBOSS-6.4.0/emboss</EMBOSS>
 <EMBOSS_DATA>/data/software/EMBOSS-6.4.0/SHARE/EMBOSS/data</EMBOSS_DATA>
 <VCF_SORTER>/data/software</VCF_SORTER>
+<BOWTIE2>/data/software/bowtie2-2.0.0-beta6</BOWTIE2>
+<TOPHAT>/data/software/tophat-2.0.4.Linux_x86_64</TOPHAT>
 
 </PARAMETERS>
 	<DATA>

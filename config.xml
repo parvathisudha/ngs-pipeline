@@ -2,7 +2,7 @@
 <CONFIG>
 <PARAMETERS>
 <GATKGENOMEBED>F:/rogaev/programming/pipeline/human_g1k_v37.bed</GATKGENOMEBED>
-<SET>F:/rogaev/programming/pipeline/set.vcf</SET>
+<CASE>F:/rogaev/programming/pipeline/set.vcf</CASE>
 <CONTROL>F:/rogaev/programming/pipeline/set.vcf</CONTROL>
 
 <USER>reshetov</USER>

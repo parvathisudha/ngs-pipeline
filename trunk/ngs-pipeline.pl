@@ -61,7 +61,7 @@ my $dbSNP             = $project->{'CONFIG'}->{'DBSNP'};
 my $indels_mills      = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
 my $cgi               = $project->{'CONFIG'}->{'CGI'};
 my $eur               = $project->{'CONFIG'}->{'EURKG'};
-my $group_vcf         = $project->{'CONFIG'}->{'SET'};
+my $group_vcf         = $project->{'CONFIG'}->{'CASE'};
 my $control_group_vcf = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq          = $project->{'CONFIG'}->{'MAXFREQ'};
 my $loci              = $project->{'CONFIG'}->{'LOCI'};
@@ -402,7 +402,7 @@ my $hgmd_vcf_table = VariantsToTable->new(
 		"-F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
+"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F CASE.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$hgmd_vcf_grep]    #
@@ -419,8 +419,8 @@ $rare->do_not_delete('idx');
 
 my $rare_ann = VariantAnnotator->new(
 	additional_params => [
-		"--resource:SET,VCF $group_vcf",
-		"-E SET.set",
+		"--resource:CASE,VCF $group_vcf",
+		"-E CASE.set",
 		"--resource:CONTROL,VCF $control_group_vcf",
 		"-E CONTROL.set",
 	],
@@ -510,7 +510,7 @@ my $snpeff_coding_table = VariantsToTable->new(
 		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set -F CONTROL.set",
+"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F CASE.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$snpeff_coding]    #
@@ -562,7 +562,7 @@ my $reg_constraints_rare_table = VariantsToTable->new(
 		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
 		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
 		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F SET.set",
+		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F CASE.set",
 		"--showFiltered"
 	],
 	previous => [$reg_constraints_rare]    #
@@ -582,9 +582,9 @@ $in_ensemble_regulatory->do_not_delete('idx');
 
 my $regulatory_group_annotator = VariantAnnotator->new(
 	additional_params => [
-		"--resource:SET,VCF $group_vcf",
-		"-E SET.set",
-		"--resource:SET,VCF $control_group_vcf",
+		"--resource:CASE,VCF $group_vcf",
+		"-E CASE.set",
+		"--resource:CONTROL,VCF $control_group_vcf",
 		"-E CONTROL.set",
 	],
 	params   => $params,
@@ -611,7 +611,7 @@ my $regulatory_rare_table = VariantsToTable->new(
 	additional_params => [
 		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
 		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F EFF -F SET.set -F CONTROL.set",
+		"-F FILTER -F EFF -F CASE.set -F CONTROL.set",
 		"--showFiltered"
 	],
 	previous => [$regulatory_group_annotator]    #

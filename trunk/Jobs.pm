@@ -293,7 +293,7 @@ use Data::Dumper;
 		my ($self) = @_;
 		my @result;
 		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
-			push( @result, $file ) if ($type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/);#|| $type =~ m/SV_INV/
+			push( @result, $file ) if ($type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/ || $type =~ m/SV_INV/);#
 		}
 		return \@result;
 	}	

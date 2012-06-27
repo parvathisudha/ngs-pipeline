@@ -117,6 +117,11 @@ my $mark_duplicates = MarkDuplicates->new(
 	previous => [$join_lane_bams],
 );
 
+my $coverage = DepthOfCoverage->new(
+	params   => $params,
+	previous => [$mark_duplicates],
+);
+
 #------------- BreakDancer -----------------------
 my $bam2cfg = Bam2cfg->new(
 	params   => $params,

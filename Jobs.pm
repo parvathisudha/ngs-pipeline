@@ -747,6 +747,31 @@ use Data::Dumper;
 #######################################################
 {
 
+	package DepthOfCoverage;
+	our @ISA = qw( GATKJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		$self->memory(4);
+		my $input    = $self->first_previous->output_by_type('bam');
+		my $output_prefix   = $input . "." . $self->interval . ".cov";
+		$self->program->additional_params(
+			[ "-o $output_prefix", "-I $input", "--omitDepthOutputAtEachBase true", "--omitIntervalStatistics true", "--omitLocusTable true"] );
+		$self->out($output_prefix . 'sample_summary');
+		$self->output_by_type( 'sample_summary', $self->out );
+	}
+	1;
+}
+#######################################################
+{
+
 	package RealignerTargetCreator;
 	our @ISA = qw( GATKJob );
 

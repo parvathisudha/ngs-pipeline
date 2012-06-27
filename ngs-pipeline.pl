@@ -118,8 +118,12 @@ my $mark_duplicates = MarkDuplicates->new(
 );
 
 my $coverage = DepthOfCoverage->new(
-	params   => $params,
-	previous => [$mark_duplicates],
+	params            => $params,
+	previous          => [$mark_duplicates],
+	additional_params => [
+		"--omitDepthOutputAtEachBase", "--omitIntervalStatistics",
+		"--omitLocusTable",
+	]
 );
 
 #------------- BreakDancer -----------------------
@@ -185,19 +189,20 @@ for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
 	);
 	$pindel_left_aligned->do_not_delete('vcf');
 	$pindel_left_aligned->do_not_delete('idx');
-#	my $sorted_pindel = VcfSorter->new(
-#		params   => $params,
-#		previous => [$pindel_left_aligned]    #
-#	);
-#	my $fix_pindel = Substitute->new(
-#		params   => $params,
-#		in => $sorted_pindel->output_by_type( 'vcf'),
-#		out => $sorted_pindel->output_by_type( 'vcf') . '.sub.vcf',
-#		from => 'TOTAL',
-#		to => $project->{CONFIG}->{SAMPLE_NAME},
-#		previous => [$sorted_pindel],
-#	);
-#	$fix_pindel->output_by_type( 'vcf', $fix_pindel->out );
+
+	#	my $sorted_pindel = VcfSorter->new(
+	#		params   => $params,
+	#		previous => [$pindel_left_aligned]    #
+	#	);
+	#	my $fix_pindel = Substitute->new(
+	#		params   => $params,
+	#		in => $sorted_pindel->output_by_type( 'vcf'),
+	#		out => $sorted_pindel->output_by_type( 'vcf') . '.sub.vcf',
+	#		from => 'TOTAL',
+	#		to => $project->{CONFIG}->{SAMPLE_NAME},
+	#		previous => [$sorted_pindel],
+	#	);
+	#	$fix_pindel->output_by_type( 'vcf', $fix_pindel->out );
 	push( @pindel_results, $pindel_left_aligned );
 }
 
@@ -328,9 +333,12 @@ my $gatk_and_pindel_combined = CombineVariants->new(
 $gatk_and_pindel_combined->program->clean_additional_params;
 $gatk_and_pindel_combined->program->additional_params(
 	[
-		"--variant:gatk" , $filter_low_qual->output_by_type('vcf'),
-		"--variant:pindel", $combined_pindel->output_by_type('vcf'),
-		"-o", $gatk_and_pindel_combined->output_by_type('vcf'),
+		"--variant:gatk",
+		$filter_low_qual->output_by_type('vcf'),
+		"--variant:pindel",
+		$combined_pindel->output_by_type('vcf'),
+		"-o",
+		$gatk_and_pindel_combined->output_by_type('vcf'),
 		"-genotypeMergeOptions PRIORITIZE",
 		"-priority gatk,pindel",
 	]

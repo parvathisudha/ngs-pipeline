@@ -763,7 +763,7 @@ use Data::Dumper;
 		my $input    = $self->first_previous->output_by_type('bam');
 		my $output_prefix   = $input . "." . $self->interval . ".cov";
 		$self->program->additional_params(
-			[ "-o $output_prefix", "-I $input", "--omitDepthOutputAtEachBase true", "--omitIntervalStatistics true", "--omitLocusTable true"] );
+			[ "-o $output_prefix", "-I $input", ] );
 		$self->out($output_prefix . 'sample_summary');
 		$self->output_by_type( 'sample_summary', $self->out );
 	}

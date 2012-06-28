@@ -21,12 +21,14 @@ my $vep_format = $1
 my @vep_format = split( '\|', $vep_format );
 my @blank_result = map { "" } @vep_format;
 my @hgmd_format = qw/HGMDID confidence disease/;
+my @KG_format = qw/AF AFR_AF AMR_AF ASN_AF EUR_AF/;
 
 # Do some simple parsing. Most thorough but slowest way how to get the data.
 my @result_header = (
 	'CHROM',    'POS',    'ID',    'REF',     'ALT',      'AF',
-	'PROGRAM',  'SVTYPE', 'SVLEN', 'END',     'CGI_FREQ', 'KG_FREQ',
-	'EUR_FREQ', 'FILTER', 'CASE',  'CONTROL', @hgmd_format, @vep_format, 
+	'PROGRAM',  'SVTYPE', 'SVLEN', 'END',     
+	@KG_format,
+	'CGI_FREQ', 'FILTER', 'CASE',  'CONTROL', @hgmd_format, @vep_format, 
 );
 
 my $num_vep_format = scalar @vep_format;
@@ -53,9 +55,8 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$x->{'INFO'}->{'SVTYPE'},
 		$x->{'INFO'}->{'SVLEN'},
 		$x->{'INFO'}->{'END'},
+		map {$x->{'INFO'}->{$_}} @KG_format;
 		$x->{'INFO'}->{'CGI_FREQ.AF'},
-		$x->{'INFO'}->{'KG_FREQ.AF'},
-		$x->{'INFO'}->{'EUR_FREQ.AF'},
 		$filter,
 		$x->{'INFO'}->{'CASE.set'},
 		$x->{'INFO'}->{'CONTROL.set'},

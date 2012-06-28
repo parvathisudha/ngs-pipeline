@@ -20,12 +20,13 @@ my $vep_format = $1
   m/Description=\"Consequence type as predicted by VEP. Format: (.+?)\"/;
 my @vep_format = split( '\|', $vep_format );
 my @blank_result = map { "" } @vep_format;
+my @hgmd_format = qw/HGMDID confidence disease/;
 
 # Do some simple parsing. Most thorough but slowest way how to get the data.
 my @result_header = (
 	'CHROM',    'POS',    'ID',    'REF',     'ALT',      'AF',
 	'PROGRAM',  'SVTYPE', 'SVLEN', 'END',     'CGI_FREQ', 'KG_FREQ',
-	'EUR_FREQ', 'FILTER', 'CASE',  'CONTROL', @vep_format
+	'EUR_FREQ', 'FILTER', 'CASE',  'CONTROL', @hgmd_format, @vep_format, 
 );
 
 my $num_vep_format = scalar @vep_format;
@@ -56,17 +57,11 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$x->{'INFO'}->{'KG_FREQ.AF'},
 		$x->{'INFO'}->{'EUR_FREQ.AF'},
 		$filter,
-		$x->{'INFO'}->{'SNPEFF_EFFECT'},
-		$x->{'INFO'}->{'SNPEFF_FUNCTIONAL_CLASS'},
-		$x->{'INFO'}->{'SNPEFF_GENE_BIOTYPE'},
-		$x->{'INFO'}->{'SNPEFF_GENE_NAME'},
-		$x->{'INFO'}->{'SNPEFF_IMPACT'},
-		$x->{'INFO'}->{'SNPEFF_TRANSCRIPT_ID'},
-		$x->{'INFO'}->{'SNPEFF_CODON_CHANGE'},
-		$x->{'INFO'}->{'SNPEFF_AMINO_ACID_CHANGE'},
-		$x->{'INFO'}->{'SNPEFF_EXON_ID'},
-		$x->{'INFO'}->{'SET.set'},
+		$x->{'INFO'}->{'CASE.set'},
 		$x->{'INFO'}->{'CONTROL.set'},
+		$x->{'INFO'}->{'HGMDID'},
+		$x->{'INFO'}->{'confidence'},
+		$x->{'INFO'}->{'disease'},
 	);
 	for my $csq (@csq) {
 		my @vep_effect = split( '\|', $csq );

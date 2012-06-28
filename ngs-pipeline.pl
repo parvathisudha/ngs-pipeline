@@ -347,6 +347,10 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E CGI_FREQ.AF",
 		"--resource:KG_FREQ,VCF $KG",
 		"-E KG_FREQ.AF",
+		"--resource:CASE,VCF $group_vcf",
+		"-E CASE.set",
+		"--resource:CONTROL,VCF $control_group_vcf",
+		"-E CONTROL.set",		
 	],
 	params   => $params,
 	previous => [$gatk_and_pindel_combined]
@@ -406,22 +410,9 @@ my $rare = FilterFreq->new(
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');
 
-my $rare_ann = VariantAnnotator->new(
-	additional_params => [
-		"--resource:CASE,VCF $group_vcf",
-		"-E CASE.set",
-		"--resource:CONTROL,VCF $control_group_vcf",
-		"-E CONTROL.set",
-	],
-	params   => $params,
-	previous => [$rare]
-);
-$rare_ann->do_not_delete('vcf');
-$rare_ann->do_not_delete('idx');
-
 my $rare_ann_eff = VEP->new(
 	params   => $params,
-	previous => [$rare_ann]
+	previous => [$rare]
 );
 $rare_ann_eff->do_not_delete('vcf');
 $rare_ann_eff->do_not_delete('idx');

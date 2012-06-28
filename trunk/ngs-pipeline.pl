@@ -472,48 +472,6 @@ my $loci_cod_table = AddLoci->new(
 );
 $rare_cod_table->do_not_delete('txt');
 
-#For testing VEP branch. Generates report without VEP
-my $snpeff_coding = GrepVcf->new(
-	params       => $params,
-	basic_params => [ "--regexp '" . $snpeff_coding_classes_string . "'" ],
-	previous     => [$rare_ann]                                               #
-);
-$snpeff_coding->do_not_delete('vcf');
-$snpeff_coding->do_not_delete('idx');
-
-my $snpeff_coding_table = VariantsToTable->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".cod.snpeff.txt",
-	additional_params => [
-		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F CASE.set -F CONTROL.set",
-		"--showFiltered"
-	],
-	previous => [$snpeff_coding]    #
-);
-$snpeff_coding_table->do_not_delete('txt');
-
-my $snpeff_coding_table_proteins = AnnotateProteins->new(
-	params            => $params,
-	out               => $snpeff_coding_table->out . '.uniprot.txt',
-	additional_params => [
-		"--in",
-		$rare_cod_table->out,
-		"--id_column SNPEFF_TRANSCRIPT_ID",
-		"--gene_to_protein",
-		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-		"--id_type transcript",
-		"--uniprot_db",
-		$project->{'CONFIG'}->{'UNIPROT'},
-	],
-	previous => [$rare_cod_table]    #
-);
-$snpeff_coding_table_proteins->do_not_delete('txt');
-
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",

@@ -401,7 +401,7 @@ $hgmd_vcf_table->do_not_delete('txt');
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, $max_freq, ],
-	previous     => [$variant_annotator]                     #
+	previous     => [$hgmd_vcf]                     #
 );
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');

@@ -189,20 +189,6 @@ for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
 	);
 	$pindel_left_aligned->do_not_delete('vcf');
 	$pindel_left_aligned->do_not_delete('idx');
-
-	#	my $sorted_pindel = VcfSorter->new(
-	#		params   => $params,
-	#		previous => [$pindel_left_aligned]    #
-	#	);
-	#	my $fix_pindel = Substitute->new(
-	#		params   => $params,
-	#		in => $sorted_pindel->output_by_type( 'vcf'),
-	#		out => $sorted_pindel->output_by_type( 'vcf') . '.sub.vcf',
-	#		from => 'TOTAL',
-	#		to => $project->{CONFIG}->{SAMPLE_NAME},
-	#		previous => [$sorted_pindel],
-	#	);
-	#	$fix_pindel->output_by_type( 'vcf', $fix_pindel->out );
 	push( @pindel_results, $pindel_left_aligned );
 }
 

@@ -289,7 +289,7 @@ use Data::Dumper;
 		}
 		return \@result;
 	}
-	sub deletions_and_insertions_files {
+	sub VEP_compatible_files {
 		my ($self) = @_;
 		my @result;
 		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
@@ -297,6 +297,14 @@ use Data::Dumper;
 		}
 		return \@result;
 	}	
+	sub SnpEff_compatible_files {
+		my ($self) = @_;
+		my @result;
+		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
+			push( @result, $file ) if ($type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/);#
+		}
+		return \@result;
+	}		
 	1;
 }
 #######################################################
@@ -761,7 +769,7 @@ use Data::Dumper;
 		my ( $self, ) = @_;
 		$self->memory(4);
 		my $input    = $self->first_previous->output_by_type('bam');
-		my $output_prefix   = $input . "." . $self->interval . ".cov";
+		my $output_prefix   = $input . ".cov";
 		$self->program->additional_params(
 			[ "-o $output_prefix", "-I $input", ] );
 		$self->out($output_prefix . 'sample_summary');

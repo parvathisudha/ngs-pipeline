@@ -351,14 +351,6 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E CASE.set",
 		"--resource:CONTROL,VCF $control_group_vcf",
 		"-E CONTROL.set",		
-	],
-	params   => $params,
-	previous => [$gatk_and_pindel_combined]
-);
-
-##################### HGMD VARIATIONS ##############
-my $hgmd_vcf = VariantAnnotator->new(
-	additional_params => [
 		"--resource:HGMD,VCF $HGMD",
 		"-E HGMD.HGMDID",
 		"-E HGMD.confidence",
@@ -367,19 +359,18 @@ my $hgmd_vcf = VariantAnnotator->new(
 		"-E HGMD.mutationType",
 		"-E HGMD.nucleotideChange",
 		"-E HGMD.pmid",
-		"-E HGMD.variantType",
+		"-E HGMD.variantType",		
 	],
-	out      => $project->file_prefix() . ".hgmd.vcf",
 	params   => $params,
-	previous => [$variant_annotator]                      #
+	previous => [$gatk_and_pindel_combined]
 );
-$hgmd_vcf->do_not_delete('vcf');
-$hgmd_vcf->do_not_delete('idx');
+
+##################### HGMD VARIATIONS ##############
 
 my $hgmd_vcf_grep = GrepVcf->new(
 	params       => $params,
 	basic_params => ["--regexp HGMDID"],
-	previous     => [$hgmd_vcf]                          #
+	previous     => [$variant_annotator]                          #
 );
 $hgmd_vcf_grep->do_not_delete('vcf');
 $hgmd_vcf_grep->do_not_delete('idx');
@@ -405,7 +396,7 @@ $hgmd_vcf_table->do_not_delete('txt');
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, $max_freq, ],
-	previous     => [$hgmd_vcf]                     #
+	previous     => [$variant_annotator]                     #
 );
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');

@@ -172,8 +172,8 @@ $pindel->do_not_delete('SV_TD');
 $pindel->do_not_delete('SV_BP');
 
 #------------- Process Pindel output ----------------
-my @pindel_results;
-for my $pindel_out ( @{ $pindel->SnpEff_compatible_files } ) {
+my $pindel_results = {};
+for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
 	my $pindel2vcf = Pindel2Vcf->new(
 		params   => $params,
 		previous => [$pindel],
@@ -189,14 +189,17 @@ for my $pindel_out ( @{ $pindel->SnpEff_compatible_files } ) {
 	);
 	$pindel_left_aligned->do_not_delete('vcf');
 	$pindel_left_aligned->do_not_delete('idx');
-	push( @pindel_results, $pindel_left_aligned );
+	$pindel_results->{$pindel_out} = $pindel_left_aligned;
 }
+
+my @pindel_for_VEP = map {$pindel_results->{$_}} @{ $pindel->VEP_compatible_files };
+my @pindel_for_SnpEff = map {$pindel_results->{$_}} @{ $pindel->SnpEff_compatible_files };
 
 #------------- Merge Pindel output ----------------
 my $combined_pindel = CombineVariants->new(
 	out      => $project->file_prefix() . ".PINDEL.vcf",
 	params   => $params,
-	previous => \@pindel_results,
+	previous => \@pindel_for_VEP,
 );
 $combined_pindel->do_not_delete('vcf');
 $combined_pindel->do_not_delete('idx');
@@ -349,19 +352,6 @@ my $variant_annotator = VariantAnnotator->new(
 	previous => [$gatk_and_pindel_combined]
 );
 
-my $effect_prediction = SnpEff->new(
-	params   => $params,
-	previous => [$variant_annotator],    #
-);
-
-my $effect_annotator = VariantAnnotator->new(
-	additional_params => [
-		"--annotation SnpEff",
-		"--snpEffFile " . $effect_prediction->output_by_type('vcf'),
-	],
-	params   => $params,
-	previous => [ $variant_annotator, $effect_prediction ]    #
-);
 ##################### HGMD VARIATIONS ##############
 my $hgmd_vcf = VariantAnnotator->new(
 	additional_params => [
@@ -377,7 +367,7 @@ my $hgmd_vcf = VariantAnnotator->new(
 	],
 	out      => $project->file_prefix() . ".hgmd.vcf",
 	params   => $params,
-	previous => [$effect_annotator]                      #
+	previous => [$variant_annotator]                      #
 );
 $hgmd_vcf->do_not_delete('vcf');
 $hgmd_vcf->do_not_delete('idx');
@@ -411,7 +401,7 @@ $hgmd_vcf_table->do_not_delete('txt');
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, $max_freq, ],
-	previous     => [$effect_annotator]                     #
+	previous     => [$variant_annotator]                     #
 );
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');
@@ -535,10 +525,10 @@ $snpeff_coding_table_proteins->do_not_delete('txt');
 
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
-	out      => $effect_prediction->output_by_type('vcf') . ".constraints.vcf",
+	out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",
 	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
 	params   => $params,
-	previous => [$effect_prediction]                                           #
+	previous => [$variant_annotator]                                           #
 );
 $evolution_constraints_for_reg->do_not_delete('vcf');
 $evolution_constraints_for_reg->do_not_delete('idx');
@@ -681,7 +671,7 @@ $regulation_with_genes_marked->do_not_delete('txt');
 
 my $bgzip = Bgzip->new(
 	params   => $params,
-	previous => [$effect_annotator]          #
+	previous => [$variant_annotator]          #
 );
 
 my $tabix = Tabix->new(
@@ -714,10 +704,6 @@ $filter_low_qual->do_not_delete('vcf');
 $filter_low_qual->do_not_delete('idx');
 $variant_annotator->do_not_delete('vcf');
 $variant_annotator->do_not_delete('idx');
-$effect_prediction->do_not_delete('vcf');
-$effect_prediction->do_not_delete('idx');
-$effect_annotator->do_not_delete('vcf');
-$effect_annotator->do_not_delete('idx');
 $bgzip->do_not_delete('gz');
 $tabix->do_not_delete('tbi');
 

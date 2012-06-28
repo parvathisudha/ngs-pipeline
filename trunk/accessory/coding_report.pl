@@ -23,19 +23,9 @@ my @blank_result = map { "" } @vep_format;
 
 # Do some simple parsing. Most thorough but slowest way how to get the data.
 my @result_header = (
-	'CHROM',               'POS',
-	'ID',                  'REF',
-	'ALT',                 'AF',
-	'PROGRAM',             'SVTYPE',
-	'SVLEN',               'END',
-	'CGI_FREQ',            'KG_FREQ',
-	'EUR_FREQ',            'FILTER',
-	'SNPEFF_EFFECT',       'SNPEFF_FUNCTIONAL_CLASS',
-	'SNPEFF_GENE_BIOTYPE', 'SNPEFF_GENE_NAME',
-	'SNPEFF_IMPACT',       'SNPEFF_TRANSCRIPT_ID',
-	'SNPEFF_CODON_CHANGE', 'SNPEFF_AMINO_ACID_CHANGE',
-	'SNPEFF_EXON_ID',      'SET',
-	'CONTROL',             @vep_format
+	'CHROM',    'POS',    'ID',    'REF',     'ALT',      'AF',
+	'PROGRAM',  'SVTYPE', 'SVLEN', 'END',     'CGI_FREQ', 'KG_FREQ',
+	'EUR_FREQ', 'FILTER', 'CASE',  'CONTROL', @vep_format
 );
 
 my $num_vep_format = scalar @vep_format;

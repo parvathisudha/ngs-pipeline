@@ -338,15 +338,17 @@ $gatk_and_pindel_combined->do_not_delete('idx');
 my $variant_annotator = VariantAnnotator->new(
 	additional_params => [
 		"--comp:KG,VCF $KG",
-		"--comp:HapMap,VCF $hapmap",
-		"--comp:OMNI,VCF $omni",
-		"--comp:CGI,VCF $cgi",
-		"--resource:EUR_FREQ $eur",
-		"-E EUR_FREQ.AF",
-		"--resource:CGI_FREQ,VCF $cgi",
-		"-E CGI_FREQ.AF",
 		"--resource:KG_FREQ,VCF $KG",
 		"-E KG_FREQ.AF",
+		"-E KG_FREQ.AFR_AF",
+		"-E KG_FREQ.AMR_AF",
+		"-E KG_FREQ.ASN_AF",
+		"-E KG_FREQ.EUR_AF",
+				
+		"--comp:CGI,VCF $cgi",
+		"--resource:CGI_FREQ,VCF $cgi",
+		"-E CGI_FREQ.AF",
+
 		"--resource:CASE,VCF $group_vcf",
 		"-E CASE.set",
 		"--resource:CONTROL,VCF $control_group_vcf",
@@ -395,7 +397,7 @@ $hgmd_vcf_table->do_not_delete('txt');
 ##################### CODING ANALYSIS ##############
 my $rare = FilterFreq->new(
 	params       => $params,
-	basic_params => [ $max_freq, $max_freq, $max_freq, ],
+	basic_params => [ $max_freq, $max_freq, ],
 	previous     => [$variant_annotator]                     #
 );
 $rare->do_not_delete('vcf');

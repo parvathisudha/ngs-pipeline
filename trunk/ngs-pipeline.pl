@@ -173,7 +173,7 @@ $pindel->do_not_delete('SV_BP');
 
 #------------- Process Pindel output ----------------
 my @pindel_results;
-for my $pindel_out ( @{ $pindel->deletions_and_insertions_files } ) {
+for my $pindel_out ( @{ $pindel->SnpEff_compatible_files } ) {
 	my $pindel2vcf = Pindel2Vcf->new(
 		params   => $params,
 		previous => [$pindel],

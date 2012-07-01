@@ -20,8 +20,8 @@ my $vep_format = $1
   m/Description=\"Consequence type as predicted by VEP. Format: (.+?)\"/;
 my @vep_format = split( '\|', $vep_format );
 my @blank_result = map { "" } @vep_format;
-my @hgmd_format = qw/HGMDID confidence disease/;
-my @KG_format = qw/AF AFR_AF AMR_AF ASN_AF EUR_AF/;
+my @hgmd_format = qw/HGMD.HGMDID HGMD.confidence HGMD.disease/;
+my @KG_format = qw/KG_FREQ.AF KG_FREQ.AFR_AF KG_FREQ.AMR_AF KG_FREQ.ASN_AF KG_FREQ.EUR_AF/;
 
 # Do some simple parsing. Most thorough but slowest way how to get the data.
 my @result_header = (

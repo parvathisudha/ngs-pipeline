@@ -772,8 +772,9 @@ use Data::Dumper;
 		my $output_prefix   = $input . ".cov";
 		$self->program->additional_params(
 			[ "-o $output_prefix", "-I $input", ] );
-		$self->out($output_prefix . 'sample_summary');
+		$self->out($output_prefix . '.sample_summary');
 		$self->output_by_type( 'sample_summary', $self->out );
+		$self->output_by_type( 'sample_statistics', $output_prefix . '.sample_statistics' );
 	}
 	1;
 }

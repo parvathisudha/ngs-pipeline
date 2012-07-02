@@ -60,9 +60,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$filter,
 		$x->{'INFO'}->{'CASE.set'},
 		$x->{'INFO'}->{'CONTROL.set'},
-		$x->{'INFO'}->{'HGMDID'},
-		$x->{'INFO'}->{'confidence'},
-		$x->{'INFO'}->{'disease'},
+		(map {$x->{'INFO'}->{$_}} @hgmd_format),
 	);
 	for my $csq (@csq) {
 		my @vep_effect = split( '\|', $csq );

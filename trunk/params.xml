@@ -38,8 +38,8 @@
 <GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
-<VEP>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEP>
-<VEPCACHE>/data/software/variant_effect_predictor.2.4/variant_effect_predictor</VEPCACHE>
+<VEP>/data/software/variant_effect_predictor.2.5/variant_effect_predictor</VEP>
+<VEPCACHE>/data/software/variant_effect_predictor.2.5/variant_effect_predictor</VEPCACHE>
 <PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
 <VARIANT_RECALIBRATION>1</VARIANT_RECALIBRATION>

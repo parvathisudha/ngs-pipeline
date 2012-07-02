@@ -55,7 +55,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$x->{'INFO'}->{'SVTYPE'},
 		$x->{'INFO'}->{'SVLEN'},
 		$x->{'INFO'}->{'END'},
-		map {$x->{'INFO'}->{$_}} @KG_format,
+		(map {$x->{'INFO'}->{$_}} @KG_format),
 		$x->{'INFO'}->{'CGI_FREQ.AF'},
 		$filter,
 		$x->{'INFO'}->{'CASE.set'},

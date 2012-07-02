@@ -542,6 +542,7 @@ use Data::Dumper;
 				"--canonical",
 				"--numbers",
 				"--coding_only",
+				"--regulatory",
 				"--buffer_size 30000",
 				"--force_overwrite",
 				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},

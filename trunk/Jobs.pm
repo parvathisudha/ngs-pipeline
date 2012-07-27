@@ -1173,7 +1173,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(4);
+		$self->memory(8);
 		my $sample   = $self->project->{CONFIG}->{SAMPLE_NAME};
 		my @previous = @{ $self->previous };
 		my @vcfs     =

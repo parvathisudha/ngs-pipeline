@@ -401,6 +401,26 @@ use Data::Dumper;
 	}
 	1;
 }
+
+#######################################################
+{
+
+	package VcfIntersectionToReport;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("vcf_intersection_to_report.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->program->additional_params( ["--out", $self->out] );
+		$self->memory(1);
+		return $self;
+	}
+	1;
+}
+
 #######################################################
 {
 

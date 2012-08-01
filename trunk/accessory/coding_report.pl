@@ -63,6 +63,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 		(map {$x->{'INFO'}->{$_}} @hgmd_format),
 	);
 	for my $csq (@csq) {
+		$csq =~ s/|$/|./;
 		my @vep_effect = split( '\|', $csq );
 		$vep_effect[$exon_num]   =~ s/\//|/;
 		$vep_effect[$intron_num] =~ s/\//|/;

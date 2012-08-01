@@ -609,7 +609,8 @@ use Data::Dumper;
 		$self->memory(1);
 		my $in = $self->first_previous->output_by_type( 'txt' );
 		my $result = $in . '.loci.txt';
-		$self->output_by_type( 'txt', $result );
+		$self->out($result);
+		$self->output_by_type( 'txt', $self->out );
 		$self->program->additional_params( [ "--in $in", "--out $result", ] );
 		return $self;
 	}

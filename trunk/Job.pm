@@ -344,8 +344,19 @@ sub _script_name {
 sub _done_name {
 	my ( $self, $job_name ) = @_;
 	my $name = $self->job_name;
-#	$name =~ s/_(\d+)//;
 	return $self->project->script_dir() . "/task.$name.done";
+}
+
+sub output_name {
+	my ( $self, $job_name ) = @_;
+	my $name = $self->job_name;
+	return $self->project->output_dir() . "/$name.o";
+}
+
+sub error_name {
+	my ( $self, $job_name ) = @_;
+	my $name = $self->job_name;
+	return $self->project->error_dir() . "/$name.e";
 }
 
 return 1;

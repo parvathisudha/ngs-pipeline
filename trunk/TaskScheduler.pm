@@ -36,12 +36,12 @@ sub run_script {
 	my $job_name = $job->job_name();
 	my $project = $job->project;
 	my $email = $project->{'CONFIG'}->{'EMAIL'};
-	my $output_dir = $project->output_dir();
-	my $error_dir = $project->error_dir();
+	my $output = $job->output_name;
+	my $error = $job->error_name;
 	my $script_name = $self->_script_name($job_name);
 	my $task_id_file = $job->task_id_file;
 	my $task_line_end = "$script_name > $task_id_file";
-	my $add_param = "$global_qsub_params -N $job_name -o $output_dir -e $error_dir";
+	my $add_param = "$global_qsub_params -N $job_name -o $output -e $error";
 	if ($qsub_params) {
 		$qsub_params .= " $add_param";
 	}
@@ -74,8 +74,6 @@ sub make_script {
 # Make sure that the .e and .o file arrive in the
 # working directory
 #\$ -cwd
-#Merge the standard out and standard error to one file
-#\$ -j y
 
 export PATH=\$PATH:/data/software/bowtie-0.12.7
 export PATH=\$PATH:/data/software/bwa-0.5.8c

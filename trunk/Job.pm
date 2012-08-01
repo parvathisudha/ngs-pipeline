@@ -288,6 +288,9 @@ sub get_job_by_suffix {
 
 sub job_name {
 	my ($self) = @_;
+	unless($self->out()){
+		warn ("Job: ", $self->string_id(), " doesn't have output file name\n");
+	} 
 	return $self->string_id() . "_" . $self->_get_id( $self->out() );
 }
 

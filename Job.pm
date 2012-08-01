@@ -295,7 +295,7 @@ sub _get_id {
 	my ( $self, $file ) = @_;
 	$file =~ s/\//_/g;
 	$file =~ s/\://g;
-	$file .= "_" . $self->project()->{'TIME'};
+#	$file .= "_" . $self->project()->{'TIME'};
 	return $file;
 }
 

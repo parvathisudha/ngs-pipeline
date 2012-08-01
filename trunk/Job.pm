@@ -310,17 +310,6 @@ sub command {
 	}
 }
 
-sub get_time {
-	my $dir = shift;
-	opendir( DIR, $dir ) or print $!, "\n";
-	my @matches = grep( /\d{10}/, readdir(DIR) );
-	closedir(DIR);
-	if ( scalar @matches > 0 ) {
-		return $1 if $matches[0] =~ m/(\d{10})/;
-	}
-	return time;
-}
-
 sub get_all_ids {
 	my ($self) = @_;
 	my $dir    = $self->ids_dir();
@@ -355,7 +344,7 @@ sub _script_name {
 sub _done_name {
 	my ( $self, $job_name ) = @_;
 	my $name = $self->job_name;
-	$name =~ s/_(\d+)//;
+#	$name =~ s/_(\d+)//;
 	return $self->project->script_dir() . "/task.$name.done";
 }
 

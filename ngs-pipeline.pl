@@ -512,61 +512,6 @@ my $reg_constraints_rare = FilterFreq->new(
 $reg_constraints_rare->do_not_delete('vcf');
 $reg_constraints_rare->do_not_delete('idx');
 
-### ----------- Getting miRNA that a corrupted by SNVs
-my $mirna_genes = intersectBed->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".miRNA_genes",
-	additional_params => [
-		"-a", $reg_constraints_rare->out,
-		"-b", $project->{'CONFIG'}->{'MIRNA_GENES'},
-		"-wb",
-	],
-	previous => [$reg_constraints_rare]    #
-);
-$mirna_genes->do_not_delete('main');
-
-my $mirna_genes_report = VcfIntersectionToReport->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".miRNA_genes.xls",
-	additional_params => [
-		"--in",
-		$mirna_genes->out,
-		"--annotation",
-		"Name,ID",
-		"--vcf_data",
-"AF,CASE.set,CONTROL.set,KG_FREQ.AF,KG_FREQ.AFR_AF,KG_FREQ.AMR_AF,KG_FREQ.ASN_AF,KG_FREQ.EUR_AF,set",
-	],
-	previous => [$reg_constraints_rare]    #
-);
-$mirna_genes_report->do_not_delete('main');
-
-### ----------- Getting miRNA sites that a corrupted by SNVs
-my $mirna_sites = intersectBed->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".mirna_sites",
-	additional_params => [
-		"-a", $reg_constraints_rare->out,
-		"-b", $project->{'CONFIG'}->{'MIRNA_SITES'},
-		"-wb",
-	],
-	previous => [$reg_constraints_rare]    #
-);
-$mirna_sites->do_not_delete('main');
-
-my $mirna_sites_report = VcfIntersectionToReport->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".mirna_sites.xls",
-	additional_params => [
-		"--in",
-		$mirna_sites->out,
-		"--annotation",
-		"gene_id",
-		"--vcf_data",
-"AF,CASE.set,CONTROL.set,KG_FREQ.AF,KG_FREQ.AFR_AF,KG_FREQ.AMR_AF,KG_FREQ.ASN_AF,KG_FREQ.EUR_AF,set",
-	],
-	previous => [$reg_constraints_rare]    #
-);
-$mirna_sites_report->do_not_delete('main');
 
 #------------------------Fix site predictions!!!!!!!!!!!!!
 my $reg_constraints_rare_table = VariantsToTable->new(

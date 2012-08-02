@@ -589,6 +589,27 @@ use Data::Dumper;
 #######################################################
 {
 
+	package VcfToReport;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->program->name("vcf_to_report.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $vcf   = $self->first_previous->output_by_type('vcf');
+		my $table = $self->out;
+		$self->output_by_type( 'xls', $table );
+		$self->program->additional_params( [ "--in $vcf", "--out $table", ] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package AddLoci;
 	our @ISA = qw( PerlJob );
 

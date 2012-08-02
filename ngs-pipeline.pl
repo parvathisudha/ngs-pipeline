@@ -497,6 +497,48 @@ my $rare_miRNA = VEP->new(
 $rare_miRNA->do_not_delete('vcf');
 $rare_miRNA->do_not_delete('idx');
 
+### miRNA genes
+
+my $grep_miRNA = GrepVcf->new(
+	params       => $params,
+	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
+					"--regexp '" . join( '|', ("MIRNA_TRANSCRIPT", "MIRNA_MATURE") ) . "'" ,
+	],
+	previous     => [$rare_ann_eff]                                    
+);
+$grep_miRNA->do_not_delete('vcf');
+
+my $rare_miRNA_genes_report = VcfToReport->new(
+	params   => $params,
+	out      => $project->file_prefix() . ".mir_genes.xls",
+	previous => [$grep_miRNA],
+	additional_params => [
+		"--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE",
+	],
+);
+$rare_miRNA_genes_report->do_not_delete('xls');
+
+### miRNA targets
+
+my $grep_miRNA_targets = GrepVcf->new(
+	params       => $params,
+	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
+					"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'" ,
+	],
+	previous     => [$rare_ann_eff]                                    
+);
+$grep_miRNA_targets->do_not_delete('vcf');
+
+my $rare_miRNA_targets_report = VcfToReport->new(
+	params   => $params,
+	out      => $project->file_prefix() . ".mir_targets.xls",
+	previous => [$grep_miRNA_targets],
+	additional_params => [
+		"--annotation", "MIRNA_SITE,GENE",
+	],
+);
+$rare_miRNA_targets_report->do_not_delete('xls');
+
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",

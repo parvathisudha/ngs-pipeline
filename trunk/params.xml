@@ -52,6 +52,7 @@
 <MIRNA_MATURE>/data/genomes/ngs-pipeline/GRCh37/miRNA.bed.gz</MIRNA_MATURE>
 <MIRNA_TRANSCRIPT>/data/genomes/ngs-pipeline/GRCh37/miRNA_primary_transcripts.bed.gz</MIRNA_TRANSCRIPT>
 <MIRNA_SITE>/data/genomes/ngs-pipeline/GRCh37/pictar2_cons_mammals.bed.gz</MIRNA_SITE>
+<GENES_BED>/data/genomes/ngs-pipeline/GRCh37/genes.grch37.p8.bed.gz</GENES_BED>
 
 </PARAMETERS>
 	<DATA>

@@ -489,6 +489,9 @@ my $rare_miRNA = VEP->new(
 		"-custom "
 		  . $project->{'CONFIG'}->{'MIRNA_MATURE'}
 		  . ",MIRNA_MATURE,bed,overlap,0",
+		"-custom "
+		  . $project->{'CONFIG'}->{'GENES_BED'}
+		  . ",GENE,bed,overlap,0",		  
 	],
 );
 $rare_miRNA->do_not_delete('vcf');

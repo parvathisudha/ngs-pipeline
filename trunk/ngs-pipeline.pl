@@ -192,8 +192,10 @@ for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
 	$pindel_results->{$pindel_out} = $pindel_left_aligned;
 }
 
-my @pindel_for_VEP = map {$pindel_results->{$_}} @{ $pindel->VEP_compatible_files };
-my @pindel_for_SnpEff = map {$pindel_results->{$_}} @{ $pindel->SnpEff_compatible_files };
+my @pindel_for_VEP =
+  map { $pindel_results->{$_} } @{ $pindel->VEP_compatible_files };
+my @pindel_for_SnpEff =
+  map { $pindel_results->{$_} } @{ $pindel->SnpEff_compatible_files };
 
 #------------- Merge Pindel output ----------------
 my $combined_pindel = CombineVariants->new(
@@ -344,7 +346,7 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E KG_FREQ.AMR_AF",
 		"-E KG_FREQ.ASN_AF",
 		"-E KG_FREQ.EUR_AF",
-				
+
 		"--comp:CGI,VCF $cgi",
 		"--resource:CGI_FREQ,VCF $cgi",
 		"-E CGI_FREQ.AF",
@@ -352,7 +354,7 @@ my $variant_annotator = VariantAnnotator->new(
 		"--resource:CASE,VCF $group_vcf",
 		"-E CASE.set",
 		"--resource:CONTROL,VCF $control_group_vcf",
-		"-E CONTROL.set",		
+		"-E CONTROL.set",
 		"--resource:HGMD,VCF $HGMD",
 		"-E HGMD.HGMDID",
 		"-E HGMD.confidence",
@@ -361,7 +363,7 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E HGMD.mutationType",
 		"-E HGMD.nucleotideChange",
 		"-E HGMD.pmid",
-		"-E HGMD.variantType",		
+		"-E HGMD.variantType",
 	],
 	params   => $params,
 	previous => [$gatk_and_pindel_combined]
@@ -372,7 +374,7 @@ my $variant_annotator = VariantAnnotator->new(
 my $hgmd_vcf_grep = GrepVcf->new(
 	params       => $params,
 	basic_params => ["--regexp HGMDID"],
-	previous     => [$variant_annotator]                          #
+	previous     => [$variant_annotator]    #
 );
 $hgmd_vcf_grep->do_not_delete('vcf');
 $hgmd_vcf_grep->do_not_delete('idx');
@@ -398,14 +400,20 @@ $hgmd_vcf_table->do_not_delete('txt');
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, ],
-	previous     => [$variant_annotator]                     #
+	previous     => [$variant_annotator]         #
 );
 $rare->do_not_delete('vcf');
 $rare->do_not_delete('idx');
 
 my $rare_ann_eff = VEP->new(
-	params   => $params,
-	previous => [$rare]
+	params            => $params,
+	previous          => [$rare],
+	out               => $rare->output_by_type('vcf') . ".vep.vcf",
+	additional_params => [
+		"--sift=b", "--polyphen=b", "--cache",     "--per_gene",
+		"--hgnc",   "--ccds",       "--canonical", "--numbers",
+		"--coding_only",
+	],
 );
 $rare_ann_eff->do_not_delete('vcf');
 $rare_ann_eff->do_not_delete('idx');
@@ -465,6 +473,27 @@ my $loci_cod_table = AddLoci->new(
 );
 $rare_cod_table->do_not_delete('txt');
 
+########## miRNA genes and targets   ################
+my $rare_miRNA = VEP->new(
+	params            => $params,
+	previous          => [$rare],
+	out               => $rare->output_by_type('vcf') . ".miRNA.vcf",
+	additional_params => [
+		"--no_consequence",
+		"-custom "
+		  . $project->{'CONFIG'}->{'MIRNA_SITE'}
+		  . ",MIRNA_SITE,bed,overlap,0",
+		"-custom "
+		  . $project->{'CONFIG'}->{'MIRNA_TRANSCRIPT'}
+		  . ",MIRNA_TRANSCRIPT,bed,overlap,0",
+		"-custom "
+		  . $project->{'CONFIG'}->{'MIRNA_MATURE'}
+		  . ",MIRNA_MATURE,bed,overlap,0",
+	],
+);
+$rare_miRNA->do_not_delete('vcf');
+$rare_miRNA->do_not_delete('idx');
+
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",
@@ -483,7 +512,6 @@ my $reg_constraints_rare = FilterFreq->new(
 $reg_constraints_rare->do_not_delete('vcf');
 $reg_constraints_rare->do_not_delete('idx');
 
-
 ### ----------- Getting miRNA that a corrupted by SNVs
 my $mirna_genes = intersectBed->new(
 	params            => $params,
@@ -501,9 +529,12 @@ my $mirna_genes_report = VcfIntersectionToReport->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".miRNA_genes.xls",
 	additional_params => [
-		"--in", $mirna_genes->out,
-		"--annotation", "Name,ID",
-		"--vcf_data", "AF,CASE.set,CONTROL.set,KG_FREQ.AF,KG_FREQ.AFR_AF,KG_FREQ.AMR_AF,KG_FREQ.ASN_AF,KG_FREQ.EUR_AF,set",
+		"--in",
+		$mirna_genes->out,
+		"--annotation",
+		"Name,ID",
+		"--vcf_data",
+"AF,CASE.set,CONTROL.set,KG_FREQ.AF,KG_FREQ.AFR_AF,KG_FREQ.AMR_AF,KG_FREQ.ASN_AF,KG_FREQ.EUR_AF,set",
 	],
 	previous => [$reg_constraints_rare]    #
 );
@@ -526,15 +557,16 @@ my $mirna_sites_report = VcfIntersectionToReport->new(
 	params            => $params,
 	out               => $project->file_prefix() . ".mirna_sites.xls",
 	additional_params => [
-		"--in", $mirna_sites->out,
-		"--annotation", "gene_id",
-		"--vcf_data", "AF,CASE.set,CONTROL.set,KG_FREQ.AF,KG_FREQ.AFR_AF,KG_FREQ.AMR_AF,KG_FREQ.ASN_AF,KG_FREQ.EUR_AF,set",
+		"--in",
+		$mirna_sites->out,
+		"--annotation",
+		"gene_id",
+		"--vcf_data",
+"AF,CASE.set,CONTROL.set,KG_FREQ.AF,KG_FREQ.AFR_AF,KG_FREQ.AMR_AF,KG_FREQ.ASN_AF,KG_FREQ.EUR_AF,set",
 	],
 	previous => [$reg_constraints_rare]    #
 );
 $mirna_sites_report->do_not_delete('main');
-
-
 
 #------------------------Fix site predictions!!!!!!!!!!!!!
 my $reg_constraints_rare_table = VariantsToTable->new(
@@ -666,7 +698,7 @@ $regulation_with_genes_marked->do_not_delete('txt');
 
 my $bgzip = Bgzip->new(
 	params   => $params,
-	previous => [$variant_annotator]          #
+	previous => [$variant_annotator]         #
 );
 
 my $tabix = Tabix->new(

@@ -547,22 +547,14 @@ use Data::Dumper;
 		$self->program->path( $self->project()->{'CONFIG'}->{'VEP'} );
 		$self->memory(4);
 		my $vcf = $self->first_previous->output_by_type('vcf');
-		my $vep = "$vcf.vep.vcf";
+		my $vep = $self->out;
 		$self->output_by_type( 'vcf', $vep );
-		$self->out($vep);
 		$self->program->additional_params(
 			[
 				"--input_file $vcf",
-				"--format vcf --sift=b --polyphen=b",
+				"--format vcf",
 				"--cache",
 				"--vcf",
-				"--per_gene",
-				"--hgnc",
-				"--ccds",
-				"--canonical",
-				"--numbers",
-				"--coding_only",
-				"--regulatory",
 				"--buffer_size 30000",
 				"--force_overwrite",
 				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},

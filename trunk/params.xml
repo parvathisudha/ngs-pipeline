@@ -49,8 +49,9 @@
 <BOWTIE2>/data/software/bowtie2-2.0.0-beta6</BOWTIE2>
 <TOPHAT>/data/software/tophat-2.0.4.Linux_x86_64</TOPHAT>
 <GENES>/data/genomes/ngs-pipeline/GRCh37/Homo_sapiens.GRCh37.67.gtf</GENES>
-<MIRNA_GENES>/data/genomes/ngs-pipeline/GRCh37/hsa.gff3</MIRNA_GENES>
-<MIRNA_SITES>/data/genomes/ngs-pipeline/GRCh37/pictar2_cons_mammals.gtf</MIRNA_SITES>
+<MIRNA_MATURE>/data/genomes/ngs-pipeline/GRCh37/miRNA.bed.gz</MIRNA_MATURE>
+<MIRNA_TRANSCRIPT>/data/genomes/ngs-pipeline/GRCh37/miRNA_primary_transcripts.bed.gz</MIRNA_TRANSCRIPT>
+<MIRNA_SITE>/data/genomes/ngs-pipeline/GRCh37/pictar2_cons_mammals.bed.gz</MIRNA_SITE>
 
 </PARAMETERS>
 	<DATA>

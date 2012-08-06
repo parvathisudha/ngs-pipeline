@@ -21,6 +21,8 @@ GetOptions(
 	'rerun=s'  => \$rerun,         #out|done|both
 );
 
+print Dumper \@ARGV, "\n";
+
 if (scalar @ARGV){
 	warn "Unknown options:", Dumper \@ARGV, "\n";
 	exit;

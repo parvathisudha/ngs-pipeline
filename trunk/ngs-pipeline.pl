@@ -125,6 +125,9 @@ my $coverage = DepthOfCoverage->new(
 		"--omitLocusTable",
 	]
 );
+$coverage->do_not_delete('sample_summary');
+$coverage->do_not_delete('sample_statistics');
+$coverage->do_not_delete('sample_summary');
 
 #------------- BreakDancer -----------------------
 my $bam2cfg = Bam2cfg->new(
@@ -471,7 +474,7 @@ my $loci_cod_table = AddLoci->new(
 	previous          => [$cod_annotate_proteins],
 	additional_params => [ "--loci $loci", ],
 );
-$rare_cod_table->do_not_delete('txt');
+$loci_cod_table->do_not_delete('txt');
 
 ########## miRNA genes and targets   ################
 my $rare_miRNA = VEP->new(

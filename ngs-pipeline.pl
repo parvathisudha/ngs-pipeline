@@ -504,7 +504,7 @@ my $grep_miRNA = GrepVcf->new(
 	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
 					"--regexp '" . join( '|', ("MIRNA_TRANSCRIPT", "MIRNA_MATURE") ) . "'" ,
 	],
-	previous     => [$rare_ann_eff]                                    
+	previous     => [$rare_miRNA]                                    
 );
 $grep_miRNA->do_not_delete('vcf');
 
@@ -525,7 +525,7 @@ my $grep_miRNA_targets = GrepVcf->new(
 	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
 					"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'" ,
 	],
-	previous     => [$rare_ann_eff]                                    
+	previous     => [$rare_miRNA]                                    
 );
 $grep_miRNA_targets->do_not_delete('vcf');
 

@@ -14,6 +14,7 @@ use JobManager;
 
 ####### get arguments      ###
 my ( $config_file, $mode, $debug, $rerun );
+Getopt::Long::Configure("pass_through");
 GetOptions(
 	'config=s' => \$config_file,
 	'mode=s'   => \$mode,

@@ -23,10 +23,10 @@ GetOptions(
 
 print Dumper \@ARGV, "\n";
 
-if (scalar @ARGV){
-	warn "Unknown options:", Dumper \@ARGV, "\n";
-	exit;
-}
+#if (scalar @ARGV){
+#	warn "Unknown options:", Dumper \@ARGV, "\n";
+#	exit 0;
+#}
  
 
 ####### general parameters ###

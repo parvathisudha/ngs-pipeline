@@ -525,7 +525,7 @@ use Data::Dumper;
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
 		my $vcf  = $self->first_previous->output_by_type('vcf');
-		my $grep = "$vcf.grep.vcf";
+		my $grep = $self->out ? $self->out : "$vcf.grep.vcf" ;
 		$self->output_by_type( 'vcf', $grep );
 		$self->out($grep);
 		$self->program->additional_params( ["--in $vcf --out $grep"] );

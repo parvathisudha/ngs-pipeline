@@ -189,6 +189,10 @@ sub completed {
 	elsif ( $rerun eq 'both' ) {
 		return 1 if ( ( -s $self->out ) && ( -s $self->_done_name ) );
 	}
+	else{
+		warn "You should specify --rerun option.\nAvailable options are: out, done, both.\n";
+		exit 0;
+	}
 	return 0;
 }
 

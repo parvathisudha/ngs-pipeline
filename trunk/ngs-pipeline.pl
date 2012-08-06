@@ -14,13 +14,18 @@ use JobManager;
 
 ####### get arguments      ###
 my ( $config_file, $mode, $debug, $rerun );
-Getopt::Long::Configure( 'pass_through', 'no_autoabbrev');
 GetOptions(
 	'config=s' => \$config_file,
 	'mode=s'   => \$mode,
 	'debug'    => \$debug,
 	'rerun=s'  => \$rerun,         #out|done|both
 );
+
+if (scalar @ARGV){
+	warn "Unknown options:", Dumper \@ARGV, "\n";
+	exit;
+}
+ 
 
 ####### general parameters ###
 my $params_file = "params.xml";

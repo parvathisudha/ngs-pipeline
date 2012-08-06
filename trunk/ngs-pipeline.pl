@@ -501,6 +501,7 @@ $rare_miRNA->do_not_delete('idx');
 
 my $grep_miRNA = GrepVcf->new(
 	params       => $params,
+	out      => $project->file_prefix() . ".mir_genes.vcf",
 	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
 					"--regexp '" . join( '|', ("MIRNA_TRANSCRIPT", "MIRNA_MATURE") ) . "'" ,
 	],
@@ -522,6 +523,7 @@ $rare_miRNA_genes_report->do_not_delete('xls');
 
 my $grep_miRNA_targets = GrepVcf->new(
 	params       => $params,
+	out      => $project->file_prefix() . ".mir_targets.vcf",
 	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
 					"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'" ,
 	],

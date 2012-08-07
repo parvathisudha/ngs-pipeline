@@ -53,6 +53,7 @@ sub run_script {
 	$task =~ s/\s+/ /g;
 	print "$task\n-------------------------------\n";
 	unless($self->{'DEBUG'}){
+		system("rm -f $output $error");
 		system($task);
 	}
 }

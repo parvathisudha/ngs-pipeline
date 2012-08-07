@@ -6,30 +6,28 @@ use Data::Dumper;
 my $excel_string_length_limit = 100;
 
 ####### get arguments      ###
-my ( $in, $out, $filter_out, $filter_in, $annotation );
+my ( $in, $out, $annotation );
 GetOptions(
-	'in=s'  => \$in,
-	'out=s' => \$out,
-	'annotation=s' => \$annotation,	
-	'filter_out=s' => \$filter_out,
-	'filter_in=s' => \$filter_in,	
+	'in=s'         => \$in,
+	'out=s'        => \$out,
+	'annotation=s' => \$annotation,
 );
 
 my $vcf = Vcf->new( file => $in );
 $vcf->parse_header( silent => 1 );
 
 my @hgmd_format = qw/HGMD.HGMDID HGMD.confidence HGMD.disease/;
-my @KG_format = qw/KG_FREQ.AF KG_FREQ.AFR_AF KG_FREQ.AMR_AF KG_FREQ.ASN_AF KG_FREQ.EUR_AF/;
+my @KG_format   =
+  qw/KG_FREQ.AF KG_FREQ.AFR_AF KG_FREQ.AMR_AF KG_FREQ.ASN_AF KG_FREQ.EUR_AF/;
 my @vep_format = split /,/, $annotation;
-$filter_out =~ s/,/\|/g;
-$filter_in =~ s/,/\|/g;
 
 # Do some simple parsing. Most thorough but slowest way how to get the data.
 my @result_header = (
-	'CHROM',    'POS',    'ID',    'REF',     'ALT',      'AF',
-	'PROGRAM',  'SVTYPE', 'SVLEN', 'END',     
-	@KG_format,
-	'CGI_FREQ', 'FILTER', 'CASE',  'CONTROL', @hgmd_format, @vep_format, 
+	'CHROM',  'POS',  'ID',       'REF',
+	'ALT',    'AF',   'PROGRAM',  'SVTYPE',
+	'SVLEN',  'END',  @KG_format, 'CGI_FREQ',
+	'FILTER', 'CASE', 'CONTROL',  @hgmd_format,
+	@vep_format,
 );
 
 my $num_vep_format = scalar @vep_format;
@@ -40,8 +38,8 @@ print OUT join( "\t", @result_header ), "\n";
 while ( my $x = $vcf->next_data_hash() ) {
 	my $ref         = safe_excel_string( [ $x->{'REF'} ] );
 	my $alt_alleles = safe_excel_string( $x->{'ALT'} );
-	my $filter      = join( ',', @{ $x->{'FILTER'} } );	
-	my @to_print = (
+	my $filter      = join( ',', @{ $x->{'FILTER'} } );
+	my @to_print    = (
 		$x->{'CHROM'},
 		$x->{'POS'},
 		$x->{'ID'},
@@ -52,20 +50,16 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$x->{'INFO'}->{'SVTYPE'},
 		$x->{'INFO'}->{'SVLEN'},
 		$x->{'INFO'}->{'END'},
-		(map {$x->{'INFO'}->{$_}} @KG_format),
+		( map { $x->{'INFO'}->{$_} } @KG_format ),
 		$x->{'INFO'}->{'CGI_FREQ.AF'},
 		$filter,
 		$x->{'INFO'}->{'CASE.set'},
 		$x->{'INFO'}->{'CONTROL.set'},
-		(map {$x->{'INFO'}->{$_}} @hgmd_format),
-		(map {$x->{'INFO'}->{$_}} @vep_format),
+		( map { $x->{'INFO'}->{$_} } @hgmd_format ),
+		( map { $x->{'INFO'}->{$_} } @vep_format ),
 	);
-	my $string_result = join( "\t", ( @to_print) ) . "\n";
-#	if($string_result =~ m/$filter_in/){
-#		unless($string_result =~ m/$filter_out/){
-			print OUT $string_result;
-#		}
-#	}
+	my $string_result = join( "\t", (@to_print) ) . "\n";
+	print OUT $string_result;
 }
 
 close OUT;

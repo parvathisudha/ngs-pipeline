@@ -61,11 +61,11 @@ while ( my $x = $vcf->next_data_hash() ) {
 		(map {$x->{'INFO'}->{$_}} @vep_format),
 	);
 	my $string_result = join( "\t", ( @to_print) ) . "\n";
-	if($string_result =~ m/$filter_in/){
-		unless($string_result =~ m/$filter_out/){
+#	if($string_result =~ m/$filter_in/){
+#		unless($string_result =~ m/$filter_out/){
 			print OUT $string_result;
-		}
-	}
+#		}
+#	}
 }
 
 close OUT;

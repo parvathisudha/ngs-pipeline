@@ -551,6 +551,23 @@ my $rare_miRNA_targets_report = VcfToReport->new(
 );
 $rare_miRNA_targets_report->do_not_delete('xls');
 
+my $rare_miRNA_targets_report_proteins = AnnotateProteins->new(
+	params            => $params,
+	out               => $project->file_prefix() . ".mir_targets.a.xls",
+	additional_params => [
+		"--in",
+		$rare_miRNA_targets_report->out,
+		"--id_column gene",
+		"--gene_to_protein",
+		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+		"--id_type gene",
+		"--uniprot_db",
+		$project->{'CONFIG'}->{'UNIPROT'},
+	],
+	previous => [$rare_cod_table]    #
+);
+$rare_miRNA_targets_report_proteins->do_not_delete('main');
+
 ########## REGULATION ANALYSIS ######################
 my $evolution_constraints_for_reg = IntersectVcfBed->new(
 	out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",

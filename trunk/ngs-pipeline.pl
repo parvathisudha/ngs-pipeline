@@ -133,6 +133,8 @@ my $insert_size_metrics = CollectInsertSizeMetrics->new(
 	params   => $params,
 	previous => [$mark_duplicates],
 );
+$insert_size_metrics->do_not_delete('txt');
+$insert_size_metrics->do_not_delete('hist');
 
 my $coverage = DepthOfCoverage->new(
 	params            => $params,

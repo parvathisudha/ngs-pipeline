@@ -129,6 +129,11 @@ my $mark_duplicates = MarkDuplicates->new(
 	previous => [$join_lane_bams],
 );
 
+my $insert_size_metrics = CollectInsertSizeMetrics->new(
+	params   => $params,
+	previous => [$mark_duplicates],
+);
+
 my $coverage = DepthOfCoverage->new(
 	params            => $params,
 	previous          => [$mark_duplicates],

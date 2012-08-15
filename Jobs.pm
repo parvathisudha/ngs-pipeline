@@ -1692,6 +1692,44 @@ use Data::Dumper;
 {
 	use Data::Dumper;
 
+	package CollectInsertSizeMetrics;
+	our @ISA = qw( PicardJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		return $self;
+	}
+
+	sub initialize {
+		my ( $self, ) = @_;
+		my $tmp_dir = $self->project()->dir;
+		$self->memory(5);
+		my $input    = $self->first_previous->output_by_type( 'bam');
+		my $name = $self->project()->file_prefix() . ".is";
+		my $hist = "$name.hist";
+		my $out = "$name.txt";
+		my $ref = $self->project()->{CONFIG}->{GENOME};
+		$self->program->additional_params(
+			[
+				"HISTOGRAM_FILE=$hist",
+				"INPUT=$input",      "OUTPUT=$out",
+				"STOP_AFTER=10000000", "REFERENCE_SEQUENCE=$ref",
+			]
+		);
+		$self->out($out);
+		$self->output_by_type( 'txt', $out );
+		$self->output_by_type( 'hist', $hist );
+	}
+	1;
+}
+
+
+#######################################################
+{
+	use Data::Dumper;
+
 	package SortSam;
 	our @ISA = qw( PicardJob );
 

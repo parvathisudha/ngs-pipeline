@@ -714,7 +714,7 @@ use Data::Dumper;
 		$self->memory(1);
 		my $lane         = $self->{lane};
 		my $id           = $lane->{ID};
-		my $file_name    = $project->file_prefix() . $id . ".tel";
+		my $file_name    = $self->project()->file_prefix() . $id . ".tel";
 		my $result       = $file_name . ".result";
 		my $distribution = $file_name . ".distribution";
 		my $samtools     = $self->project()->{CONFIG}->{SAMTOOLS} . "/samtools";

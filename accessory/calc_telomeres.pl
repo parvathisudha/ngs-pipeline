@@ -26,7 +26,8 @@ for my $file (@file) {
 	my $strings_from_file = 0;
 	while ( my $str = <$fh> ) {
 		chomp $str;
-		if(($strings_from_file % 4) == 0){
+		$strings_from_file++;
+		if((($strings_from_file-2) % 4) == 0){
 			my $observed_f = 0;
 			my $observed_r = 0;
 			$observed_f++ while ( $str =~ m/TTAGGG/g );
@@ -48,7 +49,7 @@ for my $file (@file) {
 				$telomere_repeats_num += $rep;
 			}			
 		}
-		$strings_from_file++;
+
 		if ( $strings_from_file / 4 >= $reads_limit / ( scalar @file ) ) {
 			last;
 		}

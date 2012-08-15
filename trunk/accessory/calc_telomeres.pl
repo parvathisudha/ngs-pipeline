@@ -25,6 +25,7 @@ for my $file(@file){
 my $fh = get_stream($file);
 my $strings_from_file = 0;
 while(my $str = <$fh>){
+	chomp $str;
 	if($is_seq == 1){
 	        my $observed_f = 0;
 	        my $observed_r = 0;
@@ -32,6 +33,7 @@ while(my $str = <$fh>){
 	        $observed_r++ while($str =~ m/CCCTAA/g);
 	        $total_reads++;
 		$reads_len += length $str;
+		print "READS_LEN: $reads_len\n";
 		my $rep = ($observed_f > $observed_r) ? $observed_f : $observed_r;
                 if(exists $telomere_distribution->{$rep}){
                 	$telomere_distribution->{$rep} = $telomere_distribution->{$rep} + 1;

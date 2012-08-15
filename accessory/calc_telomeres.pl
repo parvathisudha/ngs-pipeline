@@ -34,7 +34,6 @@ for my $file (@file) {
 			$observed_r++ while ( $str =~ m/CCCTAA/g );
 			$total_reads++;
 			$reads_len += length $str;
-			print "READS_LEN: $reads_len\n";
 			my $rep = ( $observed_f > $observed_r ) ? $observed_f : $observed_r;
 			if ( exists $telomere_distribution->{$rep} ) {
 				$telomere_distribution->{$rep} = $telomere_distribution->{$rep} + 1;
@@ -49,7 +48,6 @@ for my $file (@file) {
 				$telomere_repeats_num += $rep;
 			}			
 		}
-
 		if ( $strings_from_file / 4 >= $reads_limit / ( scalar @file ) ) {
 			last;
 		}

@@ -110,6 +110,11 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		previous => [$root_job],
 		lane     => $lane
 	);
+	my $telomere_count = CalcTelomeres->new(
+		params   => $params,
+		previous => [$root_job],
+		lane     => $lane
+	);
 	push( @lanes_processing, $process_lane->last_job );
 }
 

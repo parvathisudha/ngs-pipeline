@@ -182,7 +182,12 @@ use Data::Dumper;
 		die "The input file is not specified!\n",  unless $self->in;
 		die "The output file is not specified!\n", unless $self->out;
 		$self->memory(1);
-		$self->program->additional_params( [ "\'s/" . $self->{from} . '/' . $self->{to} .'/\'', $self->in, ">", $self->out ] );
+		$self->program->additional_params(
+			[
+				"\'s/" . $self->{from} . '/' . $self->{to} . '/\'',
+				$self->in, ">", $self->out
+			]
+		);
 		return $self;
 	}
 	1;
@@ -224,7 +229,7 @@ use Data::Dumper;
 		$self->output_by_type( 'vcf', $self->out );
 		$self->program->additional_params(
 			[
-				"-G",#only for the private version of pindel2vcf
+				"-G",    #only for the private version of pindel2vcf
 				"--reference",
 				$self->project()->{'CONFIG'}->{'GENOME'},
 				"--reference_name",
@@ -289,22 +294,30 @@ use Data::Dumper;
 		}
 		return \@result;
 	}
+
 	sub VEP_compatible_files {
 		my ($self) = @_;
 		my @result;
 		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
-			push( @result, $file ) if ($type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/ || $type =~ m/SV_INV/);#
+			push( @result, $file )
+			  if ( $type =~ m/SV_D/
+				|| $type =~ m/SV_LI/
+				|| $type =~ m/SV_SI/
+				|| $type =~ m/SV_INV/ );    #
 		}
 		return \@result;
-	}	
+	}
+
 	sub SnpEff_compatible_files {
 		my ($self) = @_;
 		my @result;
 		while ( ( $type, $file ) = each %{ $self->{output_by_type} } ) {
-			push( @result, $file ) if ($type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/);#
+			push( @result, $file )
+			  if ( $type =~ m/SV_D/ || $type =~ m/SV_LI/ || $type =~ m/SV_SI/ )
+			  ;                             #
 		}
 		return \@result;
-	}		
+	}
 	1;
 }
 #######################################################
@@ -390,8 +403,8 @@ use Data::Dumper;
 		$self->program->name("vcfsorter.pl");
 		$self->program->path( $self->project()->{'CONFIG'}->{'VCF_SORTER'} );
 		$self->memory(8);
-		my $vcf  = $self->first_previous->output_by_type('vcf');
-		my $dict  = $self->project()->{'CONFIG'}->{'GENOME_DICT'};
+		my $vcf    = $self->first_previous->output_by_type('vcf');
+		my $dict   = $self->project()->{'CONFIG'}->{'GENOME_DICT'};
 		my $sorted = "$vcf.s.vcf";
 		$self->output_by_type( 'vcf', $sorted );
 		$self->output_by_type( 'idx', $sorted . '.idx' );
@@ -414,7 +427,7 @@ use Data::Dumper;
 		bless $self, $class;
 		$self->program->name("vcf_intersection_to_report.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
-		$self->program->additional_params( ["--out", $self->out] );
+		$self->program->additional_params( [ "--out", $self->out ] );
 		$self->memory(1);
 		return $self;
 	}
@@ -524,8 +537,8 @@ use Data::Dumper;
 		$self->program->name("grep_vcf.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $vcf  = $self->first_previous->output_by_type('vcf');
-		my $grep = $self->out ? $self->out : "$vcf.grep.vcf" ;
+		my $vcf = $self->first_previous->output_by_type('vcf');
+		my $grep = $self->out ? $self->out : "$vcf.grep.vcf";
 		$self->output_by_type( 'vcf', $grep );
 		$self->out($grep);
 		$self->program->additional_params( ["--in $vcf --out $grep"] );
@@ -620,7 +633,7 @@ use Data::Dumper;
 		$self->program->name("add_loci.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $in = $self->first_previous->output_by_type( 'txt' );
+		my $in     = $self->first_previous->output_by_type('txt');
 		my $result = $in . '.loci.txt';
 		$self->out($result);
 		$self->output_by_type( 'txt', $self->out );
@@ -682,6 +695,49 @@ use Data::Dumper;
 		$self->memory(1);
 		$self->output_by_type( 'txt', $self->out );
 		$self->program->basic_params( [ ">", $self->out, ] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package CalcTelomeres;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("calc_telomeres.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $lane         = $self->{lane};
+		my $id           = $lane->{ID};
+		my $file_name    = $project->file_prefix() . $id . ".tel";
+		my $result       = $file_name . ".result";
+		my $distribution = $file_name . ".distribution";
+		my $samtools     = $self->project()->{CONFIG}->{SAMTOOLS} . "/samtools";
+		$self->output_by_type( 'result',       $result );
+		$self->output_by_type( 'distribution', $distribution );
+		$self->out($result);
+		$self->out($output);
+		$self->program->additional_params(
+			[
+"--reads_limit 10000000 --result $result --distribution $distribution --samtools $samtools"
+			]
+		);
+
+		if ( $lane->{FORWARD} ) {
+			$self->program->additional_params( [ "--file", $lane->{FORWARD} ] );
+		}
+		if ( $lane->{REVERSE} ) {
+			$self->program->additional_params( [ "--file", $lane->{REVERSE} ] );
+		}
+		if ( $lane->{BAM1} ) {
+			$self->program->additional_params( [ "--file", $lane->{BAM1} ] );
+		}
+
 		return $self;
 	}
 	1;
@@ -803,13 +859,14 @@ use Data::Dumper;
 	sub initialize {
 		my ( $self, ) = @_;
 		$self->memory(4);
-		my $input    = $self->first_previous->output_by_type('bam');
-		my $output_prefix   = $input . ".cov";
+		my $input         = $self->first_previous->output_by_type('bam');
+		my $output_prefix = $input . ".cov";
 		$self->program->additional_params(
 			[ "-o $output_prefix", "-I $input", ] );
-		$self->out($output_prefix . '.sample_summary');
+		$self->out( $output_prefix . '.sample_summary' );
 		$self->output_by_type( 'sample_summary', $self->out );
-		$self->output_by_type( 'sample_statistics', $output_prefix . '.sample_statistics' );
+		$self->output_by_type( 'sample_statistics',
+			$output_prefix . '.sample_statistics' );
 	}
 	1;
 }
@@ -1154,8 +1211,8 @@ use Data::Dumper;
 		my $input      = $self->first_previous->output_by_type('bam');
 		my $variations = $self->first_previous->output_by_type('vcf');
 		my $output = $self->out ? $self->out : $variations . ".annotated.vcf";
-		  
-		my $bam        = "";
+
+		my $bam = "";
 		$bam = "-I $input" if $input;
 		$self->program->additional_params(
 			[

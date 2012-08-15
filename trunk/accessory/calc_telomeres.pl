@@ -92,7 +92,7 @@ sub get_stream{
 		return \*FILE;
 	}
 	elsif($file =~ m/bam$/){
-		open FILE, "$samtools view $file | awk \'{print \"@\"\$1\"\\n\"\$10\"\\n+\"\$1\"\\n\"\$11}\' | " or die "Can't open $file\n";		
+		open FILE, "$samtools view $file | awk \'{print \"@\"\$1\"\\n\"\$10\"\\n+\"\$1\"\\n\"\$11\"\\n\"}\' | " or die "Can't open $file\n";		
 		return \*FILE;
 	}
 	else{

@@ -1,7 +1,5 @@
 use strict;
 use Getopt::Long;
-use GeneAnnotator;
-use Data::Dumper;
 ####### get arguments      ###
 my ( $table, $annotation, $table_id_columns, $table_columns,
 	$annotation_id_columns, $annotation_columns, $skip_table_header, $skip_annotation_header, $annotation_header,

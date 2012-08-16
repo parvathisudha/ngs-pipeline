@@ -724,7 +724,7 @@ use Data::Dumper;
 		$self->out($output);
 		$self->program->additional_params(
 			[
-"--reads_limit 10000000 --result $result --distribution $distribution --samtools $samtools"
+"--reads_limit 100000000 --result $result --distribution $distribution --samtools $samtools"
 			]
 		);
 

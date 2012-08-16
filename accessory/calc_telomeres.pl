@@ -54,7 +54,8 @@ for my $file (@file) {
 	}
 	close $fh;
 }
-my $genome_size = 3600000000;
+my $genome_size = 3195751584;
+#http://www.ncbi.nlm.nih.gov/projects/genome/assembly/grc/human/data/index.shtml
 
 my $coverage           = $reads_len / $genome_size;
 my $tel_per_chr_length = $genome_size * $telomers_len / ( $reads_len * 46 );

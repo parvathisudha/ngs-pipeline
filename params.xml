@@ -48,6 +48,7 @@
 <VCF_SORTER>/data/software</VCF_SORTER>
 <BOWTIE2>/data/software/bowtie2-2.0.0-beta6</BOWTIE2>
 <TOPHAT>/data/software/tophat-2.0.4.Linux_x86_64</TOPHAT>
+<FASTQ_QUALITY_FILTER>/data/software/fastx_toolkit-0.0.13/src/fastq_quality_filter/fastq_quality_filter</FASTQ_QUALITY_FILTER>
 <GENES>/data/genomes/ngs-pipeline/GRCh37/Homo_sapiens.GRCh37.67.gtf</GENES>
 <MIRNA_MATURE>/data/genomes/ngs-pipeline/GRCh37/miRNA.bed.gz</MIRNA_MATURE>
 <MIRNA_TRANSCRIPT>/data/genomes/ngs-pipeline/GRCh37/miRNA_primary_transcripts.bed.gz</MIRNA_TRANSCRIPT>

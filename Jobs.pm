@@ -718,13 +718,19 @@ use Data::Dumper;
 		my $result       = $file_name . ".result";
 		my $distribution = $file_name . ".distribution";
 		my $samtools     = $self->project()->{CONFIG}->{SAMTOOLS} . "/samtools";
+		my $fastq_quality_filter =
+		  $self->project()->{CONFIG}->{FASTQ_QUALITY_FILTER};
 		$self->output_by_type( 'result',       $result );
 		$self->output_by_type( 'distribution', $distribution );
 		$self->out($result);
 		$self->out($output);
 		$self->program->additional_params(
 			[
-"--reads_limit 100000000 --result $result --distribution $distribution --samtools $samtools"
+				"--reads_limit 100000000",
+				"--result $result",
+				"--distribution $distribution",
+				"--samtools $samtools",
+				"--fastq_quality_filter $fastq_quality_filter",
 			]
 		);
 
@@ -1706,25 +1712,24 @@ use Data::Dumper;
 		my ( $self, ) = @_;
 		my $tmp_dir = $self->project()->dir;
 		$self->memory(5);
-		my $input    = $self->first_previous->output_by_type( 'bam');
-		my $name = $self->project()->file_prefix() . ".is";
-		my $hist = "$name.hist";
-		my $out = "$name.txt";
-		my $ref = $self->project()->{CONFIG}->{GENOME};
+		my $input = $self->first_previous->output_by_type('bam');
+		my $name  = $self->project()->file_prefix() . ".is";
+		my $hist  = "$name.hist";
+		my $out   = "$name.txt";
+		my $ref   = $self->project()->{CONFIG}->{GENOME};
 		$self->program->additional_params(
 			[
 				"HISTOGRAM_FILE=$hist", "METRIC_ACCUMULATION_LEVEL=LIBRARY",
-				"INPUT=$input",      "OUTPUT=$out",
-				"STOP_AFTER=10000000", "REFERENCE_SEQUENCE=$ref",
+				"INPUT=$input",         "OUTPUT=$out",
+				"STOP_AFTER=10000000",  "REFERENCE_SEQUENCE=$ref",
 			]
 		);
 		$self->out($out);
-		$self->output_by_type( 'txt', $out );
+		$self->output_by_type( 'txt',  $out );
 		$self->output_by_type( 'hist', $hist );
 	}
 	1;
 }
-
 
 #######################################################
 {

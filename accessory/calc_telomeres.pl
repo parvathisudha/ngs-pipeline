@@ -2,7 +2,7 @@ use strict;
 use Data::Dumper;
 use Getopt::Long;
 ####### get arguments      ###
-my ( @file, $out, $reads_limit, $samtools, $result_file, $distribution_file );
+my ( @file, $out, $reads_limit, $samtools, $result_file, $distribution_file , $fastq_quality_filter );
 GetOptions(
 	'file=s@'        => \@file,
 	'out=s'          => \$out,
@@ -10,6 +10,7 @@ GetOptions(
 	'samtools=s'     => \$samtools,
 	'result=s'       => \$result_file,
 	'distribution=s' => \$distribution_file,
+	'fastq_quality_filter=s' => \$fastq_quality_filter,
 );
 
 my $telomere_repeats_num  = 0;
@@ -20,6 +21,7 @@ my $reads_len             = 0;
 my $telomers_len          = 0;
 my $min_tel_rep           = 10;
 my $telomere_distribution = {};
+my $quality_filter = "$fastq_quality_filter -q 30 -p 90";
 
 for my $file (@file) {
 	my $fh                = get_stream($file);
@@ -86,12 +88,12 @@ close DISTRIBUTION;
 sub get_stream {
 	my ($file) = @_;
 	if ( $file =~ m/gz$/ ) {
-		open FILE, "zcat $file |" or die "Can't open $file\n";
+		open FILE, "zcat $file | $quality_filter |" or die "Can't open $file\n";
 		return \*FILE;
 	}
 	elsif ( $file =~ m/bam$/ ) {
 		open FILE,
-"$samtools view $file | awk \'{print \"@\"\$1\"\\n\"\$10\"\\n+\"\$1\"\\n\"\$11}\' | "
+"$samtools view $file | awk \'{print \"@\"\$1\"\\n\"\$10\"\\n+\"\$1\"\\n\"\$11}\' | $quality_filter |"
 		  or die "Can't open $file\n";
 		return \*FILE;
 	}

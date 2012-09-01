@@ -1745,7 +1745,7 @@ use Data::Dumper;
 		my $ref   = $self->project()->{CONFIG}->{GENOME};
 		$self->program->additional_params(
 			[
-				"HISTOGRAM_FILE=$hist", "METRIC_ACCUMULATION_LEVEL=LIBRARY",
+				"HISTOGRAM_FILE=$hist", "METRIC_ACCUMULATION_LEVEL=READ_GROUP",
 				"INPUT=$input",         "OUTPUT=$out",
 				"STOP_AFTER=10000000",  "REFERENCE_SEQUENCE=$ref",
 			]

@@ -702,6 +702,36 @@ use Data::Dumper;
 #######################################################
 {
 
+	package NormalizeTelomeres;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("normalize_telomers.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $out = $self->first_previous->out . ".norm";
+		$self->out($out);
+		$self->program->additional_params(
+			[
+				"--normalization",
+				$self->project()->install_dir
+				  . "/accessory/normalization.tel.distribution",
+				"--input",
+				$self->first_previous->out,
+				"--result $out",
+			]
+		);
+		return $self;
+	}
+	1;
+}
+
+#######################################################
+{
+
 	package CalcTelomeres;
 	our @ISA = qw( PerlJob );
 
@@ -715,19 +745,15 @@ use Data::Dumper;
 		my $lane         = $self->{lane};
 		my $id           = $lane->{ID};
 		my $file_name    = $self->project()->file_prefix() . "." . $id . ".tel";
-		my $result       = $file_name . ".result";
 		my $distribution = $file_name . ".distribution";
 		my $samtools     = $self->project()->{CONFIG}->{SAMTOOLS} . "/samtools";
 		my $fastq_quality_filter =
 		  $self->project()->{CONFIG}->{FASTQ_QUALITY_FILTER};
-		$self->output_by_type( 'result',       $result );
 		$self->output_by_type( 'distribution', $distribution );
-		$self->out($result);
-		$self->out($output);
+		$self->out($distribution);
 		$self->program->additional_params(
 			[
 				"--reads_limit 100000000",
-				"--result $result",
 				"--distribution $distribution",
 				"--samtools $samtools",
 				"--fastq_quality_filter $fastq_quality_filter",

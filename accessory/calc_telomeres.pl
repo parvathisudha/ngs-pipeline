@@ -79,7 +79,7 @@ for my $file (@file) {
 
 open DISTRIBUTION, ">$distribution_file"
   or die "Can't write to $distribution_file\n";
-print DISTRIBUTION "REPEAT_LENGTH\tREADS\n";
+print DISTRIBUTION "REPEAT_LENGTH\tREADS\n" if (scalar keys %$telomere_distribution);
 for ( sort { $a <=> $b } keys %$telomere_distribution ) {
 	print DISTRIBUTION $_, "\t", $telomere_distribution->{$_}, "\n";
 }

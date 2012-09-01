@@ -745,7 +745,7 @@ use Data::Dumper;
 		my $lane         = $self->{lane};
 		my $id           = $lane->{ID};
 		my $file_name    = $self->project()->file_prefix() . "." . $id . ".tel";
-		my $distribution = $file_name . ".distribution";
+		my $distribution = $file_name . ".result";
 		my $samtools     = $self->project()->{CONFIG}->{SAMTOOLS} . "/samtools";
 		my $fastq_quality_filter =
 		  $self->project()->{CONFIG}->{FASTQ_QUALITY_FILTER};

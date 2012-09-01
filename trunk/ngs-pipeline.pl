@@ -115,6 +115,10 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		previous => [$root_job],
 		lane     => $lane
 	);
+	my $telomere_norm = NormalizeTelomeres->new(
+		params   => $params,
+		previous => [$telomere_count],
+	);	
 	push( @lanes_processing, $process_lane->last_job );
 }
 

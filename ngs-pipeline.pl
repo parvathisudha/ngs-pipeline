@@ -22,11 +22,10 @@ GetOptions(
 	'rerun=s'  => \$rerun,         #out|done|both
 );
 
-if (scalar @ARGV){
+if ( scalar @ARGV ) {
 	warn "Unknown options:", Dumper \@ARGV, "\n";
 	exit 0;
 }
- 
 
 ####### general parameters ###
 my $params_file = "params.xml";
@@ -118,7 +117,7 @@ for my $lane ( @{ $project->get_lanes() } ) {
 	my $telomere_norm = NormalizeTelomeres->new(
 		params   => $params,
 		previous => [$telomere_count],
-	);	
+	);
 	push( @lanes_processing, $process_lane->last_job );
 }
 
@@ -215,6 +214,20 @@ for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
 	);
 	$pindel_left_aligned->do_not_delete('vcf');
 	$pindel_left_aligned->do_not_delete('idx');
+
+	#------------- ChipSeq analysis
+	if ( $project->{'CONFIG'}->{'CHIPSEQ'} ) {
+		my $chipseq = IntersectVcfBed->new(
+			out => $pindel_left_aligned->output_by_type('vcf')
+			  . ".constraints.vcf",
+			bed      => $project->{'CONFIG'}->{'CHIPSEQ'},
+			params   => $params,
+			previous => [$pindel_left_aligned]               #
+		);
+		$chipseq->do_not_delete('vcf');
+		$chipseq->do_not_delete('idx');
+	}
+
 	$pindel_results->{$pindel_out} = $pindel_left_aligned;
 }
 
@@ -517,7 +530,7 @@ my $rare_miRNA = VEP->new(
 		  . ",MIRNA_MATURE,bed,overlap,0",
 		"-custom "
 		  . $project->{'CONFIG'}->{'GENES_BED'}
-		  . ",GENE,bed,overlap,0",		  
+		  . ",GENE,bed,overlap,0",
 	],
 );
 $rare_miRNA->do_not_delete('vcf');
@@ -527,21 +540,21 @@ $rare_miRNA->do_not_delete('idx');
 
 my $grep_miRNA = GrepVcf->new(
 	params       => $params,
-	out      => $project->file_prefix() . ".mir_genes.vcf",
-	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
-					"--regexp '" . join( '|', ("MIRNA_TRANSCRIPT", "MIRNA_MATURE") ) . "'" ,
+	out          => $project->file_prefix() . ".mir_genes.vcf",
+	basic_params => [
+		"--regexp_v '" . join( '|', ( "SVTYPE=INV", "SVTYPE=RPL" ) ) . "'",
+		"--regexp '"
+		  . join( '|', ( "MIRNA_TRANSCRIPT", "MIRNA_MATURE" ) ) . "'",
 	],
-	previous     => [$rare_miRNA]                                    
+	previous => [$rare_miRNA]
 );
 $grep_miRNA->do_not_delete('vcf');
 
 my $rare_miRNA_genes_report = VcfToReport->new(
-	params   => $params,
-	out      => $project->file_prefix() . ".mir_genes.xls",
-	previous => [$grep_miRNA],
-	additional_params => [
-		"--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE",
-	],
+	params            => $params,
+	out               => $project->file_prefix() . ".mir_genes.xls",
+	previous          => [$grep_miRNA],
+	additional_params => [ "--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE", ],
 );
 $rare_miRNA_genes_report->do_not_delete('xls');
 
@@ -549,21 +562,20 @@ $rare_miRNA_genes_report->do_not_delete('xls');
 
 my $grep_miRNA_targets = GrepVcf->new(
 	params       => $params,
-	out      => $project->file_prefix() . ".mir_targets.vcf",
-	basic_params => [ "--regexp_v '" . join( '|', ("SVTYPE=INV", "SVTYPE=RPL") ) . "'" ,
-					"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'" ,
+	out          => $project->file_prefix() . ".mir_targets.vcf",
+	basic_params => [
+		"--regexp_v '" . join( '|', ( "SVTYPE=INV", "SVTYPE=RPL" ) ) . "'",
+		"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'",
 	],
-	previous     => [$rare_miRNA]                                    
+	previous => [$rare_miRNA]
 );
 $grep_miRNA_targets->do_not_delete('vcf');
 
 my $rare_miRNA_targets_report = VcfToReport->new(
-	params   => $params,
-	out      => $project->file_prefix() . ".mir_targets.xls",
-	previous => [$grep_miRNA_targets],
-	additional_params => [
-		"--annotation", "MIRNA_SITE,GENE",
-	],
+	params            => $params,
+	out               => $project->file_prefix() . ".mir_targets.xls",
+	previous          => [$grep_miRNA_targets],
+	additional_params => [ "--annotation", "MIRNA_SITE,GENE", ],
 );
 $rare_miRNA_targets_report->do_not_delete('xls');
 
@@ -601,7 +613,6 @@ my $reg_constraints_rare = FilterFreq->new(
 );
 $reg_constraints_rare->do_not_delete('vcf');
 $reg_constraints_rare->do_not_delete('idx');
-
 
 #------------------------Fix site predictions!!!!!!!!!!!!!
 my $reg_constraints_rare_table = VariantsToTable->new(

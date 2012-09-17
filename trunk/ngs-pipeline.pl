@@ -218,14 +218,24 @@ for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
 	#------------- ChipSeq analysis
 	if ( $project->{'CONFIG'}->{'CHIPSEQ'} ) {
 		my $chipseq = IntersectVcfBed->new(
-			out => $pindel_left_aligned->output_by_type('vcf')
-			  . ".constraints.vcf",
-			bed      => $project->{'CONFIG'}->{'CHIPSEQ'},
+			out => $pindel_left_aligned->output_by_type('vcf') . ".chipseq.vcf",
+			bed => $project->{'CONFIG'}->{'CHIPSEQ'},
 			params   => $params,
-			previous => [$pindel_left_aligned]               #
+			previous => [$pindel_left_aligned]    #
 		);
 		$chipseq->do_not_delete('vcf');
 		$chipseq->do_not_delete('idx');
+
+		my $chipseq_idx = IGVTools->new(
+			out               => $chipseq->output_by_type('vcf') . ".idx",
+			params            => $params,
+			previous          => [$chipseq],
+			additional_params => [
+				"index", 
+				$chipseq->output_by_type('vcf'),
+			]
+		);
+		$chipseq_idx->do_not_delete('main');
 	}
 
 	$pindel_results->{$pindel_out} = $pindel_left_aligned;

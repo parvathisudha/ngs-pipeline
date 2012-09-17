@@ -71,6 +71,23 @@ use Data::Dumper;
 }
 #######################################################
 {
+	package IGVTools;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, program => new JavaProgram() );
+		bless $self, $class;
+		$self->program->path( $self->project()->{'CONFIG'}->{'IGVTOOLS'} );
+		$self->program->name("igvtools.jar");
+		$self->memory(2);
+		return $self;
+	}
+
+	1;
+}
+#######################################################
+{
 
 	package SnpEff;
 	our @ISA = qw( Job );

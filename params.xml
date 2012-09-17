@@ -54,6 +54,7 @@
 <MIRNA_TRANSCRIPT>/data/genomes/ngs-pipeline/GRCh37/miRNA_primary_transcripts.bed.gz</MIRNA_TRANSCRIPT>
 <MIRNA_SITE>/data/genomes/ngs-pipeline/GRCh37/target_scan.bed.gz</MIRNA_SITE>
 <GENES_BED>/data/genomes/ngs-pipeline/GRCh37/genes.grch37.p8.bed.gz</GENES_BED>
+<IGVTOOLS>/data/software/IGVTools</IGVTOOLS>
 
 </PARAMETERS>
 	<DATA>

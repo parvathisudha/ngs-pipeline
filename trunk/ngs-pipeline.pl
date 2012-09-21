@@ -236,6 +236,9 @@ for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
 			]
 		);
 		$chipseq_idx->do_not_delete('main');
+		
+		
+		
 	}
 
 	$pindel_results->{$pindel_out} = $pindel_left_aligned;

@@ -56,13 +56,10 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$x->{'INFO'}->{'CASE.set'},
 		$x->{'INFO'}->{'CONTROL.set'},
 		( map { $x->{'INFO'}->{$_} } @hgmd_format ),
-		( map { $x->{'INFO'}->{$_} } @vep_format[0..-1] ),
+		( map { $x->{'INFO'}->{$_} } @vep_format),
 	);
 	my $string_result = join( "\t", (@to_print) );
-	for my $gene(split(/,/, $x->{'INFO'}->{$vep_format[-1]})){
-		print OUT $string_result . "\t" . $gene . "\n";
-	}
-	
+	print OUT $string_result . "\n";
 }
 
 close OUT;

@@ -24,6 +24,10 @@
 	<BAM1>/data/CURENT/110811_SN150_0222_BD07P6ACXX/s_2_1_sequence.txt.bam</BAM1>
 	<BAM2>/data/CURENT/110811_SN150_0222_BD07P6ACXX/s_2_1_sequence.txt.bam</BAM2>
 	</LANE>	
+	<LANE ID='S000001.3' PL='ILLUMINA' CN='Rogaev E. lab' DS='Q' DT='20100924' FO='N' KS='' LB='L00000001' 
+	PG='bwa,samtools' PI='312' PU='FCB_100924_SN150_0112_B20BM2ABXX_2' SM='V-5'>
+	<BAM>/data/CURENT/110811_SN150_0222_BD07P6ACXX/s_2_1_sequence.txt.bam</BAM>
+	</LANE>		
     <LANE PL='virtual' >
     </LANE>	
     </DATA>

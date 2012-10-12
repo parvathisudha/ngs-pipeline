@@ -1537,6 +1537,17 @@ use Data::Dumper;
 				$align->align_fastq();
 				push( @sai, $align );
 			}
+			if ( $lane->{BAM} ) {
+				my $type = 'BAM';
+				my $align = Align->new(
+					params   => $params,
+					previous => [$self],
+					lane     => $lane,
+					type     => $type,
+				);
+				$align->align_fastq();
+				push( @sai, $align );
+			}			
 			$aligned = SaiToBam->new(
 				lane     => $lane,
 				params   => $params,
@@ -1656,6 +1667,9 @@ use Data::Dumper;
 		elsif ( $type eq 'BAM2' ) {
 			$bam_param = '-b2';
 		}
+		elsif ( $type eq 'BAM' ) {
+			$bam_param = '-b0';
+		}		
 		$self->program->basic_params(
 			[
 				'aln', '-q 5', "-t $proc", $illumina_fastq_qualities_flag,

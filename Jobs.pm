@@ -1458,6 +1458,27 @@ use Data::Dumper;
 
 	1;
 }
+
+#######################################################
+{
+
+	package SamtoolsJob;
+	use Program;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self =
+		  $class->SUPER::new( %params, program => new SamtoolsProgram() );
+		bless $self, $class;
+		$self->program->path( $self->project()->{'CONFIG'}->{'SAMTOOLS'} );
+		$self->program->name( "samtools" );
+		return $self;
+	}
+
+	1;
+}
+
 #######################################################
 {
 

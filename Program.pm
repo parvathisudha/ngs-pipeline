@@ -128,6 +128,21 @@ sub new {
 }
 
 1;
+
+package SamtoolsProgram;
+our @ISA = qw( Program );
+
+sub new {
+	my ( $class, %params ) = @_;
+	my $self = $class->SUPER::new(%params);
+	bless $self, $class;
+	return $self;
+}
+
+1;
+
+
+
 package PicardProgram;
 our @ISA = qw( JavaProgram );
 

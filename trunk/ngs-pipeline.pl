@@ -163,6 +163,10 @@ my $brdMax = BreakdancerMax->new(
 	previous => [$bam2cfg],
 );
 
+#------------- CNV-seq----------------------------
+
+runCNV($mark_duplicates, $params);
+
 #------------- Pindel ----------------------------
 my $dedup_index_link = Ln->new(
 	params   => $params,
@@ -802,4 +806,46 @@ if ( $mode eq 'ALL' || $mode eq 'PINDEL_TRUE' ) {
 if ( $mode eq 'CLEAN' ) {
 	$job_manager->clean();
 }
+
+
+sub runCNV{
+	my ($previous, $params) = @_;
+	my $hits = $project->file_prefix() . ".hits";
+	my $generate_hits = SamtoolsJob->new(
+	params            => $params,
+	out               => $hits,
+	additional_params => [
+		"view -F 4",
+		$previous->output_by_type("bam") ,
+		"| perl -lane \'print \"\$F[2]\t\$F[3]\"\'",
+		"> ", $hits,
+	],
+	previous => [ $previous, ]    #
+	);
+	$generate_hits->output_by_type("hits", $hits);
+	$generate_hits->do_not_delete('txt');
+	
+	#my $resultJob = Job->new();
+	return $generate_hits;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

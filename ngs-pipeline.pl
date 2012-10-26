@@ -825,8 +825,20 @@ sub runCNV{
 	$generate_hits->output_by_type("hits", $hits);
 	$generate_hits->do_not_delete('txt');
 	
-	#my $resultJob = Job->new();
-	return $generate_hits;
+	my $cnv_res = $project->file_prefix() . ".cnv.txt";
+	my $cnvseq = CNVSeq->new(
+	params            => $params,
+	out               => $cnv_res,
+	additional_params => [
+		"--test", $generate_hits->output_by_type("hits"),
+		"--ref", $project->{'CONFIG'}->{'CNVSEQ_REF'},
+		"--genome", $project->{'CONFIG'}->{'CNVSEQ_GENOME'},
+		"> ", $cnv_res,
+	],
+	previous => [ $generate_hits, ]    #
+	);
+	$cnvseq->do_not_delete('txt');
+	return $cnvseq;
 }
 
 

@@ -55,6 +55,9 @@
 <MIRNA_SITE>/data/genomes/ngs-pipeline/GRCh37/target_scan.bed.gz</MIRNA_SITE>
 <GENES_BED>/data/genomes/ngs-pipeline/GRCh37/genes.grch37.p8.bed.gz</GENES_BED>
 <IGVTOOLS>/data/software/IGVTools</IGVTOOLS>
+<CNVSEQ>/data/software/cnv-seq</CNVSEQ>
+<CNVSEQ_GENOME>/data/software/cnv-seq</CNVSEQ_GENOME>
+<CNVSEQ_REF>/data/software/cnv-seq.test</CNVSEQ_REF>
 
 </PARAMETERS>
 	<DATA>

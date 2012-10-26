@@ -790,6 +790,26 @@ use Data::Dumper;
 	}
 	1;
 }
+
+#######################################################
+{
+
+	package CNVSeq;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("cnv-seq.pl");
+		$self->program->path( $self->project()->{'CONFIG'}->{'CNVSEQ'} );
+		$self->memory(4);
+		$self->output_by_type( 'txt', $self->out );
+		return $self;
+	}
+	1;
+}
+
 #######################################################
 {
 

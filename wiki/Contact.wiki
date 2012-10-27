@@ -2,5 +2,5 @@
 == Contact information ==
 
 Please write all questions to 
-reshetovdenis@rogaevlab.ru
+reshetovdenis@rogaevlab.ru <br/>
 CC evgeny.rogaev@umassmed.edu

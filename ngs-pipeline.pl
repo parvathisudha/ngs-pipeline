@@ -876,7 +876,7 @@ sub runFREEC{
 	additional_params => [
             "-f 1,2,3,5", $freec->out, "> $cnv_bed_res", 
 	],
-	previous => [ $previous, ]    #
+	previous => [ $freec, ]    #
 	);
 	$cnv_bed->do_not_delete('main');
 	
@@ -887,7 +887,7 @@ sub runFREEC{
 	additional_params => [
             "gain", $cnv_bed->out, "> $gain_out",
 	],
-	previous => [ $previous, ]    #
+	previous => [ $cnv_bed, ]    #
 	);
 	$gain->do_not_delete('main');
 	
@@ -898,7 +898,7 @@ sub runFREEC{
 	additional_params => [
             "loss", $cnv_bed->out, "> $loss_out",
 	],
-	previous => [ $previous, ]    #
+	previous => [ $cnv_bed, ]    #
 	);
 	$loss->do_not_delete('main');
 	

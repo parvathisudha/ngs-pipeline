@@ -64,7 +64,7 @@
 <gemMappabilityFile>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.100.gem</gemMappabilityFile>
 <coefficientOfVariation>0.062</coefficientOfVariation>
 <ploidy>2</ploidy>
-<GCcontentProfile>/data/genomes/ngs-pipeline/GRCh37/GC_profile.cnp</GCcontentProfile>
+<chrFiles>/data/genomes/ngs-pipeline/GRCh37/by_chr</chrFiles>
 </FREEC>
 
 </PARAMETERS>

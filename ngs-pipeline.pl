@@ -856,7 +856,7 @@ sub runFREEC{
             '--coefficientOfVariation' => $project->{'CONFIG'}->{'FREEC'}->{'coefficientOfVariation'},
             '--ploidy' => $project->{'CONFIG'}->{'FREEC'}->{'ploidy'},
             '--outputDir' => $project->dir(),
-            '--GCcontentProfile' => $project->{'CONFIG'}->{'FREEC'}->{'GCcontentProfile'},
+            '--chrFiles' => $project->{'CONFIG'}->{'FREEC'}->{'chrFiles'},
             '--mateFile' => $previous->output_by_type('bam'),
 	],
 	previous => [ $previous, ]    #

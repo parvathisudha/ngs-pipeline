@@ -902,6 +902,19 @@ sub runFREEC{
 	);
 	$loss->do_not_delete('main');
 	
+	my $cnv_img_file = $freec->out . ".png";
+	my $cnv_img = Cat->new(
+	params            => $params,
+	out               => $cnv_img_file,
+	additional_params => [
+            $project->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} . "/makeGraph.R", "|",
+            "R --slave --args", $project->{'CONFIG'}->{'FREEC'}->{'ploidy'}, $freec->output_by_type('ratio')
+	],
+	previous => [ $freec, ]    #
+	);
+	$cnv_img->do_not_delete('main');
+	
+	
 	return $freec;
 }
 

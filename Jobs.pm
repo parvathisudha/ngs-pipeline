@@ -336,6 +336,24 @@ use Data::Dumper;
 #######################################################
 {
 
+	package Cat;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("cat");
+		$self->program->path( "/bin" );
+		$self->memory(1);
+		$self->output_by_type( 'txt', $self->out );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package Cut;
 	our @ISA = qw( Job );
 
@@ -437,8 +455,9 @@ use Data::Dumper;
 		my $conf    = $self->first_previous->output_by_type('txt');
 		my $name_prefix = $self->first_previous->first_previous->output_by_type('bam');
 #		my $cpn = $name_prefix . "_sample.cpn";
-		my $cnv = $name_prefix . "_sample.cpn_CNVs";
+		my $cnv = $name_prefix . "_CNVs";
 		$self->output_by_type( 'cnv', $cnv );
+		$self->output_by_type( 'ratio', $name_prefix . "_ratio.txt" );
 		$self->out($cnv);
 		$self->program->additional_params( ["-conf $conf"] );
 		return $self;

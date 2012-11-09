@@ -157,9 +157,6 @@ use Data::Dumper;
 		$self->program->name("grep");
 		$self->program->path("/bin");
 		$self->memory(1);
-		my $input  = $self->in;
-		my $output = $self->out;
-		$self->program->basic_params( ["$input > $output"] );
 		return $self;
 	}
 	1;
@@ -339,6 +336,24 @@ use Data::Dumper;
 #######################################################
 {
 
+	package Cut;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("cut");
+		$self->program->path( "/bin" );
+		$self->memory(1);
+		$self->output_by_type( 'txt', $self->out );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package Bgzip;
 	our @ISA = qw( Job );
 
@@ -402,6 +417,30 @@ use Data::Dumper;
 		$self->output_by_type( 'tbi', $tbi );
 		$self->out($tbi);
 		$self->program->additional_params( ["-p vcf $gz"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package FREEC;
+	our @ISA = qw( Job );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("freec");
+		$self->program->path( $self->project()->{'CONFIG'}->{'FREEC'}->{'PATH'} );
+		$self->memory(1);
+		my $conf    = $self->first_previous->output_by_type('txt');
+		my $name_prefix = $self->first_previous->first_previous->output_by_type('bam');
+#		my $cpn = $name_prefix . "_sample.cpn";
+		my $cnv = $name_prefix . "_sample.cpn_CNVs";
+		$self->output_by_type( 'cnv', $cnv );
+		$self->out($cnv);
+		$self->program->additional_params( ["-conf $conf"] );
 		return $self;
 	}
 	1;
@@ -632,6 +671,24 @@ use Data::Dumper;
 		my $table = $self->out;
 		$self->output_by_type( 'xls', $table );
 		$self->program->additional_params( [ "--in $vcf", "--out $table", ] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
+	package WriteFreecConfig;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->program->name("write_freec_config.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		$self->output_by_type( 'txt', $self->out );
 		return $self;
 	}
 	1;

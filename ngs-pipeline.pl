@@ -163,9 +163,10 @@ my $brdMax = BreakdancerMax->new(
 	previous => [$bam2cfg],
 );
 
-#------------- CNV-seq----------------------------
+#------------- Copy Number Variations ------------
 
-runCNV($mark_duplicates, $params);
+runCNVSeq($mark_duplicates, $params);
+runFREEC($mark_duplicates, $params);
 
 #------------- Pindel ----------------------------
 my $dedup_index_link = Ln->new(
@@ -808,7 +809,7 @@ if ( $mode eq 'CLEAN' ) {
 }
 
 
-sub runCNV{
+sub runCNVSeq{
 	my ($previous, $params) = @_;
 	my $hits = $project->file_prefix() . ".hits";
 	my $generate_hits = SamtoolsJob->new(
@@ -833,6 +834,7 @@ sub runCNV{
 		"--test", $generate_hits->output_by_type("hits"),
 		"--ref", $project->{'CONFIG'}->{'CNVSEQ_REF'},
 		"--genome", $project->{'CONFIG'}->{'CNVSEQ_GENOME'},
+		"--global-normalization",
 		"> ", $cnv_res,
 	],
 	previous => [ $generate_hits, ]    #
@@ -841,7 +843,67 @@ sub runCNV{
 	return $cnvseq;
 }
 
-
+sub runFREEC{
+	my ($previous, $params) = @_;
+	my $conf = $project->file_prefix() . ".freec.conf";
+	my $write_conf = WriteFreecConfig->new(
+	params            => $params,
+	out               => $conf,
+	additional_params => [
+            '--out=s' => $conf,
+            '--chrLenFile' => $project->{'CONFIG'}->{'FREEC'}->{'chrLenFile'},
+            '--gemMappabilityFile' => $project->{'CONFIG'}->{'FREEC'}->{'gemMappabilityFile'},
+            '--coefficientOfVariation' => $project->{'CONFIG'}->{'FREEC'}->{''},
+            '--ploidy' => $project->{'CONFIG'}->{'FREEC'}->{''},
+            '--outputDir' => $project->dir(),
+            '--GCcontentProfile' => $project->{'CONFIG'}->{'FREEC'}->{'GCcontentProfile'},
+            '--mateFile' => $previous->output_by_type('bam'),
+	],
+	previous => [ $previous, ]    #
+	);
+	$write_conf->do_not_delete('txt');
+	
+	my $freec = FREEC->new(
+	params            => $params,
+	previous => [ $write_conf, ]    #
+	);
+	$freec->do_not_delete('cnv');
+	
+	my $cnv_bed_res = $freec->out . ".bed";
+	my $cnv_bed = Cut->new(
+	params            => $params,
+	out               => $cnv_bed_res,
+	additional_params => [
+            "-f 1,2,3,5", $freec->out, "> $cnv_bed_res", 
+	],
+	previous => [ $previous, ]    #
+	);
+	$cnv_bed->do_not_delete('main');
+	
+	my $gain_out = $cnv_bed->out . ".gain.bed";
+	my $gain = Grep->new(
+	params            => $params,
+	out               => $gain_out,
+	additional_params => [
+            "gain", $cnv_bed->out, "> $gain_out",
+	],
+	previous => [ $previous, ]    #
+	);
+	$gain->do_not_delete('main');
+	
+	my $loss_out = $cnv_bed->out . ".loss.bed";
+	my $loss = Grep->new(
+	params            => $params,
+	out               => $gain_out,
+	additional_params => [
+            "loss", $cnv_bed->out, "> $loss_out",
+	],
+	previous => [ $previous, ]    #
+	);
+	$loss->do_not_delete('main');
+	
+	return $freec;
+}
 
 
 

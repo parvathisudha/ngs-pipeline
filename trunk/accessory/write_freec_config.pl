@@ -32,6 +32,6 @@ mateOrientation = FR
 
 CONF
 
-open OUT, ">$out";
+open OUT, ">$out" or die "Can't ope file: $out\n";
 print OUT $config;
 close OUT;

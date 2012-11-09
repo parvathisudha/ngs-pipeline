@@ -4,14 +4,14 @@ use Data::Dumper;
 
 my ($out, $chrLenFile, $chrLenFile,$coefficientOfVariation,$ploidy,$outputDir,$GCcontentProfile,$mateFile, $gemMappabilityFile);
 GetOptions( 
-            'out=s' => \$out,
-            'chrLenFile=s' => \$chrLenFile,
-            'gemMappabilityFile=s' => \$gemMappabilityFile,
-            'coefficientOfVariation=s' => \$coefficientOfVariation,
-            'ploidy=s' => \$ploidy,
-            'outputDir=s' => \$outputDir,
-            'GCcontentProfile=s' => \$GCcontentProfile,
-            'mateFile=s' => \$mateFile,
+            'out' => \$out,
+            'chrLenFile' => \$chrLenFile,
+            'gemMappabilityFile' => \$gemMappabilityFile,
+            'coefficientOfVariation' => \$coefficientOfVariation,
+            'ploidy' => \$ploidy,
+            'outputDir' => \$outputDir,
+            'GCcontentProfile' => \$GCcontentProfile,
+            'mateFile' => \$mateFile,
         );
         
 my $config = <<CONF;
@@ -33,5 +33,5 @@ mateOrientation = FR
 CONF
 
 open OUT, ">$out";
-print OUT 
+print OUT $config;
 close OUT;

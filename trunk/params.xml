@@ -65,6 +65,7 @@
 <coefficientOfVariation>0.062</coefficientOfVariation>
 <ploidy>2</ploidy>
 <chrFiles>/data/genomes/ngs-pipeline/GRCh37/by_chr</chrFiles>
+<SCRIPTS>/data/software/scripts_FREEC</SCRIPTS>
 </FREEC>
 
 </PARAMETERS>

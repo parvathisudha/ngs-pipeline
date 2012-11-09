@@ -3,7 +3,7 @@ use strict;
 use Getopt::Long;
 use Data::Dumper;
 
-my ($out, $chrLenFile, $chrLenFile,$coefficientOfVariation,$ploidy,$outputDir,$GCcontentProfile,$mateFile, $gemMappabilityFile);
+my ($out, $chrLenFile, $chrLenFile,$coefficientOfVariation,$ploidy,$outputDir,$chrFiles,$mateFile, $gemMappabilityFile);
 GetOptions( 
             'out=s' => \$out,
             'chrLenFile=s' => \$chrLenFile,
@@ -11,7 +11,7 @@ GetOptions(
             'coefficientOfVariation=s' => \$coefficientOfVariation,
             'ploidy=s' => \$ploidy,
             'outputDir=s' => \$outputDir,
-            'GCcontentProfile=s' => \$GCcontentProfile,
+            'chrFiles=s' => \$chrFiles,
             'mateFile=s' => \$mateFile,
         );
         
@@ -22,7 +22,7 @@ chrLenFile = $chrLenFile
 gemMappabilityFile = $gemMappabilityFile
 coefficientOfVariation = $coefficientOfVariation
 ploidy = $ploidy
-GCcontentProfile = $GCcontentProfile
+chrFiles = $chrFiles
 outputDir = $outputDir
 
 

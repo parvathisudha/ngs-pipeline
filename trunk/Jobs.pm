@@ -467,6 +467,29 @@ use Data::Dumper;
 #######################################################
 {
 
+	package FREEC2Circos;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("freec2circos.pl");
+		$self->program->path( $self->project()->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} );
+		$self->memory(1);
+		my $out = $self->first_previous()->output_by_type('ratio') . ".circos.conf";
+		$self->output_by_type( 'conf', $out);
+		$self->out($out);
+		$self->program->additional_params( [
+		"-f", $self->first_previous()->output_by_type('ratio'),
+		"-p", $self->project()->{'CONFIG'}->{'FREEC'}->{'ploidy'}, "> $out"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package VcfSorter;
 	our @ISA = qw( PerlJob );
 

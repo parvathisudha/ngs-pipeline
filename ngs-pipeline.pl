@@ -165,8 +165,8 @@ my $brdMax = BreakdancerMax->new(
 
 #------------- Copy Number Variations ------------
 
-runCNVSeq($mark_duplicates, $params);
-runFREEC($mark_duplicates, $params);
+runCNVSeq( $mark_duplicates, $params );
+runFREEC( $mark_duplicates, $params );
 
 #------------- Pindel ----------------------------
 my $dedup_index_link = Ln->new(
@@ -235,10 +235,7 @@ for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
 			out               => $chipseq->output_by_type('vcf') . ".idx",
 			params            => $params,
 			previous          => [$chipseq],
-			additional_params => [
-				"index", 
-				$chipseq->output_by_type('vcf'),
-			]
+			additional_params => [ "index", $chipseq->output_by_type('vcf'), ]
 		);
 		$chipseq_idx->do_not_delete('main');
 	}
@@ -808,131 +805,116 @@ if ( $mode eq 'CLEAN' ) {
 	$job_manager->clean();
 }
 
-
-sub runCNVSeq{
-	my ($previous, $params) = @_;
-	my $hits = $project->file_prefix() . ".hits";
+sub runCNVSeq {
+	my ( $previous, $params ) = @_;
+	my $hits          = $project->file_prefix() . ".hits";
 	my $generate_hits = SamtoolsJob->new(
-	params            => $params,
-	out               => $hits,
-	additional_params => [
-		"view -F 4",
-		$previous->output_by_type("bam") ,
-		"| perl -lane \'print \"\$F[2]\t\$F[3]\"\'",
-		"> ", $hits,
-	],
-	previous => [ $previous, ]    #
+		params            => $params,
+		out               => $hits,
+		additional_params => [
+			"view -F 4",
+			$previous->output_by_type("bam"),
+			"| perl -lane \'print \"\$F[2]\t\$F[3]\"\'",
+			"> ", $hits,
+		],
+		previous => [ $previous, ]    #
 	);
-	$generate_hits->output_by_type("hits", $hits);
+	$generate_hits->output_by_type( "hits", $hits );
 	$generate_hits->do_not_delete('txt');
-	
+
 	my $cnv_res = $project->file_prefix() . ".cnv.txt";
-	my $cnvseq = CNVSeq->new(
-	params            => $params,
-	out               => $cnv_res,
-	additional_params => [
-		"--test", $generate_hits->output_by_type("hits"),
-		"--ref", $project->{'CONFIG'}->{'CNVSEQ_REF'},
-		"--genome", $project->{'CONFIG'}->{'CNVSEQ_GENOME'},
-		"--global-normalization",
-		"> ", $cnv_res,
-	],
-	previous => [ $generate_hits, ]    #
+	my $cnvseq  = CNVSeq->new(
+		params            => $params,
+		out               => $cnv_res,
+		additional_params => [
+			"--test",                 $generate_hits->output_by_type("hits"),
+			"--ref",                  $project->{'CONFIG'}->{'CNVSEQ_REF'},
+			"--genome",               $project->{'CONFIG'}->{'CNVSEQ_GENOME'},
+			"--global-normalization", "> ",
+			$cnv_res,
+		],
+		previous => [ $generate_hits, ]    #
 	);
 	$cnvseq->do_not_delete('txt');
 	return $cnvseq;
 }
 
-sub runFREEC{
-	my ($previous, $params) = @_;
-	my $conf = $project->file_prefix() . ".freec.conf";
+sub runFREEC {
+	my ( $previous, $params ) = @_;
+	my $conf       = $project->file_prefix() . ".freec.conf";
 	my $write_conf = WriteFreecConfig->new(
-	params            => $params,
-	out               => $conf,
-	additional_params => [
-            '--out' => $conf,
-            '--chrLenFile' => $project->{'CONFIG'}->{'FREEC'}->{'chrLenFile'},
-            '--gemMappabilityFile' => $project->{'CONFIG'}->{'FREEC'}->{'gemMappabilityFile'},
-            '--coefficientOfVariation' => $project->{'CONFIG'}->{'FREEC'}->{'coefficientOfVariation'},
-            '--ploidy' => $project->{'CONFIG'}->{'FREEC'}->{'ploidy'},
-            '--outputDir' => $project->dir(),
-            '--chrFiles' => $project->{'CONFIG'}->{'FREEC'}->{'chrFiles'},
-            '--mateFile' => $previous->output_by_type('bam'),
-	],
-	previous => [ $previous, ]    #
+		params            => $params,
+		out               => $conf,
+		additional_params => [
+			'--out'        => $conf,
+			'--chrLenFile' => $project->{'CONFIG'}->{'FREEC'}->{'chrLenFile'},
+			'--gemMappabilityFile' =>
+			  $project->{'CONFIG'}->{'FREEC'}->{'gemMappabilityFile'},
+			'--coefficientOfVariation' =>
+			  $project->{'CONFIG'}->{'FREEC'}->{'coefficientOfVariation'},
+			'--ploidy'    => $project->{'CONFIG'}->{'FREEC'}->{'ploidy'},
+			'--outputDir' => $project->dir(),
+			'--chrFiles'  => $project->{'CONFIG'}->{'FREEC'}->{'chrFiles'},
+			'--mateFile'  => $previous->output_by_type('bam'),
+		],
+		previous => [ $previous, ]    #
 	);
 	$write_conf->do_not_delete('txt');
-	
+
 	my $freec = FREEC->new(
-	params            => $params,
-	previous => [ $write_conf, ]    #
+		params   => $params,
+		previous => [ $write_conf, ]    #
 	);
 	$freec->do_not_delete('cnv');
-	
+
 	my $cnv_bed_res = $freec->out . ".bed";
-	my $cnv_bed = Cut->new(
-	params            => $params,
-	out               => $cnv_bed_res,
-	additional_params => [
-            "-f 1,2,3,5", $freec->out, "> $cnv_bed_res", 
-	],
-	previous => [ $freec, ]    #
+	my $cnv_bed     = Cut->new(
+		params            => $params,
+		out               => $cnv_bed_res,
+		additional_params => [ "-f 1,2,3,5", $freec->out, "> $cnv_bed_res", ],
+		previous          => [ $freec, ]                                       #
 	);
 	$cnv_bed->do_not_delete('main');
-	
+
 	my $gain_out = $cnv_bed->out . ".gain.bed";
-	my $gain = Grep->new(
-	params            => $params,
-	out               => $gain_out,
-	additional_params => [
-            "gain", $cnv_bed->out, "> $gain_out",
-	],
-	previous => [ $cnv_bed, ]    #
+	my $gain     = Grep->new(
+		params            => $params,
+		out               => $gain_out,
+		additional_params => [ "gain", $cnv_bed->out, "> $gain_out", ],
+		previous          => [ $cnv_bed, ]                                     #
 	);
 	$gain->do_not_delete('main');
-	
+
 	my $loss_out = $cnv_bed->out . ".loss.bed";
-	my $loss = Grep->new(
-	params            => $params,
-	out               => $gain_out,
-	additional_params => [
-            "loss", $cnv_bed->out, "> $loss_out",
-	],
-	previous => [ $cnv_bed, ]    #
+	my $loss     = Grep->new(
+		params            => $params,
+		out               => $gain_out,
+		additional_params => [ "loss", $cnv_bed->out, "> $loss_out", ],
+		previous          => [ $cnv_bed, ]                                     #
 	);
 	$loss->do_not_delete('main');
-	
+
 	my $cnv_img_file = $freec->output_by_type('ratio') . ".png";
-	my $cnv_img = Cat->new(
-	params            => $params,
-	out               => $cnv_img_file,
-	additional_params => [
-            $project->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} . "/makeGraph.R", "|",
-            "R --slave --args", $project->{'CONFIG'}->{'FREEC'}->{'ploidy'}, $freec->output_by_type('ratio')
-	],
-	previous => [ $freec, ]    #
+	my $cnv_img      = Cat->new(
+		params            => $params,
+		out               => $cnv_img_file,
+		additional_params => [
+			$project->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} . "/makeGraph.R",
+			"|",
+			"R --slave --args",
+			$project->{'CONFIG'}->{'FREEC'}->{'ploidy'},
+			$freec->output_by_type('ratio')
+		],
+		previous => [ $freec, ]    #
 	);
 	$cnv_img->do_not_delete('main');
-	
-	
+
+	my $freec2circos = FREEC2Circos->new(
+		params   => $params,
+		previous => [ $freec, ],
+	);
+	$freec2circos->do_not_delete('main');
+
 	return $freec;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

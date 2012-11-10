@@ -477,7 +477,7 @@ use Data::Dumper;
 		$self->program->name("freec2circos.pl");
 		$self->program->path( $self->project()->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} );
 		$self->memory(1);
-		my $out = $self->first_previous()->output_by_type('ratio') . ".circos.conf";
+		my $out = $self->first_previous()->output_by_type('ratio') . ".circos.hist";
 		$self->output_by_type( 'conf', $out);
 		$self->out($out);
 		$self->program->additional_params( [

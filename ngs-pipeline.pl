@@ -902,7 +902,7 @@ sub runFREEC{
 	);
 	$loss->do_not_delete('main');
 	
-	my $cnv_img_file = $freec->out . ".png";
+	my $cnv_img_file = $freec->output_by_type('ratio') . ".png";
 	my $cnv_img = Cat->new(
 	params            => $params,
 	out               => $cnv_img_file,

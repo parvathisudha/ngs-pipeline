@@ -272,6 +272,7 @@ for my $chr (@chr) {
 		params   => $params,
 		interval => $chr,
 		previous => [$realigner_target_creator],
+		chr => $chr,	
 	);
 	my $sort_realigned =
 	  SortSam->new( params => $params, previous => [$indel_realigner] );
@@ -820,7 +821,7 @@ sub runCNVSeq {
 		previous => [ $previous, ]    #
 	);
 	$generate_hits->output_by_type( "hits", $hits );
-	$generate_hits->do_not_delete('txt');
+	$generate_hits->do_not_delete('hits');
 
 	my $cnv_res = $project->file_prefix() . ".cnv.txt";
 	my $cnvseq  = CNVSeq->new(

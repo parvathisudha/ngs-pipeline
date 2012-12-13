@@ -1083,7 +1083,7 @@ use Data::Dumper;
 		my $previous = $self->previous();
 		my $input    = $self->first_previous->output_by_type('bam');
 		my $targets  = $self->first_previous->out;
-		my $output   = $input . "." . $self->interval . ".realigned.bam";
+		my $output   = $input . "." . $self->{chr} . ".realigned.bam";
 		my $KGIND    = $self->project()->{'CONFIG'}->{'KGIND'};
 		$self->program->additional_params(
 			[

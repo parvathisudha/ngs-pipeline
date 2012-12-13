@@ -270,7 +270,6 @@ for my $chr (@chr) {
 	);
 	my $indel_realigner = IndelRealigner->new(
 		params   => $params,
-		interval => $chr,
 		previous => [$realigner_target_creator],
 		chr => $chr,	
 	);

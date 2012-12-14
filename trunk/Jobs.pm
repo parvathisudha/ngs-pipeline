@@ -1953,7 +1953,6 @@ use Data::Dumper;
 			[
 				"INPUT=$input",      "OUTPUT=$output",
 				"CREATE_INDEX=true", "SORT_ORDER=coordinate",
-				"MAX_RECORDS_IN_RAM=1000000"
 			]
 		);
 		$self->out($output);

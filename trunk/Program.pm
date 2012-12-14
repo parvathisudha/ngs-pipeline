@@ -157,7 +157,7 @@ sub basic_params {
 	my ($self) = @_;
 	return [
 		"TMP_DIR=" . $self->{tmp_dir}, "VALIDATION_STRINGENCY=SILENT",
-		"MAX_RECORDS_IN_RAM=1250000",
+		"MAX_RECORDS_IN_RAM=2250000",
 	];
 }
 

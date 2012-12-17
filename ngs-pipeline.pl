@@ -271,7 +271,7 @@ for my $chr (@chr) {
 	my $indel_realigner = IndelRealigner->new(
 		params   => $params,
 		previous => [$realigner_target_creator],
-		chr => $chr,	
+		interval => $chr,
 	);
 	my $sort_realigned =
 	  SortSam->new( params => $params, previous => [$indel_realigner] );
@@ -279,7 +279,8 @@ for my $chr (@chr) {
 	  CountCovariates->new( params => $params, previous => [$sort_realigned] );
 	my $table_recalibration = TableRecalibration->new(
 		params   => $params,
-		previous => [$count_covariates]
+		previous => [$count_covariates],
+		interval => $chr,
 	);
 	my $index_recalibrated = BuildBamIndex->new(
 		params   => $params,
@@ -288,12 +289,14 @@ for my $chr (@chr) {
 	my $call_snps = UnifiedGenotyper->new(
 		params         => $params,
 		previous       => [$index_recalibrated],
-		variation_type => "SNP"
+		variation_type => "SNP",
+		interval => $chr,
 	);    #
 	my $call_indels = UnifiedGenotyper->new(
 		params         => $params,
 		previous       => [$index_recalibrated],
-		variation_type => "INDEL"
+		variation_type => "INDEL",
+		interval => $chr,
 	);    #
 	push( @snps,   $call_snps );
 	push( @indels, $call_indels );

@@ -9,11 +9,14 @@
 <BEDTOOLS>/data/software/ngs-pipeline/accessory/BEDTools-Version-2.12.0/bin</BEDTOOLS>
 <PERLLIB>/data/software/pipeline/accessory</PERLLIB>
 <MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
+
 <GATK>/data/software/gatk_15June2012/dist</GATK>
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>
 <GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
+
 <BREAKDANCER>/data/software/ngs-pipeline/accessory/breakdancer</BREAKDANCER>
 <PICARD>/data/software/ngs-pipeline/accessory/picard-tools-1.65</PICARD>
+
 <DBSNP>/data/genomes/ngs-pipeline/GRCh37/dbsnp_134_b37.leftAligned.vcf</DBSNP>
 <HAPMAP>/data/genomes/ngs-pipeline/GRCh37/hapmap_3.3.b37.sites.vcf</HAPMAP>
 <OMNI>/data/genomes/ngs-pipeline/GRCh37/1000G_omni2.5.b37.sites.vcf</OMNI>
@@ -22,6 +25,7 @@
 <EURKG>/data/genomes/ngs-pipeline/GRCh37/EUR.snvs.sites.20111019.vcf</EURKG>
 <CGI>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</CGI>
 <HGMD>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</HGMD>
+
 <MAXFREQ>0.05</MAXFREQ>
 <INDELS_MILLS_DEVINE>/data/genomes/ngs-pipeline/GRCh37/indels_mills_devine.b37.sites.vcf</INDELS_MILLS_DEVINE>
 <SNPEFF>/data/software/ngs-pipeline/accessory/snpEff_2_0_5</SNPEFF>
@@ -38,8 +42,10 @@
 <GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
-<VEP>/data/software/variant_effect_predictor.2.5/variant_effect_predictor</VEP>
-<VEPCACHE>/data/software/variant_effect_predictor.2.5/variant_effect_predictor</VEPCACHE>
+
+<VEP>/data/software/variant_effect_predictor.b69/</VEP>
+<VEPCACHE>/data/software/variant_effect_predictor.b69</VEPCACHE>
+
 <PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
 <VARIANT_RECALIBRATION>1</VARIANT_RECALIBRATION>

@@ -95,7 +95,30 @@ my @vep_coding_classes = qw/
   COMPLEX_IN
   PARTIAL_CODON
   /;
+my @vep_severe = qw/
+	transcript_ablation
+	splice_donor_variant
+	splice_acceptor_variant
+	stop_gained
+	frameshift_variant
+	stop_lost
+	initiator_codon_variant
+	inframe_insertion
+	inframe_deletion
+	missense_variant
+	transcript_amplification
+	splice_region_variant
+	incomplete_terminal_codon_variant
+	mature_miRNA_variant
+	TFBS_ablation
+	TFBS_amplification
+	TF_binding_site_variant
+	regulatory_region_variant
+	regulatory_region_ablation
+	regulatory_region_amplification
+  /;  
 my $coding_classes_string        = join( '|', @vep_coding_classes );
+my $vep_severe_string        = join( '|', @vep_severe );
 my $snpeff_coding_classes_string = join( '|', @snpeff_coding_classes );
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
@@ -450,7 +473,7 @@ my $hgmd_vcf_table = VariantsToTable->new(
 	previous => [$hgmd_vcf_grep]    #
 );
 $hgmd_vcf_table->do_not_delete('txt');
-##################### CODING ANALYSIS ##############
+##################### ANALYSIS OF SEVERE SNVs ##############
 my $rare = FilterFreq->new(
 	params       => $params,
 	basic_params => [ $max_freq, $max_freq, ],
@@ -464,9 +487,8 @@ my $rare_ann_eff = VEP->new(
 	previous          => [$rare],
 	out               => $rare->output_by_type('vcf') . ".vep.vcf",
 	additional_params => [
-		"--sift=b", "--polyphen=b", "--cache",     "--per_gene",
+		"--sift=b", "--polyphen=b", "--per_gene",
 		"--hgnc",   "--ccds",       "--canonical", "--numbers",
-		"--coding_only",
 	],
 );
 $rare_ann_eff->do_not_delete('vcf');
@@ -474,7 +496,7 @@ $rare_ann_eff->do_not_delete('idx');
 
 my $coding = GrepVcf->new(
 	params       => $params,
-	basic_params => [ "--regexp '" . $coding_classes_string . "'" ],
+	basic_params => [ "--regexp '" . $vep_severe_string . "'" ],
 	previous     => [$rare_ann_eff]                                    #
 );
 $coding->do_not_delete('vcf');

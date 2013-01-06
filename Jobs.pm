@@ -678,9 +678,13 @@ use Data::Dumper;
 		$self->program->name("variant_effect_predictor.pl");
 		$self->program->path( $self->project()->{'CONFIG'}->{'VEP'} );
 		$self->memory(4);
+
 		my $vcf = $self->first_previous->output_by_type('vcf');
 		my $vep = $self->out;
 		$self->output_by_type( 'vcf', $vep );
+		my $proc = 6;
+		my $qsub_param   = "-pe mpi $proc";
+		$self->qsub_params($qsub_param);
 		$self->program->additional_params(
 			[
 				"--input_file $vcf",
@@ -691,6 +695,7 @@ use Data::Dumper;
 				"--force_overwrite",
 				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},
 				"--output_file $vep",
+				"--fork $proc",
 			]
 		);
 		return $self;

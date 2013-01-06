@@ -509,12 +509,19 @@ my $rare_cod_table = CodingReport->new(
 );
 $rare_cod_table->do_not_delete('txt');
 
+my $grep_rare_cod_table = GrepTxt->new(
+	params       => $params,
+	basic_params => [ "--regexp '" . $vep_severe_string . "'" ],
+	previous     => [$rare_cod_table]                                              #
+);
+$grep_rare_cod_table->do_not_delete('txt');
+
 my $cod_annotate_proteins = AnnotateProteins->new(
 	params            => $params,
-	out               => $rare_cod_table->out . '.uniprot.txt',
+	out               => $grep_rare_cod_table->out . '.uniprot.txt',
 	additional_params => [
 		"--in",
-		$rare_cod_table->out,
+		$grep_rare_cod_table->out,
 		"--id_column gene",
 		"--gene_to_protein",
 		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
@@ -522,7 +529,7 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 		"--uniprot_db",
 		$project->{'CONFIG'}->{'UNIPROT'},
 	],
-	previous => [$rare_cod_table]    #
+	previous => [$grep_rare_cod_table]    #
 );
 $cod_annotate_proteins->do_not_delete('txt');
 

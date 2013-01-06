@@ -624,6 +624,28 @@ use Data::Dumper;
 #######################################################
 {
 
+	package GrepTxt;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new(%params);
+		bless $self, $class;
+		$self->program->name("grep_txt.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		my $txt = $self->first_previous->output_by_type('txt');
+		my $grep = $self->out ? $self->out : "$txt.grep.txt";
+		$self->output_by_type( 'txt', $grep );
+		$self->out($grep);
+		$self->program->additional_params( ["--in $txt --out $grep"] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
+
 	package GrepVcf;
 	our @ISA = qw( PerlJob );
 

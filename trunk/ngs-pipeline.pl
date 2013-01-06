@@ -498,6 +498,7 @@ my $rare_ann_eff = VEP->new(
 	additional_params => [
 		"--sift=b", "--polyphen=b", "--per_gene",
 		"--hgnc",   "--ccds",       "--canonical", "--numbers",
+		"--regulatory", 
 	],
 );
 $rare_ann_eff->do_not_delete('vcf');

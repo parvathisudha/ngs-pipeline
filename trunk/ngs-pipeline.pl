@@ -116,9 +116,18 @@ my @vep_severe = qw/
 	regulatory_region_variant
 	regulatory_region_ablation
 	regulatory_region_amplification
-  /;  
+  /; 
+my @vep_non_severe = qw/
+	frameshift_variant&non_coding_exon_variant
+	frameshift_variant&3_prime_UTR_variant
+	frameshift_variant&5_prime_UTR_variant
+	frameshift_variant&NMD_transcript_variant
+	NMD_transcript_variant
+	nc_transcript_variant
+  /;     
 my $coding_classes_string        = join( '|', @vep_coding_classes );
 my $vep_severe_string        = join( '|', @vep_severe );
+my $vep_non_severe_string        = join( '|', @vep_non_severe );
 my $snpeff_coding_classes_string = join( '|', @snpeff_coding_classes );
 ####### Add Jobs #############
 my $root_job = RootJob->new( params => $params, previous => undef );
@@ -511,7 +520,11 @@ $rare_cod_table->do_not_delete('txt');
 
 my $grep_rare_cod_table = GrepTxt->new(
 	params       => $params,
-	basic_params => [ "--regexp '" . $vep_severe_string . "'" ],
+	basic_params => [ 
+	"--regexp '" . $vep_severe_string . "'",
+	"--regexp_v '" . $vep_non_severe_string . "'",
+						
+	 ],
 	previous     => [$rare_cod_table]                                              #
 );
 $grep_rare_cod_table->do_not_delete('txt');

@@ -230,14 +230,14 @@ $pindel_config->do_not_delete('cfg');
 my $pindel;
 
 if($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
-	my $pindel = Pindel->new(
+	$pindel = Pindel->new(
 		params            => $params,
 		previous          => [$pindel_config],
 		additional_params => [ "--breakdancer", $brdMax->out, ]
 	);	
 }
 else{
-	my $pindel = Pindel->new(
+	$pindel = Pindel->new(
 		params            => $params,
 		previous          => [$pindel_config],
 	);	

@@ -184,16 +184,20 @@ $coverage->do_not_delete('sample_statistics');
 $coverage->do_not_delete('sample_summary');
 
 #------------- BreakDancer -----------------------
-my $bam2cfg = Bam2cfg->new(
-	params   => $params,
-	previous => [$mark_duplicates],
-);
-$bam2cfg->do_not_delete('cfg');
-
-my $brdMax = BreakdancerMax->new(
-	params   => $params,
-	previous => [$bam2cfg],
-);
+my $bam2cfg;
+my $brdMax;
+if ($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
+	$bam2cfg = Bam2cfg->new(
+		params   => $params,
+		previous => [$mark_duplicates],
+	);
+	$bam2cfg->do_not_delete('cfg');
+	
+	$brdMax = BreakdancerMax->new(
+		params   => $params,
+		previous => [$bam2cfg],
+	);	
+}
 
 #------------- Copy Number Variations ------------
 

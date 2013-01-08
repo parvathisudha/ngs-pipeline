@@ -612,7 +612,7 @@ use Data::Dumper;
 		$self->program->name("pindel_config.pl");
 		$self->program->path( $self->project()->install_dir . "/accessory" );
 		$self->memory(1);
-		my $in  = $self->first_previous->output_by_type('max');
+		my $in  = $self->first_previous->output_by_type('txt');
 		my $out = "$in.pindel";
 		$self->output_by_type( 'cfg', $out );
 		$self->out($out);

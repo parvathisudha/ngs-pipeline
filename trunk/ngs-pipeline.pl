@@ -212,7 +212,7 @@ $dedup_index_link->do_not_delete('link');
 
 my $pindel_config = PindelConfig->new(
 	params            => $params,
-	previous          => [$brdMax],
+	previous          => [$insert_size_metrics],
 	additional_params => [
 		"--bam",             $mark_duplicates->output_by_type('bam'),
 		"--id",              $project->sample_id,

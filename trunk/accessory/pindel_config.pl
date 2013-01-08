@@ -11,19 +11,18 @@ GetOptions(
 	'min_insert_size=s' => \$min_insert_size,
 );
 
-my @mean;
+my $mean = $min_insert_size;
 open IN, "<$in" or die "Can't open $in\n";
 while (<IN>) {
-	last unless m/^#/;
-	my $mean = $1 if m/\tmean:(\d+?\.*\d+?)\t/;
-	push( @mean, $mean ) if $mean;
-
+	next unless m/^MEDIAN_INSERT_SIZE/;
+	my $metrics = <IN>;
+	chomp $metrics;
+	my @metrics = split (/\t/, $metrics);
+	$mean = $metrics[0];
+	last;
 }
 close IN;
-
-my $mean         = average( \@mean );
 my $mean_rounded = sprintf "%.0f", $mean;
-
 $mean_rounded = $min_insert_size if $mean_rounded < $min_insert_size;
 
 open OUT, ">$out" or die "Can't open $out\n";

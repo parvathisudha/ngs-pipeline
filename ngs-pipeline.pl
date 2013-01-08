@@ -197,6 +197,9 @@ if ($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
 		params   => $params,
 		previous => [$bam2cfg],
 	);	
+	$brdMax->do_not_delete('max');
+	$brdMax->do_not_delete('bed');
+	$brdMax->do_not_delete('fastq');
 }
 
 #------------- Copy Number Variations ------------
@@ -224,12 +227,23 @@ my $pindel_config = PindelConfig->new(
 	]
 );
 $pindel_config->do_not_delete('cfg');
+my $pindel;
 
-my $pindel = Pindel->new(
-	params            => $params,
-	previous          => [$pindel_config],
-	additional_params => [ "--breakdancer", $brdMax->out, ]
-);
+if($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
+	my $pindel = Pindel->new(
+		params            => $params,
+		previous          => [$pindel_config],
+		additional_params => [ "--breakdancer", $brdMax->out, ]
+	);	
+}
+else{
+	my $pindel = Pindel->new(
+		params            => $params,
+		previous          => [$pindel_config],
+	);	
+}
+
+
 $pindel->do_not_delete('SV_D');
 $pindel->do_not_delete('SV_INV');
 $pindel->do_not_delete('SV_LI');
@@ -818,9 +832,7 @@ $mark_duplicates->do_not_delete('metrics');
 $mark_duplicates->do_not_delete('bam');
 $mark_duplicates->do_not_delete('bai');
 
-$brdMax->do_not_delete('max');
-$brdMax->do_not_delete('bed');
-$brdMax->do_not_delete('fastq');
+
 
 $combine_snps->do_not_delete('vcf');
 $combine_snps->do_not_delete('idx');

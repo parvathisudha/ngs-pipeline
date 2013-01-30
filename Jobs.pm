@@ -683,8 +683,8 @@ use Data::Dumper;
 		my $vep = $self->out;
 		$self->output_by_type( 'vcf', $vep );
 		my $proc = 6;
-		my $qsub_param   = "-pe mpi $proc";
-		$self->qsub_params($qsub_param);
+#		my $qsub_param   = "-pe mpi $proc";
+#		$self->qsub_params($qsub_param);
 		$self->program->additional_params(
 			[
 				"--input_file $vcf",
@@ -695,7 +695,7 @@ use Data::Dumper;
 				"--force_overwrite",
 				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},
 				"--output_file $vep",
-				"--fork $proc",
+#				"--fork $proc",
 			]
 		);
 		return $self;

@@ -526,18 +526,10 @@ my $rare_ann_eff = VEP->new(
 $rare_ann_eff->do_not_delete('vcf');
 $rare_ann_eff->do_not_delete('idx');
 
-my $coding = GrepVcf->new(
-	params       => $params,
-	basic_params => [ "--regexp '" . $vep_severe_string . "'" ],
-	previous     => [$rare_ann_eff]                                    #
-);
-$coding->do_not_delete('vcf');
-$coding->do_not_delete('idx');
-
 my $rare_cod_table = CodingReport->new(
 	params   => $params,
 	out      => $project->file_prefix() . ".cod.txt",
-	previous => [$coding],
+	previous => [$rare_ann_eff],
 	additional_params => [
 		"--log_file",
 		$project->file_prefix() . ".cod.log",

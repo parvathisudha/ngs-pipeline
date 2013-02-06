@@ -72,7 +72,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 	for my $csq (@csq) {
 		$csq =~ s/\|$/\|./;
 		my @vep_effect = split( '\|', $csq );
-		my $consequence = $vep_effect[$consequence_num]
+		my $consequence = $vep_effect[$consequence_num];
 		if(exists $types->{$consequence}){
 			next unless $types->{$consequence};
 		}

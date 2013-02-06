@@ -37,7 +37,7 @@ my @result_header = (
 
 my $num_vep_format = scalar @vep_format;
 
-open LOG, "<$log_file" or die "Can't open $log_file file for writing logs\n";
+open LOG, ">$log_file" or die "Can't open $log_file file for writing logs\n";
 open OUT, ">$out" or die "Can't open $out file for writing results\n";
 
 print OUT join( "\t", @result_header ), "\n";

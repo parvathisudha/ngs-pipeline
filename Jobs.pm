@@ -71,6 +71,7 @@ use Data::Dumper;
 }
 #######################################################
 {
+
 	package IGVTools;
 	our @ISA = qw( Job );
 
@@ -344,7 +345,7 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("cat");
-		$self->program->path( "/bin" );
+		$self->program->path("/bin");
 		$self->memory(1);
 		$self->output_by_type( 'txt', $self->out );
 		return $self;
@@ -362,7 +363,7 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("cut");
-		$self->program->path( "/bin" );
+		$self->program->path("/bin");
 		$self->memory(1);
 		$self->output_by_type( 'txt', $self->out );
 		return $self;
@@ -450,13 +451,16 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("freec");
-		$self->program->path( $self->project()->{'CONFIG'}->{'FREEC'}->{'PATH'} );
+		$self->program->path(
+			$self->project()->{'CONFIG'}->{'FREEC'}->{'PATH'} );
 		$self->memory(1);
-		my $conf    = $self->first_previous->output_by_type('txt');
-		my $name_prefix = $self->first_previous->first_previous->output_by_type('bam');
-#		my $cpn = $name_prefix . "_sample.cpn";
+		my $conf        = $self->first_previous->output_by_type('txt');
+		my $name_prefix =
+		  $self->first_previous->first_previous->output_by_type('bam');
+
+		#		my $cpn = $name_prefix . "_sample.cpn";
 		my $cnv = $name_prefix . "_CNVs";
-		$self->output_by_type( 'cnv', $cnv );
+		$self->output_by_type( 'cnv',   $cnv );
 		$self->output_by_type( 'ratio', $name_prefix . "_ratio.txt" );
 		$self->out($cnv);
 		$self->program->additional_params( ["-conf $conf"] );
@@ -475,14 +479,20 @@ use Data::Dumper;
 		my $self = $class->SUPER::new( %params, );
 		bless $self, $class;
 		$self->program->name("freec2circos.pl");
-		$self->program->path( $self->project()->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} );
+		$self->program->path(
+			$self->project()->{'CONFIG'}->{'FREEC'}->{'SCRIPTS'} );
 		$self->memory(1);
-		my $out = $self->first_previous()->output_by_type('ratio') . ".circos.hist";
-		$self->output_by_type( 'conf', $out);
+		my $out =
+		  $self->first_previous()->output_by_type('ratio') . ".circos.hist";
+		$self->output_by_type( 'conf', $out );
 		$self->out($out);
-		$self->program->additional_params( [
-		"-f", $self->first_previous()->output_by_type('ratio'),
-		"-p", $self->project()->{'CONFIG'}->{'FREEC'}->{'ploidy'}, "> $out"] );
+		$self->program->additional_params(
+			[
+				"-f", $self->first_previous()->output_by_type('ratio'),
+				"-p", $self->project()->{'CONFIG'}->{'FREEC'}->{'ploidy'},
+				"> $out"
+			]
+		);
 		return $self;
 	}
 	1;
@@ -683,8 +693,9 @@ use Data::Dumper;
 		my $vep = $self->out;
 		$self->output_by_type( 'vcf', $vep );
 		my $proc = 6;
-#		my $qsub_param   = "-pe mpi $proc";
-#		$self->qsub_params($qsub_param);
+
+		#		my $qsub_param   = "-pe mpi $proc";
+		#		$self->qsub_params($qsub_param);
 		$self->program->additional_params(
 			[
 				"--input_file $vcf",
@@ -695,7 +706,8 @@ use Data::Dumper;
 				"--force_overwrite",
 				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},
 				"--output_file $vep",
-#				"--fork $proc",
+
+				#				"--fork $proc",
 			]
 		);
 		return $self;
@@ -718,7 +730,15 @@ use Data::Dumper;
 		my $vcf   = $self->first_previous->output_by_type('vcf');
 		my $table = $self->out;
 		$self->output_by_type( 'txt', $table );
-		$self->program->additional_params( [ "--in $vcf", "--out $table", ] );
+		$self->program->additional_params(
+			[
+				"--in $vcf",
+				"--out $table",
+				"--annotation_types_file",
+				$self->project()->install_dir
+				  . "/accessory/annotation_types.txt"
+			]
+		);
 		return $self;
 	}
 	1;
@@ -1618,7 +1638,7 @@ use Data::Dumper;
 		  $class->SUPER::new( %params, program => new SamtoolsProgram() );
 		bless $self, $class;
 		$self->program->path( $self->project()->{'CONFIG'}->{'SAMTOOLS'} );
-		$self->program->name( "samtools" );
+		$self->program->name("samtools");
 		return $self;
 	}
 
@@ -1705,7 +1725,7 @@ use Data::Dumper;
 				push( @sai, $align );
 			}
 			if ( $lane->{BAM} ) {
-				my $type = 'BAM';
+				my $type  = 'BAM';
 				my $align = Align->new(
 					params   => $params,
 					previous => [$self],
@@ -1714,7 +1734,7 @@ use Data::Dumper;
 				);
 				$align->align_fastq();
 				push( @sai, $align );
-			}			
+			}
 			$aligned = SaiToBam->new(
 				lane     => $lane,
 				params   => $params,
@@ -1836,7 +1856,7 @@ use Data::Dumper;
 		}
 		elsif ( $type eq 'BAM' ) {
 			$bam_param = '-b0';
-		}		
+		}
 		$self->program->basic_params(
 			[
 				'aln', '-q 5', "-t $proc", $illumina_fastq_qualities_flag,
@@ -1942,9 +1962,12 @@ use Data::Dumper;
 		my $ref   = $self->project()->{CONFIG}->{GENOME};
 		$self->program->additional_params(
 			[
-				"HISTOGRAM_FILE=$hist", "METRIC_ACCUMULATION_LEVEL=READ_GROUP",
-				"INPUT=$input",         "OUTPUT=$out",
-				"STOP_AFTER=10000000",  "REFERENCE_SEQUENCE=$ref",
+				"HISTOGRAM_FILE=$hist",
+				"METRIC_ACCUMULATION_LEVEL=READ_GROUP",
+				"INPUT=$input",
+				"OUTPUT=$out",
+				"STOP_AFTER=10000000",
+				"REFERENCE_SEQUENCE=$ref",
 			]
 		);
 		$self->out($out);

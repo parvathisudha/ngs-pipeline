@@ -116,11 +116,16 @@ my @vep_severe = qw/
 	regulatory_region_variant
 	regulatory_region_ablation
 	regulatory_region_amplification
+	coding_sequence_variant.*feature_truncation
   /; 
 my @vep_non_severe = qw/
-	frameshift_variant&non_coding_exon_variant
-	frameshift_variant&3_prime_UTR_variant
-	frameshift_variant&5_prime_UTR_variant
+	frameshift_variant&non_coding_exon_variant&nc_transcript_variant&feature_truncation
+	frameshift_variant&3_prime_UTR_variant&feature_truncation
+	frameshift_variant&5_prime_UTR_variant&feature_truncation
+	frameshift_variant&3_prime_UTR_variant&NMD_transcript_variant&feature_truncation
+	frameshift_variant&5_prime_UTR_variant&NMD_transcript_variant&feature_truncation
+	frameshift_variant&NMD_transcript_variant&feature_truncation
+	
 	frameshift_variant&NMD_transcript_variant
 	NMD_transcript_variant
 	nc_transcript_variant
@@ -532,7 +537,11 @@ $coding->do_not_delete('idx');
 my $rare_cod_table = CodingReport->new(
 	params   => $params,
 	out      => $project->file_prefix() . ".cod.txt",
-	previous => [$coding]                                              #
+	previous => [$coding],
+	additional_params => [
+		"--log_file",
+		$project->file_prefix() . ".cod.log",
+	],                                              
 );
 $rare_cod_table->do_not_delete('txt');
 

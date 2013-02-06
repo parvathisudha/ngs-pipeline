@@ -6,11 +6,15 @@ use Data::Dumper;
 my $excel_string_length_limit = 32759;
 
 ####### get arguments      ###
-my ( $in, $out );
+my ( $in, $out, $annotation_types_file, $log_file );
 GetOptions(
 	'in=s'  => \$in,
 	'out=s' => \$out,
+	'annotation_types_file=s' => \$annotation_types_file,
+	'log_file=s' => \$log_file,
 );
+
+my $types = get_annotation_types($annotation_types_file);
 
 my $vcf = Vcf->new( file => $in );
 $vcf->parse_header( silent => 1 );
@@ -33,11 +37,14 @@ my @result_header = (
 
 my $num_vep_format = scalar @vep_format;
 
+open LOG, "<$log_file" or die "Can't open $log_file file for writing logs\n";
 open OUT, ">$out" or die "Can't open $out file for writing results\n";
 
 print OUT join( "\t", @result_header ), "\n";
 my $exon_num   = get_feature_num_by_title( \@vep_format, 'EXON' );
 my $intron_num = get_feature_num_by_title( \@vep_format, 'INTRON' );
+my $consequence_num = get_feature_num_by_title( \@vep_format, 'Consequence' );
+
 while ( my $x = $vcf->next_data_hash() ) {
 	my $ref         = safe_excel_string( [ $x->{'REF'} ] );
 	my $alt_alleles = safe_excel_string( $x->{'ALT'} );
@@ -65,6 +72,13 @@ while ( my $x = $vcf->next_data_hash() ) {
 	for my $csq (@csq) {
 		$csq =~ s/\|$/\|./;
 		my @vep_effect = split( '\|', $csq );
+		my $consequence = $vep_effect[$consequence_num]
+		if(exists $types->{$consequence}){
+			next unless $types->{$consequence};
+		}
+		else{
+			print LOG "$consequence\n";
+		}
 		$vep_effect[$exon_num]   =~ s/\//|/;
 		$vep_effect[$intron_num] =~ s/\//|/;
 		if ( scalar @vep_effect == $num_vep_format - 1 ) {
@@ -78,6 +92,7 @@ while ( my $x = $vcf->next_data_hash() ) {
 }
 
 close OUT;
+close LOG;
 
 sub get_feature_num_by_title {
 	my ( $titles, $name ) = @_;
@@ -87,6 +102,19 @@ sub get_feature_num_by_title {
 		$i++;
 	}
 	return $i;
+}
+sub get_annotation_types{
+	my ($file,) = @_;
+	my $types = {};
+	open FILE, "$file" or die "Can't open $file with annotation types for reading!\n";
+	my $header = <FILE>;
+	while(<FILE>){
+		chomp;
+		my @d = split "\t";
+		$types->{$d[0]} = $d[1];
+	}
+	close FILE;
+	return $types;
 }
 
 sub safe_excel_string {

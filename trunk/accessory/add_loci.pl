@@ -41,7 +41,7 @@ close IN;
 
 sub get_locus{
         my ($chr, $start, $end) = @_;
-        my $end = -1 unless $end;
+        $end = -1 unless $end;
         my @cur_loci;
         for my $pos ($start, $end){
 	        for my $l (@{$loci_table->{$chr}}){

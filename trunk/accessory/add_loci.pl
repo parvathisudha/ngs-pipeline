@@ -2,6 +2,8 @@ use strict;
 use Getopt::Long;
 use Data::Dumper;
 
+my $END_COORD_COL = 9;
+
 my ($in, $out, $loci);
 GetOptions( 'in=s' => \$in,
             'out=s' => \$out,
@@ -31,19 +33,26 @@ print OUT "$head\tLOCUS\n";
 while(<IN>){
         chomp;
         my @d = split /\t/;
-        my $locus = get_locus($d[0], $d[1]);
+        my $locus = get_locus($d[0], $d[1], $d[$END_COORD_COL]);
         print OUT $_, "\t", $locus, "\n";
 }
 close OUT;
 close IN;
 
 sub get_locus{
-        my ($chr, $start) = @_;
+        my ($chr, $start, $end) = @_;
+        my $end = -1 unless $end;
         my @cur_loci;
-        for my $l (@{$loci_table->{$chr}}){
-                if($start >= $$l[0] && $start <= $$l[1]){
-                        push(@cur_loci, $$l[2]);
-                }
+        for my $pos ($start, $end){
+	        for my $l (@{$loci_table->{$chr}}){
+	                if($pos >= $$l[0] && $pos <= $$l[1]){
+	                        push(@cur_loci, $$l[2]);
+	                }
+	        }        	
         }
-        return join(',', @cur_loci);
+        return join(',', uniq(@cur_loci));
+}
+
+sub uniq {
+    return keys %{{ map { $_ => 1 } @_ }};
 }

@@ -348,6 +348,12 @@ sub _script_name {
 	return $self->project->script_dir() . "/task.$job_name.script";
 }
 
+sub _date_name {
+	my ( $self, $job_name ) = @_;
+	my $name = $self->job_name;
+	return $self->project->script_dir() . "/task.$name.date";
+}
+
 sub _done_name {
 	my ( $self, $job_name ) = @_;
 	my $name = $self->job_name;

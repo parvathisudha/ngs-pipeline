@@ -66,6 +66,7 @@ sub make_script {
 	my $project = $self->{'PROJECT'};
 	my $user_id = $project->{'CONFIG'}->{'USER'};
 	my $done = $job->_done_name;
+	my $date = $job->_date_name;
 	my $command = <<COMMAND;
 #!/bin/sh
 #
@@ -88,9 +89,9 @@ export PATH=\$PATH:/data/software/vcftools_0.1.8a/bin
 export EMBOSS_DATA=/data/software/EMBOSS-6.4.0/SHARE/EMBOSS/data
 
 rm -f $done
-
+date > $date
 $program
-
+date >> $date
 echo 'done' > $done
 COMMAND
 	my $script_name = $job->_script_name;	

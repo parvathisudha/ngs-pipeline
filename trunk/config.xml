@@ -9,6 +9,15 @@
 <EMAIL>reshetovdenis@gmail.com</EMAIL>
 <PROJECT>test2</PROJECT>
 <SAMPLE_NAME>SAMPLE_NAME</SAMPLE_NAME>
+
+<ANNOTATION_ADDINGS>
+	<ADD>
+		<FILE>/data/genomes/nederland/gonl.release4.with.freq.vcf</FILE>
+		<ALIAS>POP</ALIAS>
+		<TAG>NLF</TAG>
+	</ADD>
+</ANNOTATION_ADDINGS>
+
 <DIR>F:/rogaev/programming/pipeline</DIR>
 
 

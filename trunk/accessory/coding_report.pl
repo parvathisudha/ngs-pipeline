@@ -6,13 +6,16 @@ use Data::Dumper;
 my $excel_string_length_limit = 32759;
 
 ####### get arguments      ###
-my ( $in, $out, $annotation_types_file, $log_file );
+my ( $in, $out, $addings, $annotation_types_file, $log_file );
 GetOptions(
 	'in=s'  => \$in,
 	'out=s' => \$out,
+	'addings=s' => \$addings,
 	'annotation_types_file=s' => \$annotation_types_file,
 	'log_file=s' => \$log_file,
 );
+
+my @addings = split (",", $addings);
 
 my $types = get_annotation_types($annotation_types_file);
 
@@ -32,7 +35,7 @@ my @result_header = (
 	'CHROM',    'POS',    'ID',    'REF',     'ALT',      'AF',
 	'PROGRAM',  'SVTYPE', 'SVLEN', 'END',     
 	@KG_format,
-	'CGI_FREQ', 'FILTER', 'CASE',  'CONTROL', @hgmd_format, @vep_format, 
+	'CGI_FREQ', 'FILTER', 'CASE',  'CONTROL', @addings, @hgmd_format, @vep_format, 
 );
 
 my $num_vep_format = scalar @vep_format;
@@ -51,7 +54,8 @@ while ( my $x = $vcf->next_data_hash() ) {
 	my $filter      = join( ',', @{ $x->{'FILTER'} } );
 	my @csq         = split( ",", $x->{'INFO'}->{'CSQ'} );
 ###INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|PolyPhen|SIFT|CANONICAL|EXON|INTRON|CCDS">
-	my @first_to_print = (
+
+	my @first_ann = (
 		$x->{'CHROM'},
 		$x->{'POS'},
 		$x->{'ID'},
@@ -66,8 +70,18 @@ while ( my $x = $vcf->next_data_hash() ) {
 		$x->{'INFO'}->{'CGI_FREQ.AF'},
 		$filter,
 		$x->{'INFO'}->{'CASE.set'},
-		$x->{'INFO'}->{'CONTROL.set'},
+		$x->{'INFO'}->{'CONTROL.set'},	
+	);
+	my @second_ann = (
+		(map {$x->{'INFO'}->{$_}} @addings),
+	);	
+	my @third_ann = (
 		(map {$x->{'INFO'}->{$_}} @hgmd_format),
+	);
+	my @first_to_print = (
+		@first_ann,
+		@second_ann,
+		@third_ann
 	);
 	for my $csq (@csq) {
 		$csq =~ s/\|$/\|./;

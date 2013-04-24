@@ -29,7 +29,7 @@ if ( scalar @ARGV ) {
 
 ####### general parameters ###
 my $params_file = "params.xml";
-my $config = XMLin( "$config_file", ForceArray => [ 'LANE', ], );
+my $config = XMLin( "$config_file", ForceArray => [ 'LANE', 'ANNOTATION_ADDINGS'], );
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
 $path =~ s/\/$//;
@@ -446,6 +446,8 @@ $gatk_and_pindel_combined->program->additional_params(
 $gatk_and_pindel_combined->do_not_delete('vcf');
 $gatk_and_pindel_combined->do_not_delete('idx');
 
+
+my $addings_to_annotator = get_annotation_addings_parameters();
 my $variant_annotator = VariantAnnotator->new(
 	additional_params => [
 		"--comp:KG,VCF $KG",
@@ -455,11 +457,9 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E KG_FREQ.AMR_AF",
 		"-E KG_FREQ.ASN_AF",
 		"-E KG_FREQ.EUR_AF",
-
 		"--comp:CGI,VCF $cgi",
 		"--resource:CGI_FREQ,VCF $cgi",
 		"-E CGI_FREQ.AF",
-
 		"--resource:CASE,VCF $group_vcf",
 		"-E CASE.set",
 		"--resource:CONTROL,VCF $control_group_vcf",
@@ -473,6 +473,7 @@ my $variant_annotator = VariantAnnotator->new(
 		"-E HGMD.nucleotideChange",
 		"-E HGMD.pmid",
 		"-E HGMD.variantType",
+		@$addings_to_annotator,
 	],
 	params   => $params,
 	previous => [$gatk_and_pindel_combined]
@@ -533,6 +534,8 @@ my $rare_cod_table = CodingReport->new(
 	additional_params => [
 		"--log_file",
 		$project->file_prefix() . ".cod.log",
+		"--addings",
+		get_annotation_addings_header_string(),
 	],                                              
 );
 $rare_cod_table->do_not_delete('txt');
@@ -554,21 +557,21 @@ my $cod_annotate_proteins = AnnotateProteins->new(
 );
 $cod_annotate_proteins->do_not_delete('txt');
 
-my $cod_annotate_proteins_mark = JoinTabular->new(
-	params            => $params,
-	out               => $cod_annotate_proteins->out . '.marked.txt',
-	additional_params => [
-		"--table",
-		$cod_annotate_proteins->out,
-		"--annotation",
-		$project->{'CONFIG'}->{'GOI'},
-		"--table_id_columns 22 --annotation_id_columns 0",
-		"--annotation_columns 1,2,3",
-		"--all_table",
-	],
-	previous => [ $cod_annotate_proteins, ]    #
-);
-$cod_annotate_proteins_mark->do_not_delete('txt');
+#my $cod_annotate_proteins_mark = JoinTabular->new(
+#	params            => $params,
+#	out               => $cod_annotate_proteins->out . '.marked.txt',
+#	additional_params => [
+#		"--table",
+#		$cod_annotate_proteins->out,
+#		"--annotation",
+#		$project->{'CONFIG'}->{'GOI'},
+#		"--table_id_columns 22 --annotation_id_columns 0",
+#		"--annotation_columns 1,2,3",
+#		"--all_table",
+#	],
+#	previous => [ $cod_annotate_proteins, ]    #
+#);
+#$cod_annotate_proteins_mark->do_not_delete('txt');
 
 my $loci_cod_table = AddLoci->new(
 	params            => $params,
@@ -854,6 +857,31 @@ if ( $mode eq 'ALL' || $mode eq 'PINDEL_TRUE' ) {
 
 if ( $mode eq 'CLEAN' ) {
 	$job_manager->clean();
+}
+
+sub get_annotation_addings_parameters{
+	return [] unless $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
+	my $addings = $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
+	my @result;
+	for my $addel(@$addings){
+		my $add = $addel->{'ADD'};
+		my $resource_str = "--resource:" . $add->{'ALIAS'}. ",VCF " . $add->{'FILE'};
+		my $ann_str = "-E " . $add->{'ALIAS'} . "." . $add->{'TAG'};
+		push(@result,$resource_str);
+		push(@result,$ann_str);
+	}
+	return \@result;
+}
+sub get_annotation_addings_header_string{
+	return "" unless $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
+	my $addings = $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
+	my @result;
+	for my $addel(@$addings){
+		my $add = $addel->{'ADD'};
+		my $ann_str = $add->{'ALIAS'} . "." . $add->{'TAG'};
+		push(@result,$ann_str);
+	}
+	return join (",", @result);	
 }
 
 sub runCNVSeq {

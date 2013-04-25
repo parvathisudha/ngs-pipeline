@@ -1421,7 +1421,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(16);
+		$self->memory(30);
 		my $input      = $self->first_previous->output_by_type('bam');
 		my $variations = $self->first_previous->output_by_type('vcf');
 		my $output = $self->out ? $self->out : $variations . ".annotated.vcf";

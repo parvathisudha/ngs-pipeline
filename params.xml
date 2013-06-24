@@ -75,6 +75,28 @@
 <SCRIPTS>/data/software/scripts_FREEC</SCRIPTS>
 </FREEC>
 
+        <ADD>
+                <FILE>/data/genomes/1KG/March2012/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.la.vcf</FILE>
+                <ALIAS>KG_FREQ</ALIAS>
+                <TAG>AF,AFR_AF,AMR_AF,ASN_AF,EUR_AF</TAG>
+        </ADD>
+        <ADD>
+                <FILE>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</FILE>
+                <ALIAS>CGI_FREQ</ALIAS>
+                <TAG>AF</TAG>
+        </ADD>
+        <ADD>
+                <FILE>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</FILE>
+                <ALIAS>HGMD</ALIAS>
+                <TAG>HGMDID,confidence,disease,hyperlink,mutationType,nucleotideChange,pmid,variantType</TAG>
+        </ADD>
+        <ADD>
+                <FILE>/data/genomes/nederland/gonl.release4.with.freq.vcf</FILE>
+                <ALIAS>POP</ALIAS>
+                <TAG>NLF</TAG>
+        </ADD>
+
+
 </PARAMETERS>
 	<DATA>
     <LANE PL='virtual' >

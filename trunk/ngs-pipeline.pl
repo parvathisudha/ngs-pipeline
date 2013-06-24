@@ -29,7 +29,7 @@ if ( scalar @ARGV ) {
 
 ####### general parameters ###
 my $params_file = "params.xml";
-my $config = XMLin( "$config_file", ForceArray => [ 'LANE', 'ANNOTATION_ADDINGS'], );
+my $config = XMLin( "$config_file", ForceArray => [ 'LANE', 'ANNOTATION_ADDINGS', 'TAG'], );
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
 $path =~ s/\/$//;
@@ -450,29 +450,10 @@ $gatk_and_pindel_combined->do_not_delete('idx');
 my $addings_to_annotator = get_annotation_addings_parameters();
 my $variant_annotator = VariantAnnotator->new(
 	additional_params => [
-		"--comp:KG,VCF $KG",
-		"--resource:KG_FREQ,VCF $KG",
-		"-E KG_FREQ.AF",
-		"-E KG_FREQ.AFR_AF",
-		"-E KG_FREQ.AMR_AF",
-		"-E KG_FREQ.ASN_AF",
-		"-E KG_FREQ.EUR_AF",
-		"--comp:CGI,VCF $cgi",
-		"--resource:CGI_FREQ,VCF $cgi",
-		"-E CGI_FREQ.AF",
 		"--resource:CASE,VCF $group_vcf",
 		"-E CASE.set",
 		"--resource:CONTROL,VCF $control_group_vcf",
 		"-E CONTROL.set",
-		"--resource:HGMD,VCF $HGMD",
-		"-E HGMD.HGMDID",
-		"-E HGMD.confidence",
-		"-E HGMD.disease",
-		"-E HGMD.hyperlink",
-		"-E HGMD.mutationType",
-		"-E HGMD.nucleotideChange",
-		"-E HGMD.pmid",
-		"-E HGMD.variantType",
 		@$addings_to_annotator,
 	],
 	params   => $params,
@@ -860,26 +841,33 @@ if ( $mode eq 'CLEAN' ) {
 }
 
 sub get_annotation_addings_parameters{
-	return [] unless $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
-	my $addings = $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
+	return [] unless $project->{'CONFIG'}->{'ADD'};
+	my $addings = $project->{'CONFIG'}->{'ADD'};
 	my @result;
 	for my $addel(@$addings){
-		my $add = $addel->{'ADD'};
-		my $resource_str = "--resource:" . $add->{'ALIAS'}. ",VCF " . $add->{'FILE'};
-		my $ann_str = "-E " . $add->{'ALIAS'} . "." . $add->{'TAG'};
+		my $resource_str = "--resource:" . $addel->{'ALIAS'}. ",VCF " . $addel->{'FILE'};
 		push(@result,$resource_str);
-		push(@result,$ann_str);
+		
+		my $tag_str = $addel->{'TAG'};
+		my @tags = split (",", $tag_str);
+		for my $tag(@tags){
+			my $ann_str = "-E " . $addel->{'ALIAS'} . "." . $tag;
+			push(@result,$ann_str);			
+		}
 	}
 	return \@result;
 }
 sub get_annotation_addings_header_string{
-	return "" unless $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
-	my $addings = $project->{'CONFIG'}->{'ANNOTATION_ADDINGS'};
+	return "" unless $project->{'CONFIG'}->{'ADD'};
+	my $addings = $project->{'CONFIG'}->{'ADD'};
 	my @result;
-	for my $addel(@$addings){
-		my $add = $addel->{'ADD'};
-		my $ann_str = $add->{'ALIAS'} . "." . $add->{'TAG'};
-		push(@result,$ann_str);
+	for my $add(@$addings){
+		my $tag_str = $add->{'TAG'};
+		my @tags = split (",", $tag_str);
+		for my $tag(@tags){		
+			my $ann_str = $add->{'ALIAS'} . "." . $tag;
+			push(@result,$ann_str);
+		}
 	}
 	return join (",", @result);	
 }

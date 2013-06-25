@@ -13,13 +13,14 @@ use Jobs;
 use JobManager;
 
 ####### get arguments      ###
-my ( $config_file, $mode, $debug, $rerun );
+my ( $config_file, $mode, $debug, $rerun, $params_file );
 Getopt::Long::Configure("pass_through");
 GetOptions(
 	'config=s' => \$config_file,
 	'mode=s'   => \$mode,
 	'debug'    => \$debug,
 	'rerun=s'  => \$rerun,         #out|done|both
+	'params=s' => \$params_file,
 );
 
 if ( scalar @ARGV ) {
@@ -28,7 +29,7 @@ if ( scalar @ARGV ) {
 }
 
 ####### general parameters ###
-my $params_file = "params.xml";
+$params_file = "params.xml" unless $params_file;
 my $config = XMLin( "$config_file", ForceArray => [ 'LANE', 'ANNOTATION_ADDINGS', 'TAG'], );
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
@@ -64,7 +65,7 @@ my $HGMD              = $project->{'CONFIG'}->{'HGMD'};
 my $hapmap            = $project->{'CONFIG'}->{'HAPMAP'};
 my $omni              = $project->{'CONFIG'}->{'OMNI'};
 my $dbSNP             = $project->{'CONFIG'}->{'DBSNP'};
-my $indels_mills      = $project->{'CONFIG'}->{'INDELS_MILLS_DEVINE'};
+my $indels_mills      = $project->{'CONFIG'}->{'INDELS_RECAL'};
 my $cgi               = $project->{'CONFIG'}->{'CGI'};
 my $eur               = $project->{'CONFIG'}->{'EURKG'};
 my $group_vcf         = $project->{'CONFIG'}->{'CASE'};

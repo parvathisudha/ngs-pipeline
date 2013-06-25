@@ -18,33 +18,32 @@
 <BREAKDANCER>/data/software/ngs-pipeline/accessory/breakdancer</BREAKDANCER>
 <PICARD>/data/software/ngs-pipeline/accessory/picard-tools-1.65</PICARD>
 
-<DBSNP>/data/genomes/ngs-pipeline/GRCh37/dbsnp_134_b37.leftAligned.vcf</DBSNP>
-<HAPMAP>/data/genomes/ngs-pipeline/GRCh37/hapmap_3.3.b37.sites.vcf</HAPMAP>
-<OMNI>/data/genomes/ngs-pipeline/GRCh37/1000G_omni2.5.b37.sites.vcf</OMNI>
-<INDELS_RECAL>/data/genomes/ngs-pipeline/GRCh37/indels_mills_devine.b37.sites.vcf</INDELS_RECAL>
+<DBSNP>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.vcf</DBSNP>
+<HAPMAP>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.vcf</HAPMAP>
+<OMNI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.vcf</OMNI>
+<INDELS_RECAL>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.indels.vcf</INDELS_RECAL>
 
-<KG>/data/genomes/1KG/March2012/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.la.vcf</KG>
-<KGIND>/data/genomes/ngs-pipeline/GRCh37/1000G_indels_for_realignment.b37.vcf</KGIND>
-<EURKG>/data/genomes/ngs-pipeline/GRCh37/EUR.snvs.sites.20111019.vcf</EURKG>
-<CGI>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</CGI>
-<HGMD>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</HGMD>
-
-<MAXFREQ>0.05</MAXFREQ>
+<MAXFREQ>1</MAXFREQ>
 
 <TABIX>/data/software/ngs-pipeline/accessory/tabix</TABIX>
 <ACCESSORY>/data/software</ACCESSORY>
 <TWOKBTSS>/data/genomes/ngs-pipeline/GRCh37/grch37.tss.2kb.2012013.bed</TWOKBTSS>
 <CONSTRAINTS>/data/genomes/ngs-pipeline/GRCh37/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
+<GATKGENOMEBED>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.bed</GATKGENOMEBED>
 <BEDGENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta.genome</BEDGENOME>
-<GENOME_NAME>human_g1k_v37.fasta</GENOME_NAME>
-<GENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta</GENOME>
-<GENOME_DICT>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.dict</GENOME_DICT>
-<GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
+<GENOME_NAME>Mus_musculus.GRCm38.71.fa</GENOME_NAME>
+<GENOME>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.fa</GENOME>
+<GENOME_DICT>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.dna.toplevel.dict</GENOME_DICT>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
 
-<VEP>/data/software/variant_effect_predictor.b69/</VEP>
-<VEPCACHE>/data/software/variant_effect_predictor.b69</VEPCACHE>
+<GOI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/test.genes.txt</GOI>
+<CASE>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.test.vcf</CASE>
+<CONTROL>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.test.vcf</CONTROL>
+<LOCI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/test.loci.bed</LOCI>
+
+<VEP>/data/software/variant_effect_predictor.b71/</VEP>
+<VEPCACHE>/data/software/variant_effect_predictor.b71/cache</VEPCACHE>
 
 <PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
@@ -74,26 +73,11 @@
 <SCRIPTS>/data/software/scripts_FREEC</SCRIPTS>
 </FREEC>
 
-        <ADD>
-                <FILE>/data/genomes/1KG/March2012/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.la.vcf</FILE>
-                <ALIAS>KG_FREQ</ALIAS>
-                <TAG>AF,AFR_AF,AMR_AF,ASN_AF,EUR_AF</TAG>
-        </ADD>
-        <ADD>
-                <FILE>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</FILE>
-                <ALIAS>CGI_FREQ</ALIAS>
-                <TAG>AF</TAG>
-        </ADD>
-        <ADD>
-                <FILE>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</FILE>
-                <ALIAS>HGMD</ALIAS>
-                <TAG>HGMDID,confidence,disease,hyperlink,mutationType,nucleotideChange,pmid,variantType</TAG>
-        </ADD>
-        <ADD>
-                <FILE>/data/genomes/nederland/gonl.release4.with.freq.vcf</FILE>
-                <ALIAS>POP</ALIAS>
-                <TAG>NLF</TAG>
-        </ADD>
+<ADD>
+	<FILE>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/sanger38/mgp.v3.snps.rsIDdbSNPv137.vcf.rf.vcf</FILE>
+    <ALIAS>STRAIN</ALIAS>
+    <TAG>129P2,129S1,129S5,AJ,AKRJ,BALBcJ,C3HHeJ,C57BL6NJ,CASTEiJ,CBAJ,DBA2J,FVBNJ,LPJ,NODShiLtJ,NZOHlLtJ,PWKPhJ,SPRETEiJ,WSBEiJ,UNIQ</TAG>
+</ADD>
 
 
 </PARAMETERS>

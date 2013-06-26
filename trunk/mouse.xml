@@ -34,7 +34,7 @@
 <GENOME_NAME>Mus_musculus.GRCm38.71.fa</GENOME_NAME>
 <GENOME>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.fa</GENOME>
 <GENOME_DICT>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.dna.toplevel.dict</GENOME_DICT>
-<ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
+<ENSEMBL_TO_UNIPROT>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
 <UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
 
 <GOI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/test.genes.txt</GOI>
@@ -78,7 +78,6 @@
     <ALIAS>STRAIN</ALIAS>
     <TAG>129P2,129S1,129S5,AJ,AKRJ,BALBcJ,C3HHeJ,C57BL6NJ,CASTEiJ,CBAJ,DBA2J,FVBNJ,LPJ,NODShiLtJ,NZOHlLtJ,PWKPhJ,SPRETEiJ,WSBEiJ,UNIQ</TAG>
 </ADD>
-
 
 </PARAMETERS>
 	<DATA>

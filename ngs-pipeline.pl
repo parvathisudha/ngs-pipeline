@@ -29,12 +29,11 @@ if ( scalar @ARGV ) {
 }
 
 ####### general parameters ###
-$params_file = "params.xml" unless $params_file;
-my $config = XMLin( "$config_file", ForceArray => [ 'LANE', 'ANNOTATION_ADDINGS', 'TAG'], );
+my $config = XMLin( "$config_file", ForceArray => [ 'LANE', ], );
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
 $path =~ s/\/$//;
-my $params = XMLin("$path/$params_file");
+my $params = XMLin("$path/$params_file", ForceArray => [ 'ADD'], );
 for my $param ( keys %{ $params->{PARAMETERS} } ) {
 	$config->{PARAMETERS}->{$param} = $params->{PARAMETERS}->{$param}
 	  unless exists $config->{PARAMETERS}->{$param};
@@ -844,6 +843,7 @@ if ( $mode eq 'CLEAN' ) {
 sub get_annotation_addings_parameters{
 	return [] unless $project->{'CONFIG'}->{'ADD'};
 	my $addings = $project->{'CONFIG'}->{'ADD'};
+	print Dumper $addings;
 	my @result;
 	for my $addel(@$addings){
 		my $resource_str = "--resource:" . $addel->{'ALIAS'}. ",VCF " . $addel->{'FILE'};

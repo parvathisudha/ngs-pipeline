@@ -1508,7 +1508,7 @@ use Data::Dumper;
 
 	sub initialize {
 		my ( $self, ) = @_;
-		$self->memory(4);
+		$self->memory(12);
 		my $input         = $self->first_previous->output_by_type('vcf');
 		my $recal_file    = $input . ".recal";
 		my $tranches_file = $input . ".tranches";

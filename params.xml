@@ -41,7 +41,7 @@
 <GENOME_DICT>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.dict</GENOME_DICT>
 <GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
 <ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
-<UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
+<UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_20130812/uniprot.txt</UNIPROT>
 
 <VEP>/data/software/variant_effect_predictor.b69/</VEP>
 <VEPCACHE>/data/software/variant_effect_predictor.b69</VEPCACHE>

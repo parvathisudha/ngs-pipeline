@@ -42,14 +42,6 @@ for my $param ( keys %{ $params->{PARAMETERS} } ) {
 my $project        = Project->new( $config,        $debug );
 my $task_scheduler = TaskScheduler->new( $project, $debug );
 my $job_manager    = JobManager->new($debug);
-my $params         = {
-	config    => $config,
-	rerun     => $rerun,
-	scheduler => $task_scheduler,
-	project   => $project,
-	memory    => 1,
-	manager   => $job_manager,
-};
 
 # making right folder structure
 $project->make_folder_structure();
@@ -817,10 +809,7 @@ $mark_duplicates->do_not_delete('bai');
 $combine_snps->do_not_delete('vcf');
 $combine_snps->do_not_delete('idx');
 $combine_indels->do_not_delete('vcf');
-$combine_indels->do_not_delete('idx');
 
-$indels_apply_recalibration->do_not_delete('vcf');
-$indels_apply_recalibration->do_not_delete('idx');
 
 $variations->do_not_delete('vcf');
 $variations->do_not_delete('idx');

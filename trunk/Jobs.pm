@@ -59,7 +59,7 @@ use Data::Dumper;
 
 	sub get_read_group {
 		my ( $self, $lane ) = @_;
-		my $rg = "@RG";
+		my $rg = '@RG';
 		while ( ( $key, $value ) = each %$lane ) {
 			$rg .= "\\t$key:$value" if length($key) == 2;
 		}
@@ -1792,12 +1792,6 @@ use Data::Dumper;
 		}
 	}
 
-	sub lane {
-		my ( $self, $lane ) = @_;
-		$self->{lane} = $lane if $lane;
-		return $self->{lane};
-	}
-
 	sub platform {
 		my ( $self, ) = @_;
 		return $self->lane->{PL};
@@ -1843,7 +1837,7 @@ use Data::Dumper;
 		$colorspace = "-c" if $self->platform eq 'Solid';
 		my $bwa_priority = 10;
 		my $qsub_param   = "-pe mpi $proc";
-		$self->program->name(bwa);
+		$self->program->name('bwa');
 		my $illumina_fastq_qualities_flag = "";
 		$illumina_fastq_qualities_flag = "-I" if $self->lane->{ILLUMINA_FASTQ};
 		my $bam_param = "";
@@ -1887,7 +1881,7 @@ use Data::Dumper;
 		my $lane = $self->lane();
 		my $out  = $self->project()->file_prefix() . "." . $lane->{ID} . '.bam';
 		$self->program->path( $self->project->{CONFIG}->{BOWTIE} );
-		$self->program->name(bowtie);
+		$self->program->name('bowtie');
 		my $view =
 		  $self->project()->{'CONFIG'}->{'SAMTOOLS'} . "/samtools view";
 

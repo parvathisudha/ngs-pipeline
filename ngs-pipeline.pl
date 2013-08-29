@@ -389,23 +389,29 @@ my $snps_apply_recalibration = ApplyRecalibration->new(
 );
 $snps_apply_recalibration->do_not_delete('vcf');
 $snps_apply_recalibration->do_not_delete('idx');
-my $indels_variant_recalibrator = VariantRecalibrator->new(
-	params            => $params,
-	previous          => [$combine_indels],
-	additional_params => [
-"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
-		"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
-		"-mode INDEL",
-	]
-);
-$indels_variant_recalibrator->do_not_delete('recal_file');
-$indels_variant_recalibrator->do_not_delete('tranches_file');
-$indels_variant_recalibrator->do_not_delete('rscript_file');
-my $indels_apply_recalibration = ApplyRecalibration->new(
-	params            => $params,
-	previous          => [$indels_variant_recalibrator],
-	additional_params => [ "-mode INDEL", ]
-);
+my $indels_output = $combine_indels;
+unless($project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} == 0){
+	my $indels_variant_recalibrator = VariantRecalibrator->new(
+		params            => $params,
+		previous          => [$combine_indels],
+		additional_params => [
+	"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
+			"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
+			"-mode INDEL",
+		]
+	);
+	$indels_variant_recalibrator->do_not_delete('recal_file');
+	$indels_variant_recalibrator->do_not_delete('tranches_file');
+	$indels_variant_recalibrator->do_not_delete('rscript_file');
+	
+	my $indels_apply_recalibration = ApplyRecalibration->new(
+		params            => $params,
+		previous          => [$indels_variant_recalibrator],
+		additional_params => [ "-mode INDEL", ]
+	);	
+	$indels_output = $indels_apply_recalibration;
+}
+
 my $phase_variations = ReadBackedPhasing->new(
 	params   => $params,
 	previous => [$snps_apply_recalibration],
@@ -415,7 +421,7 @@ my $phase_variations = ReadBackedPhasing->new(
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",
 	params   => $params,
-	previous => [ $phase_variations, $indels_apply_recalibration ]
+	previous => [ $phase_variations, $indels_output ]
 );
 
 my $filter_low_qual = FilterLowQual->new(

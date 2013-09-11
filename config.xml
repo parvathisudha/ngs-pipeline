@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <CONFIG>
 <PARAMETERS>
-<GATKGENOMEBED>E:/programming/pipeline/human_g1k_v37.bed</GATKGENOMEBED>
-<CASE>E:/programming/pipeline/set.vcf</CASE>
-<CONTROL>E:/programming/pipeline/set.vcf</CONTROL>
+<GATKGENOMEBED>F:/rogaev/programming/pipeline/human_g1k_v37.bed</GATKGENOMEBED>
+<CASE>F:/rogaev/programming/pipeline/set.vcf</CASE>
+<CONTROL>F:/rogaev/programming/pipeline/set.vcf</CONTROL>
 
 <USER>reshetov</USER>
 <EMAIL>reshetovdenis@gmail.com</EMAIL>
 <PROJECT>test2</PROJECT>
 <SAMPLE_NAME>SAMPLE_NAME</SAMPLE_NAME>
 
-<DIR>E:/programming/pipeline</DIR>
+<DIR>F:/rogaev/programming/pipeline</DIR>
 
 
 </PARAMETERS>

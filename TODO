@@ -1,0 +1,47 @@
+#### Pindel implementation:
+1. SnpEff gives a lot of warnings on pindel inversions, like:
+java.lang.RuntimeException: Insertion '-TT+T-C+ATA-A+G-T+CT-G+T-TTTG+AAT-C+AA-TTGAAATCAAAAA+GGCGC-ACG+CCTAACTTC-TT+GGC-TGAG+G-CC+GTCATAGAGCCC-GCTGCC+C-G+GGTGGC-GGACGCTATGAT+TG-G+CTCC-GCC+GA-GAAATTAGG+CGA-GCG+C-GA+GGTCGGTCTCAA-CT+G-ATC+AAAC-C+C-CG+A-C+A-A+GC-T+TCCATTCAGAAAAGAGAA-CGGG+CTTT' does not start with '+'. This should never happen!
+
+Examples are in:
+/data/results/Denis/pipeline_CRASHES/examples/snpeff_INV
+
+It doesn't produce reference sorted files
+ERROR MESSAGE: We saw a record with a start of 1:40459512 after a record with a start of 1:75444489, for input source: /data/results/Denis/S000055.20120531/S000055.20120531.pindel_SI.vcf.la.vcf.annotated.vcf
+
+pindel2vcf for LI gives 'TOTAL' column id instead of sample id.
+
+2. LeftAlign requires about 10-20 gb for left alignment of tandem duplications
+
+TaskScheduler.pm needs to be rewritten with actual program pathes from
+param.xml
+
+### Pipeline itself
+Check how much memory needs leftalign for inversions
+Add inversions support in pipeline
+
+##### ERROR MESSAGE: File /data/results/Denis/S000005.20111019/S000005.20111019.PINDEL.vcf is malformed: the REF allele is incorrect for the record at position 1:4396588, fasta says T vs. VCF says TT
+
+check inversions errors in file
+nohup java -Xmx4g -jar /data/software/gatk_15June2012/dist/GenomeAnalysisTK.jar -R $HUMAN -T ValidateVariants --variant S000055.20120531.pindel_INV.vcf.la.15.vcf --warnOnErrors | grep -v 'long' | grep -v performance > inv.vcf.errors.txt &
+
+### Effect prediction
+17	7213445	.	C	T	1	gatk							PASS	NON_SYNONYMOUS_CODING	MISSENSE	protein_coding	EIF5A	MODERATE	ENST00000355068	Ctt/Ttt	L162F	exon_17_7212934_7213772			T	ENSG00000132507	ENST00000355068	Transcript	NON_SYNONYMOUS_CODING	596	484	162	L/F	Ctt/Ttt		unknown(0)			2|2			EIF5AL1	Eukaryotic translation initiation factor 5A-1-like	mRNA-binding protein involved in translation elongation. Has an important function at the level of mRNA turnover, probably acting downstream of decapping. Involved in actin dynamics and cell cycle progression, mRNA decay and probably in a pathway involved in stress response and maintenance of cell wall integrity. Functions as a regulator of apoptosis. Mediates effects of polyamines on neuronal process extension and survival. May play an important role in brain development and function, and in skeletal muscle stem cell differentiation.							
+is actually retained intron in S000002
+
+Fix HGMD effect fields - as SnpEff was deleted
+
+### Combination of SNPs gives false identities
+5       139931629       .       C       G       80.67   TruthSensitivityTranche99.90to100.00    AC=1;AF=0.50;AN=2;BaseQRankSum=-1.966;DP=40;Dels=0.00;EFF=DOWNSTREAM(LOW|||ANKHD1-EIF4EBP3|protein_coding|CODING|ENST00000437495|),DOWNSTREAM(LOW|||ANKHD1-EIF4EBP3|protein_coding|CODING|ENST00000474060|),DOWNSTREAM(LOW|||ANKHD1-EIF4EBP3|protein_coding|CODING|ENST00000532219|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000235510|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000253810|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000297183|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000310356|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000422011|),DOWNSTREAM(LOW|||EIF4EBP3|protein_coding|CODING|ENST00000310331|),NON_SYNONYMOUS_CODING(MODERATE|Gtg/Ctg|V/L|SRA1|protein_coding|CODING|ENST00000336283|exon_5_139931567_139931769),NON_SYNONYMOUS_CODING(MODERATE|Gtg/Ctg|V/L|SRA1|protein_coding|CODING|ENST00000520427|exon_5_139931567_139931769);FS=11.475;HRun=0;HaplotypeScore=30.7311;MQ=55.88;MQ0=0;MQRankSum=2.861;QD=2.02;ReadPosRankSum=-3.562;SNPEFF_AMINO_ACID_CHANGE=V/L;SNPEFF_CODON_CHANGE=Gtg/Ctg;SNPEFF_EFFECT=NON_SYNONYMOUS_CODING;SNPEFF_EXON_ID=exon_5_139931567_139931769;SNPEFF_FUNCTIONAL_CLASS=MISSENSE;SNPEFF_GENE_BIOTYPE=protein_coding;SNPEFF_GENE_NAME=SRA1;SNPEFF_IMPACT=MODERATE;SNPEFF_TRANSCRIPT_ID=ENST00000336283;VQSLOD=-9.1924;culprit=QD;set=FilteredInAll     GT:AD:DP:GQ:PL  0/1:33,7:40:99:111,0,1133       ./.     ./.
+5       139931629       rs5871740       C       CG      749.55  PASS    AC=2;AF=0.50;AN=4;DB;DP=93;EFF=DOWNSTREAM(LOW|||ANKHD1-EIF4EBP3|protein_coding|CODING|ENST00000437495|),DOWNSTREAM(LOW|||ANKHD1-EIF4EBP3|protein_coding|CODING|ENST00000474060|),DOWNSTREAM(LOW|||ANKHD1-EIF4EBP3|protein_coding|CODING|ENST00000532219|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000235510|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000253810|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000297183|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000310356|),DOWNSTREAM(LOW|||ANKHD1|protein_coding|CODING|ENST00000422011|),DOWNSTREAM(LOW|||EIF4EBP3|protein_coding|CODING|ENST00000310331|),FRAME_SHIFT(HIGH|||SRA1|protein_coding|CODING|ENST00000336283|exon_5_139931567_139931769),FRAME_SHIFT(HIGH|||SRA1|protein_coding|CODING|ENST00000520427|exon_5_139931567_139931769);HRun=0;MQ0=0;SNPEFF_EFFECT=FRAME_SHIFT;SNPEFF_EXON_ID=exon_5_139931567_139931769;SNPEFF_FUNCTIONAL_CLASS=NONE;SNPEFF_GENE_BIOTYPE=protein_coding;SNPEFF_GENE_NAME=SRA1;SNPEFF_IMPACT=HIGH;SNPEFF_TRANSCRIPT_ID=ENST00000336283;culprit=FS;set=S000005-S000006      GT:AD:DP:GQ:PL  0/1:31,15:46:99:789,0,563       0/1:35,12:46:99:452,0,1142      ./.
+
+####### Filtered in All???? when detected only in one sample
+10      90986652        .       C       G       641.85  TruthSensitivityTranche99.00to99.90     AC=1;AF=0.50;AN=2;BaseQRankSum=-4.360;DP=51;Dels=0.00;EFF=INTRON(LOW|||LIPA|protein_coding|CODING|ENST00000542307|),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000282673|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000336233|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000354621|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000371829|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000371837|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000425287|exon_10_90986652_90986782),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000428800|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000456827|exon_10_90986652_90986761),NON_SYNONYMOUS_CODING(MODERATE|Ggt/Cgt|G/R|LIPA|protein_coding|CODING|ENST00000541980|exon_10_90986652_90986761),UPSTREAM(LOW|||LIPA|protein_coding|CODING|ENST00000540050|);FS=13.823;HRun=0;HaplotypeScore=0.0000;MQ=59.55;MQ0=0;MQRankSum=2.842;QD=12.59;ReadPosRankSum=1.363;VQSLOD=1.6725;culprit=MQRankSum;set=FilteredInAll       GT:AD:DP:GQ:PL  ./.     0/1:23,28:51:99:672,0,629       ./.
+
+
+### Wrong working frequency filter. When looking at 1% got 10	13699338 in S6 with KG_FREQ 0.2138
+
+### Pinel long insertions doesn't provide an information about insertion length
+
+### Bedtools write an overlap when in VCF exits instertion that start with base overlaping with bed file
+1       233685  .       GC      G       .       PASS    END=233686;HOMLEN=3;HOMSEQ=CCC;SVLEN=-1;SVTYPE=DEL      GT:AD   0/1:10  1       233684  233686  GC_G
+1       233686  .       C       CGGGGGGG        .       PASS    END=233686;HOMLEN=3;HOMSEQ=CCC;SVLEN=7;SVTYPE=DEL       GT:AD   0/1:10  1       233684  233686       GC_G

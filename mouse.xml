@@ -44,6 +44,7 @@
 
 <VEP>/data/software/variant_effect_predictor.b71/</VEP>
 <VEPCACHE>/data/software/variant_effect_predictor.b71/cache</VEPCACHE>
+<SPECIES>mus_musculus</SPECIES>
 
 <PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>

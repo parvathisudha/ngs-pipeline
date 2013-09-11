@@ -42,6 +42,14 @@ for my $param ( keys %{ $params->{PARAMETERS} } ) {
 my $project        = Project->new( $config,        $debug );
 my $task_scheduler = TaskScheduler->new( $project, $debug );
 my $job_manager    = JobManager->new($debug);
+my $params         = {
+	config    => $config,
+	rerun     => $rerun,
+	scheduler => $task_scheduler,
+	project   => $project,
+	memory    => 1,
+	manager   => $job_manager,
+};
 
 # making right folder structure
 $project->make_folder_structure();
@@ -381,29 +389,23 @@ my $snps_apply_recalibration = ApplyRecalibration->new(
 );
 $snps_apply_recalibration->do_not_delete('vcf');
 $snps_apply_recalibration->do_not_delete('idx');
-my $indels_output = $combine_indels;
-unless($project->{'CONFIG'}->{'VARIANT_RECALIBRATION'} == 0){
-	my $indels_variant_recalibrator = VariantRecalibrator->new(
-		params            => $params,
-		previous          => [$combine_indels],
-		additional_params => [
-	"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
-			"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
-			"-mode INDEL",
-		]
-	);
-	$indels_variant_recalibrator->do_not_delete('recal_file');
-	$indels_variant_recalibrator->do_not_delete('tranches_file');
-	$indels_variant_recalibrator->do_not_delete('rscript_file');
-	
-	my $indels_apply_recalibration = ApplyRecalibration->new(
-		params            => $params,
-		previous          => [$indels_variant_recalibrator],
-		additional_params => [ "-mode INDEL", ]
-	);	
-	$indels_output = $indels_apply_recalibration;
-}
-
+my $indels_variant_recalibrator = VariantRecalibrator->new(
+	params            => $params,
+	previous          => [$combine_indels],
+	additional_params => [
+"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
+		"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
+		"-mode INDEL",
+	]
+);
+$indels_variant_recalibrator->do_not_delete('recal_file');
+$indels_variant_recalibrator->do_not_delete('tranches_file');
+$indels_variant_recalibrator->do_not_delete('rscript_file');
+my $indels_apply_recalibration = ApplyRecalibration->new(
+	params            => $params,
+	previous          => [$indels_variant_recalibrator],
+	additional_params => [ "-mode INDEL", ]
+);
 my $phase_variations = ReadBackedPhasing->new(
 	params   => $params,
 	previous => [$snps_apply_recalibration],
@@ -413,7 +415,7 @@ my $phase_variations = ReadBackedPhasing->new(
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",
 	params   => $params,
-	previous => [ $phase_variations, $indels_output ]
+	previous => [ $phase_variations, $indels_apply_recalibration ]
 );
 
 my $filter_low_qual = FilterLowQual->new(
@@ -809,7 +811,10 @@ $mark_duplicates->do_not_delete('bai');
 $combine_snps->do_not_delete('vcf');
 $combine_snps->do_not_delete('idx');
 $combine_indels->do_not_delete('vcf');
+$combine_indels->do_not_delete('idx');
 
+$indels_apply_recalibration->do_not_delete('vcf');
+$indels_apply_recalibration->do_not_delete('idx');
 
 $variations->do_not_delete('vcf');
 $variations->do_not_delete('idx');

@@ -45,6 +45,7 @@
 
 <VEP>/data/software/variant_effect_predictor.b69/</VEP>
 <VEPCACHE>/data/software/variant_effect_predictor.b69</VEPCACHE>
+<SPECIES>homo_sapiens</SPECIES>
 
 <PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
 <PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>

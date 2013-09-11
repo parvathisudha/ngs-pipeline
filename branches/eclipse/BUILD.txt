@@ -1,0 +1,25 @@
+MiRNA sites track was downloaded from UCSC hg19 table browser.
+then with
+cat mirna_sites.hg19.txt | awk '{print $2"\t"$3-1"\t"$4"\t"$5}' | grep -v chrom | sed 's/^chr//' > mirna_sites.grch37.bed
+it was converted to .bed file in grch37 coordinates
+The file: 
+/data/genomes/ngs-pipeline/GRCh37/mirna_sites.grch37.bed
+
+VEP
+17_5085637_G/A  17:5085637      A       ENSG00000180626 ENST00000399604 Transcript      NON_SYNONYMOUS_CODING   2071    1915    639     L/F     Ctt/Ttt -
+       PolyPhen=probably_damaging(1);EXON=2/2;SIFT=tolerated(0.06);CANONICAL=YES;HGNC=ZNF594;CCDS=CCDS42241.1
+       
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence type as predicted by VEP. 
+Format: Allele|Gene|Feature|Feature_type|Consequence|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|PolyPhen|SIFT|CANONICAL|EXON|INTRON|CCDS">
+CSQ=A|ENSG00000180626|ENST00000399604|Transcript|NON_SYNONYMOUS_CODING|2071|1915|639|L/F|Ctt/Ttt||probably_damaging(1)|tolerated(0.06)|YES|2/2||CCDS42241.1
+
+cd /data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3
+nohup perl uniprot_xml_to_tab.pl > uniprot.txt &
+[1] 27803
+
+Mutations and phenotypes were downloaded from
+http://snpeffect.switchlab.org/sites/all/modules/custom/snpeffect_db/img/snpeffect_export.csv
+
+EMBOSS INSTALLATION
+mkdir /data/software/EMBOSS-6.4.0/SHARE
+cp -r /usr/local/share/EMBOSS /data/software/EMBOSS-6.4.0/SHARE

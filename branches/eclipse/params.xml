@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CONFIG>
+<PARAMETERS>
+<DATE>2013</DATE>
+<EXPERIMENT>WGS</EXPERIMENT>
+<BOWTIE>/data/software/bowtie-0.12.7</BOWTIE>
+<BWA>/data/software/ngs-pipeline/accessory/bwa-0.5.9</BWA>
+<BWA_PROCESSORS>4</BWA_PROCESSORS>
+<SAMTOOLS>/data/software/ngs-pipeline/accessory/samtools-0.1.18</SAMTOOLS>
+<BEDTOOLS>/data/software/ngs-pipeline/accessory/BEDTools-Version-2.12.0/bin</BEDTOOLS>
+<PERLLIB>/data/software/pipeline/accessory</PERLLIB>
+<MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
+
+<GATK>/data/software/gatk_15June2012/dist</GATK>
+<GATK_stand_call_conf>30.0</GATK_stand_call_conf>
+<GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
+
+<BREAKDANCER>/data/software/ngs-pipeline/accessory/breakdancer</BREAKDANCER>
+<PICARD>/data/software/ngs-pipeline/accessory/picard-tools-1.65</PICARD>
+
+<DBSNP>/data/genomes/ngs-pipeline/GRCh37/dbsnp_134_b37.leftAligned.vcf</DBSNP>
+<HAPMAP>/data/genomes/ngs-pipeline/GRCh37/hapmap_3.3.b37.sites.vcf</HAPMAP>
+<OMNI>/data/genomes/ngs-pipeline/GRCh37/1000G_omni2.5.b37.sites.vcf</OMNI>
+<INDELS_RECAL>/data/genomes/ngs-pipeline/GRCh37/indels_mills_devine.b37.sites.vcf</INDELS_RECAL>
+
+<KG>/data/genomes/1KG/March2012/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.la.vcf</KG>
+<KGIND>/data/genomes/ngs-pipeline/GRCh37/1000G_indels_for_realignment.b37.vcf</KGIND>
+<EURKG>/data/genomes/ngs-pipeline/GRCh37/EUR.snvs.sites.20111019.vcf</EURKG>
+<CGI>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</CGI>
+<HGMD>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</HGMD>
+
+<MAXFREQ>0.05</MAXFREQ>
+
+<TABIX>/data/software/ngs-pipeline/accessory/tabix</TABIX>
+<ACCESSORY>/data/software</ACCESSORY>
+<TWOKBTSS>/data/genomes/ngs-pipeline/GRCh37/grch37.tss.2kb.2012013.bed</TWOKBTSS>
+<CONSTRAINTS>/data/genomes/ngs-pipeline/GRCh37/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
+<BEDGENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta.genome</BEDGENOME>
+<GENOME_NAME>human_g1k_v37.fasta</GENOME_NAME>
+<GENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta</GENOME>
+<GENOME_DICT>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.dict</GENOME_DICT>
+<GENOME_COLOR>/data/genomes/ngs-pipeline/GRCh37/color/human_g1k_v37.fasta</GENOME_COLOR>
+<ENSEMBL_TO_UNIPROT>/data/genomes/GRCh37/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
+<UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_20130812/uniprot.txt</UNIPROT>
+
+<VEP>/data/software/variant_effect_predictor.b69/</VEP>
+<VEPCACHE>/data/software/variant_effect_predictor.b69</VEPCACHE>
+<SPECIES>homo_sapiens</SPECIES>
+
+<PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
+<PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
+<VARIANT_RECALIBRATION>1</VARIANT_RECALIBRATION>
+<EMBOSS>/data/software/EMBOSS-6.4.0/emboss</EMBOSS>
+<EMBOSS_DATA>/data/software/EMBOSS-6.4.0/SHARE/EMBOSS/data</EMBOSS_DATA>
+<VCF_SORTER>/data/software</VCF_SORTER>
+<BOWTIE2>/data/software/bowtie2-2.0.0-beta6</BOWTIE2>
+<TOPHAT>/data/software/tophat-2.0.4.Linux_x86_64</TOPHAT>
+<FASTQ_QUALITY_FILTER>/data/software/fastx_toolkit-0.0.13/src/fastq_quality_filter/fastq_quality_filter</FASTQ_QUALITY_FILTER>
+<GENES>/data/genomes/ngs-pipeline/GRCh37/Homo_sapiens.GRCh37.67.gtf</GENES>
+<MIRNA_MATURE>/data/genomes/ngs-pipeline/GRCh37/miRNA.bed.gz</MIRNA_MATURE>
+<MIRNA_TRANSCRIPT>/data/genomes/ngs-pipeline/GRCh37/miRNA_primary_transcripts.bed.gz</MIRNA_TRANSCRIPT>
+<MIRNA_SITE>/data/genomes/ngs-pipeline/GRCh37/target_scan.bed.gz</MIRNA_SITE>
+<GENES_BED>/data/genomes/ngs-pipeline/GRCh37/genes.grch37.p8.bed.gz</GENES_BED>
+<IGVTOOLS>/data/software/IGVTools</IGVTOOLS>
+<CNVSEQ>/data/software/cnv-seq</CNVSEQ>
+<CNVSEQ_GENOME>human</CNVSEQ_GENOME>
+<CNVSEQ_REF>/data/software/cnv-seq.test</CNVSEQ_REF>
+<FREEC>
+<PATH>/data/software/FREEC_Linux64</PATH>
+<chrLenFile>/data/genomes/ngs-pipeline/GRCh37/grch37.len</chrLenFile>
+<gemMappabilityFile>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.100.gem</gemMappabilityFile>
+<coefficientOfVariation>0.062</coefficientOfVariation>
+<ploidy>2</ploidy>
+<chrFiles>/data/genomes/ngs-pipeline/GRCh37/by_chr</chrFiles>
+<SCRIPTS>/data/software/scripts_FREEC</SCRIPTS>
+</FREEC>
+
+        <ADD>
+                <FILE>/data/genomes/1KG/March2012/ALL.wgs.phase1_release_v3.20101123.snps_indels_sv.sites.vcf.la.vcf</FILE>
+                <ALIAS>KG_FREQ</ALIAS>
+                <TAG>AF,AFR_AF,AMR_AF,ASN_AF,EUR_AF</TAG>
+        </ADD>
+        <ADD>
+                <FILE>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</FILE>
+                <ALIAS>CGI_FREQ</ALIAS>
+                <TAG>AF</TAG>
+        </ADD>
+        <ADD>
+                <FILE>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</FILE>
+                <ALIAS>HGMD</ALIAS>
+                <TAG>HGMDID,confidence,disease,hyperlink,mutationType,nucleotideChange,pmid,variantType</TAG>
+        </ADD>
+        <ADD>
+                <FILE>/data/genomes/nederland/gonl.release4.with.freq.vcf</FILE>
+                <ALIAS>POP</ALIAS>
+                <TAG>NLF</TAG>
+        </ADD>
+
+
+</PARAMETERS>
+	<DATA>
+    <LANE PL='virtual' >
+    </LANE>	
+    <LANE PL='virtual' >
+    </LANE>	
+    </DATA>
+</CONFIG>

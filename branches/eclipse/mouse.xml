@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CONFIG>
+<PARAMETERS>
+<DATE>2013</DATE>
+<EXPERIMENT>WGS</EXPERIMENT>
+<BOWTIE>/data/software/bowtie-0.12.7</BOWTIE>
+<BWA>/data/software/ngs-pipeline/accessory/bwa-0.5.9</BWA>
+<BWA_PROCESSORS>4</BWA_PROCESSORS>
+<SAMTOOLS>/data/software/ngs-pipeline/accessory/samtools-0.1.18</SAMTOOLS>
+<BEDTOOLS>/data/software/ngs-pipeline/accessory/BEDTools-Version-2.12.0/bin</BEDTOOLS>
+<PERLLIB>/data/software/pipeline/accessory</PERLLIB>
+<MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
+
+<GATK>/data/software/gatk_15June2012/dist</GATK>
+<GATK_stand_call_conf>30.0</GATK_stand_call_conf>
+<GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>
+
+<BREAKDANCER>/data/software/ngs-pipeline/accessory/breakdancer</BREAKDANCER>
+<PICARD>/data/software/ngs-pipeline/accessory/picard-tools-1.65</PICARD>
+
+<DBSNP>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.vcf</DBSNP>
+<HAPMAP>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.vcf</HAPMAP>
+<OMNI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.vcf</OMNI>
+<INDELS_RECAL>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.valid.indels.vcf</INDELS_RECAL>
+
+<MAXFREQ>1</MAXFREQ>
+
+<TABIX>/data/software/ngs-pipeline/accessory/tabix</TABIX>
+<ACCESSORY>/data/software</ACCESSORY>
+<TWOKBTSS>/data/genomes/ngs-pipeline/GRCh37/grch37.tss.2kb.2012013.bed</TWOKBTSS>
+<CONSTRAINTS>/data/genomes/ngs-pipeline/GRCh37/29way_pi_lods_elements_12mers.chr_specific.fdr_0.1_with_scores.grch37.bed</CONSTRAINTS>
+<GATKGENOMEBED>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.bed</GATKGENOMEBED>
+<BEDGENOME>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.fasta.genome</BEDGENOME>
+<GENOME_NAME>Mus_musculus.GRCm38.71.fa</GENOME_NAME>
+<GENOME>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.fa</GENOME>
+<GENOME_DICT>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.GRCm38.71.dna.toplevel.dict</GENOME_DICT>
+<ENSEMBL_TO_UNIPROT>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/ensembl_to_uniprot.txt</ENSEMBL_TO_UNIPROT>
+<UNIPROT>/data/genomes/ngs-pipeline/GRCh37/uniprot_sprot3/uniprot.txt</UNIPROT>
+
+<GOI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/test.genes.txt</GOI>
+<CASE>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.test.vcf</CASE>
+<CONTROL>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/Mus_musculus.test.vcf</CONTROL>
+<LOCI>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/test.loci.bed</LOCI>
+
+<VEP>/data/software/variant_effect_predictor.b71/</VEP>
+<VEPCACHE>/data/software/variant_effect_predictor.b71/cache</VEPCACHE>
+<SPECIES>mus_musculus</SPECIES>
+
+<PINDEL>/data/software/pindel_22June2012/trunk</PINDEL>
+<PINDEL_MIN_INSERT_SIZE>202</PINDEL_MIN_INSERT_SIZE>
+<VARIANT_RECALIBRATION>1</VARIANT_RECALIBRATION>
+<EMBOSS>/data/software/EMBOSS-6.4.0/emboss</EMBOSS>
+<EMBOSS_DATA>/data/software/EMBOSS-6.4.0/SHARE/EMBOSS/data</EMBOSS_DATA>
+<VCF_SORTER>/data/software</VCF_SORTER>
+<BOWTIE2>/data/software/bowtie2-2.0.0-beta6</BOWTIE2>
+<TOPHAT>/data/software/tophat-2.0.4.Linux_x86_64</TOPHAT>
+<FASTQ_QUALITY_FILTER>/data/software/fastx_toolkit-0.0.13/src/fastq_quality_filter/fastq_quality_filter</FASTQ_QUALITY_FILTER>
+<GENES>/data/genomes/ngs-pipeline/GRCh37/Homo_sapiens.GRCh37.67.gtf</GENES>
+<MIRNA_MATURE>/data/genomes/ngs-pipeline/GRCh37/miRNA.bed.gz</MIRNA_MATURE>
+<MIRNA_TRANSCRIPT>/data/genomes/ngs-pipeline/GRCh37/miRNA_primary_transcripts.bed.gz</MIRNA_TRANSCRIPT>
+<MIRNA_SITE>/data/genomes/ngs-pipeline/GRCh37/target_scan.bed.gz</MIRNA_SITE>
+<GENES_BED>/data/genomes/ngs-pipeline/GRCh37/genes.grch37.p8.bed.gz</GENES_BED>
+<IGVTOOLS>/data/software/IGVTools</IGVTOOLS>
+<CNVSEQ>/data/software/cnv-seq</CNVSEQ>
+<CNVSEQ_GENOME>human</CNVSEQ_GENOME>
+<CNVSEQ_REF>/data/software/cnv-seq.test</CNVSEQ_REF>
+<FREEC>
+<PATH>/data/software/FREEC_Linux64</PATH>
+<chrLenFile>/data/genomes/ngs-pipeline/GRCh37/grch37.len</chrLenFile>
+<gemMappabilityFile>/data/genomes/ngs-pipeline/GRCh37/human_g1k_v37.100.gem</gemMappabilityFile>
+<coefficientOfVariation>0.062</coefficientOfVariation>
+<ploidy>2</ploidy>
+<chrFiles>/data/genomes/ngs-pipeline/GRCh37/by_chr</chrFiles>
+<SCRIPTS>/data/software/scripts_FREEC</SCRIPTS>
+</FREEC>
+
+<ADD>
+	<FILE>/data/genomes/ngs-pipeline/Mus_musculus.GRCm38.71/sanger38/mgp.v3.snps.rsIDdbSNPv137.vcf.rf.vcf</FILE>
+    <ALIAS>STRAIN</ALIAS>
+    <TAG>129P2,129S1,129S5,AJ,AKRJ,BALBcJ,C3HHeJ,C57BL6NJ,CASTEiJ,CBAJ,DBA2J,FVBNJ,LPJ,NODShiLtJ,NZOHlLtJ,PWKPhJ,SPRETEiJ,WSBEiJ,UNIQ</TAG>
+</ADD>
+
+</PARAMETERS>
+	<DATA>
+    <LANE PL='virtual' >
+    </LANE>	
+    <LANE PL='virtual' >
+    </LANE>	
+    </DATA>
+</CONFIG>

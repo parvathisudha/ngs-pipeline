@@ -11,6 +11,15 @@
 <PERLLIB>/data/software/pipeline/accessory</PERLLIB>
 <MPIRUN>/data/software/openmpi-1.4.3/bin</MPIRUN>
 
+
+<RUN_TELOMERES>0</RUN_TELOMERES>
+<RUN_BREAKDANCER>0</RUN_BREAKDANCER>
+<RUN_CNVSEQ>0</RUN_CNVSEQ>
+<RUN_FREEC>0</RUN_FREEC>
+<RUN_PINDEL>0</RUN_PINDEL>
+<RUN_MIRNA>0</RUN_MIRNA>
+<RUN_REGULATION>0</RUN_REGULATION>
+
 <GATK>/data/software/gatk_15June2012/dist</GATK>
 <GATK_stand_call_conf>30.0</GATK_stand_call_conf>
 <GATK_stand_emit_conf>10.0</GATK_stand_emit_conf>

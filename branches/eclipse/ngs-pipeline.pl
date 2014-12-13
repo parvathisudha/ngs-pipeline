@@ -72,6 +72,16 @@ my $control_group_vcf = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq          = $project->{'CONFIG'}->{'MAXFREQ'};
 my $loci              = $project->{'CONFIG'}->{'LOCI'};
 
+my $RUN_TELOMERES		= $project->{'CONFIG'}->{'RUN_TELOMERES'};
+my $RUN_BREAKDANCER		= $project->{'CONFIG'}->{'RUN_BREAKDANCER'};
+my $RUN_CNVSEQ			= $project->{'CONFIG'}->{'RUN_CNVSEQ'};
+my $RUN_FREEC			= $project->{'CONFIG'}->{'RUN_FREEC'};
+my $RUN_PINDEL			= $project->{'CONFIG'}->{'RUN_PINDEL'};
+my $RUN_MIRNA			= $project->{'CONFIG'}->{'RUN_MIRNA'};
+my $RUN_REGULATION		= $project->{'CONFIG'}->{'RUN_REGULATION'};
+
+
+
 #############################
 
 my @snpeff_coding_classes = qw/
@@ -146,15 +156,18 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		previous => [$root_job],
 		lane     => $lane
 	);
-	my $telomere_count = CalcTelomeres->new(
-		params   => $params,
-		previous => [$root_job],
-		lane     => $lane
-	);
-	my $telomere_norm = NormalizeTelomeres->new(
-		params   => $params,
-		previous => [$telomere_count],
-	);
+	if($RUN_TELOMERES){
+		my $telomere_count = CalcTelomeres->new(
+			params   => $params,
+			previous => [$root_job],
+			lane     => $lane
+		);
+		my $telomere_norm = NormalizeTelomeres->new(
+			params   => $params,
+			previous => [$telomere_count],
+		);		
+	}
+
 	push( @lanes_processing, $process_lane->last_job );
 }
 
@@ -188,129 +201,144 @@ $coverage->do_not_delete('sample_summary');
 $coverage->do_not_delete('sample_statistics');
 $coverage->do_not_delete('sample_summary');
 
+
+
+
+#------------- Copy Number Variations ------------
+if($RUN_CNVSEQ){
+	runCNVSeq( $mark_duplicates, $params );
+}
+if($RUN_FREEC){
+	runFREEC( $mark_duplicates, $params );
+}
+
 #------------- BreakDancer -----------------------
 my $bam2cfg;
 my $brdMax;
-if ($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
-	$bam2cfg = Bam2cfg->new(
-		params   => $params,
-		previous => [$mark_duplicates],
-	);
-	$bam2cfg->do_not_delete('cfg');
-	
-	$brdMax = BreakdancerMax->new(
-		params   => $params,
-		previous => [$bam2cfg],
-	);	
-	$brdMax->do_not_delete('max');
-	$brdMax->do_not_delete('bed');
-	$brdMax->do_not_delete('fastq');
+
+if($RUN_BREAKDANCER){
+
+	if ($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
+		$bam2cfg = Bam2cfg->new(
+			params   => $params,
+			previous => [$mark_duplicates],
+		);
+		$bam2cfg->do_not_delete('cfg');
+		
+		$brdMax = BreakdancerMax->new(
+			params   => $params,
+			previous => [$bam2cfg],
+		);	
+		$brdMax->do_not_delete('max');
+		$brdMax->do_not_delete('bed');
+		$brdMax->do_not_delete('fastq');
+	}	
 }
 
-#------------- Copy Number Variations ------------
-
-runCNVSeq( $mark_duplicates, $params );
-runFREEC( $mark_duplicates, $params );
 
 #------------- Pindel ----------------------------
-my $dedup_index_link = Ln->new(
-	params   => $params,
-	previous => [$mark_duplicates],
-	in       => $mark_duplicates->output_by_type('bai'),
-	out      => $mark_duplicates->output_by_type('bam') . ".bai",
-);
-
-$dedup_index_link->do_not_delete('link');
-
-my $pindel_config = PindelConfig->new(
-	params            => $params,
-	previous          => [$insert_size_metrics],
-	additional_params => [
-		"--bam",             $mark_duplicates->output_by_type('bam'),
-		"--id",              $project->sample_id,
-		"--min_insert_size", $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
-	]
-);
-$pindel_config->do_not_delete('cfg');
-my $pindel;
-
-if($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
-	$pindel = Pindel->new(
-		params            => $params,
-		previous          => [$pindel_config],
-		additional_params => [ "--breakdancer", $brdMax->out, ]
-	);	
-}
-else{
-	$pindel = Pindel->new(
-		params            => $params,
-		previous          => [$pindel_config],
-	);	
-}
-
-
-$pindel->do_not_delete('SV_D');
-$pindel->do_not_delete('SV_INV');
-$pindel->do_not_delete('SV_LI');
-$pindel->do_not_delete('SV_SI');
-$pindel->do_not_delete('SV_TD');
-$pindel->do_not_delete('SV_BP');
-
-#------------- Process Pindel output ----------------
-my $pindel_results = {};
-for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
-	my $pindel2vcf = Pindel2Vcf->new(
+my $combined_pindel;
+if($RUN_PINDEL){
+	my $dedup_index_link = Ln->new(
 		params   => $params,
-		previous => [$pindel],
-		in       => $pindel_out,
-		out      => $pindel_out . ".vcf",
+		previous => [$mark_duplicates],
+		in       => $mark_duplicates->output_by_type('bai'),
+		out      => $mark_duplicates->output_by_type('bam') . ".bai",
 	);
-	$pindel2vcf->do_not_delete('vcf');
-	my $pindel_left_aligned = LeftAlignVariants->new(
-		params   => $params,
-		previous => [$pindel2vcf],
-		in       => $pindel2vcf->out,
-		out      => $pindel2vcf->out . ".la.vcf",
+	
+	$dedup_index_link->do_not_delete('link');
+	
+	my $pindel_config = PindelConfig->new(
+		params            => $params,
+		previous          => [$insert_size_metrics],
+		additional_params => [
+			"--bam",             $mark_duplicates->output_by_type('bam'),
+			"--id",              $project->sample_id,
+			"--min_insert_size", $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
+		]
 	);
-	$pindel_left_aligned->do_not_delete('vcf');
-	$pindel_left_aligned->do_not_delete('idx');
-
-	#------------- ChipSeq analysis
-	if ( $project->{'CONFIG'}->{'CHIPSEQ'} ) {
-		my $chipseq = IntersectVcfBed->new(
-			out => $pindel_left_aligned->output_by_type('vcf') . ".chipseq.vcf",
-			bed => $project->{'CONFIG'}->{'CHIPSEQ'},
-			params   => $params,
-			previous => [$pindel_left_aligned]    #
-		);
-		$chipseq->do_not_delete('vcf');
-		$chipseq->do_not_delete('idx');
-
-		my $chipseq_idx = IGVTools->new(
-			out               => $chipseq->output_by_type('vcf') . ".idx",
+	$pindel_config->do_not_delete('cfg');
+	my $pindel;
+	
+	if($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
+		$pindel = Pindel->new(
 			params            => $params,
-			previous          => [$chipseq],
-			additional_params => [ "index", $chipseq->output_by_type('vcf'), ]
-		);
-		$chipseq_idx->do_not_delete('main');
+			previous          => [$pindel_config],
+			additional_params => [ "--breakdancer", $brdMax->out, ]
+		);	
 	}
-
-	$pindel_results->{$pindel_out} = $pindel_left_aligned;
+	else{
+		$pindel = Pindel->new(
+			params            => $params,
+			previous          => [$pindel_config],
+		);	
+	}
+	
+	
+	$pindel->do_not_delete('SV_D');
+	$pindel->do_not_delete('SV_INV');
+	$pindel->do_not_delete('SV_LI');
+	$pindel->do_not_delete('SV_SI');
+	$pindel->do_not_delete('SV_TD');
+	$pindel->do_not_delete('SV_BP');
+	
+	#------------- Process Pindel output ----------------
+	my $pindel_results = {};
+	for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
+		my $pindel2vcf = Pindel2Vcf->new(
+			params   => $params,
+			previous => [$pindel],
+			in       => $pindel_out,
+			out      => $pindel_out . ".vcf",
+		);
+		$pindel2vcf->do_not_delete('vcf');
+		my $pindel_left_aligned = LeftAlignVariants->new(
+			params   => $params,
+			previous => [$pindel2vcf],
+			in       => $pindel2vcf->out,
+			out      => $pindel2vcf->out . ".la.vcf",
+		);
+		$pindel_left_aligned->do_not_delete('vcf');
+		$pindel_left_aligned->do_not_delete('idx');
+	
+		#------------- ChipSeq analysis
+		if ( $project->{'CONFIG'}->{'CHIPSEQ'} ) {
+			my $chipseq = IntersectVcfBed->new(
+				out => $pindel_left_aligned->output_by_type('vcf') . ".chipseq.vcf",
+				bed => $project->{'CONFIG'}->{'CHIPSEQ'},
+				params   => $params,
+				previous => [$pindel_left_aligned]    #
+			);
+			$chipseq->do_not_delete('vcf');
+			$chipseq->do_not_delete('idx');
+	
+			my $chipseq_idx = IGVTools->new(
+				out               => $chipseq->output_by_type('vcf') . ".idx",
+				params            => $params,
+				previous          => [$chipseq],
+				additional_params => [ "index", $chipseq->output_by_type('vcf'), ]
+			);
+			$chipseq_idx->do_not_delete('main');
+		}
+	
+		$pindel_results->{$pindel_out} = $pindel_left_aligned;
+	}
+	
+	my @pindel_for_VEP =
+	  map { $pindel_results->{$_} } @{ $pindel->VEP_compatible_files };
+	my @pindel_for_SnpEff =
+	  map { $pindel_results->{$_} } @{ $pindel->SnpEff_compatible_files };
+	
+	#------------- Merge Pindel output ----------------
+	$combined_pindel = CombineVariants->new(
+		out      => $project->file_prefix() . ".PINDEL.vcf",
+		params   => $params,
+		previous => \@pindel_for_VEP,
+	);
+	$combined_pindel->do_not_delete('vcf');
+	$combined_pindel->do_not_delete('idx');
+	
 }
-
-my @pindel_for_VEP =
-  map { $pindel_results->{$_} } @{ $pindel->VEP_compatible_files };
-my @pindel_for_SnpEff =
-  map { $pindel_results->{$_} } @{ $pindel->SnpEff_compatible_files };
-
-#------------- Merge Pindel output ----------------
-my $combined_pindel = CombineVariants->new(
-	out      => $project->file_prefix() . ".PINDEL.vcf",
-	params   => $params,
-	previous => \@pindel_for_VEP,
-);
-$combined_pindel->do_not_delete('vcf');
-$combined_pindel->do_not_delete('idx');
 
 #------------- GATK SNP and INDEL calling --------
 
@@ -424,27 +452,29 @@ my $filter_low_qual = FilterLowQual->new(
 );
 
 #Merge GATK and Pindel outputs
-
-my $gatk_and_pindel_combined = CombineVariants->new(
-	out      => $project->file_prefix() . ".gp.vcf",
-	params   => $params,
-	previous => [ $filter_low_qual, $combined_pindel ]
-);
-$gatk_and_pindel_combined->program->clean_additional_params;
-$gatk_and_pindel_combined->program->additional_params(
-	[
-		"--variant:gatk",
-		$filter_low_qual->output_by_type('vcf'),
-		"--variant:pindel",
-		$combined_pindel->output_by_type('vcf'),
-		"-o",
-		$gatk_and_pindel_combined->output_by_type('vcf'),
-		"-genotypeMergeOptions PRIORITIZE",
-		"-priority gatk,pindel",
-	]
-);
-$gatk_and_pindel_combined->do_not_delete('vcf');
-$gatk_and_pindel_combined->do_not_delete('idx');
+my $gatk_and_pindel_combined = $filter_low_qual;
+if($RUN_PINDEL){
+	$gatk_and_pindel_combined = CombineVariants->new(
+		out      => $project->file_prefix() . ".gp.vcf",
+		params   => $params,
+		previous => [ $filter_low_qual, $combined_pindel ]
+	);
+	$gatk_and_pindel_combined->program->clean_additional_params;
+	$gatk_and_pindel_combined->program->additional_params(
+		[
+			"--variant:gatk",
+			$filter_low_qual->output_by_type('vcf'),
+			"--variant:pindel",
+			$combined_pindel->output_by_type('vcf'),
+			"-o",
+			$gatk_and_pindel_combined->output_by_type('vcf'),
+			"-genotypeMergeOptions PRIORITIZE",
+			"-priority gatk,pindel",
+		]
+	);
+	$gatk_and_pindel_combined->do_not_delete('vcf');
+	$gatk_and_pindel_combined->do_not_delete('idx');	
+}
 
 
 my $addings_to_annotator = get_annotation_addings_parameters();
@@ -562,244 +592,240 @@ my $loci_cod_table = AddLoci->new(
 $loci_cod_table->do_not_delete('txt');
 
 ########## miRNA genes and targets   ################
-my $rare_miRNA = VEP->new(
-	params            => $params,
-	previous          => [$rare],
-	out               => $rare->output_by_type('vcf') . ".miRNA.vcf",
-	additional_params => [
-		"--no_consequence",
-		"-custom "
-		  . $project->{'CONFIG'}->{'MIRNA_SITE'}
-		  . ",MIRNA_SITE,bed,overlap,0",
-		"-custom "
-		  . $project->{'CONFIG'}->{'MIRNA_TRANSCRIPT'}
-		  . ",MIRNA_TRANSCRIPT,bed,overlap,0",
-		"-custom "
-		  . $project->{'CONFIG'}->{'MIRNA_MATURE'}
-		  . ",MIRNA_MATURE,bed,overlap,0",
-		"-custom "
-		  . $project->{'CONFIG'}->{'GENES_BED'}
-		  . ",GENE,bed,overlap,0",
-	],
-);
-$rare_miRNA->do_not_delete('vcf');
-$rare_miRNA->do_not_delete('idx');
+if($RUN_MIRNA){
+	my $rare_miRNA = VEP->new(
+		params            => $params,
+		previous          => [$rare],
+		out               => $rare->output_by_type('vcf') . ".miRNA.vcf",
+		additional_params => [
+			"--no_consequence",
+			"-custom "
+			  . $project->{'CONFIG'}->{'MIRNA_SITE'}
+			  . ",MIRNA_SITE,bed,overlap,0",
+			"-custom "
+			  . $project->{'CONFIG'}->{'MIRNA_TRANSCRIPT'}
+			  . ",MIRNA_TRANSCRIPT,bed,overlap,0",
+			"-custom "
+			  . $project->{'CONFIG'}->{'MIRNA_MATURE'}
+			  . ",MIRNA_MATURE,bed,overlap,0",
+			"-custom "
+			  . $project->{'CONFIG'}->{'GENES_BED'}
+			  . ",GENE,bed,overlap,0",
+		],
+	);
+	$rare_miRNA->do_not_delete('vcf');
+	$rare_miRNA->do_not_delete('idx');	
 
-### miRNA genes
+	### miRNA genes
+	my $grep_miRNA = GrepVcf->new(
+		params       => $params,
+		out          => $project->file_prefix() . ".mir_genes.vcf",
+		basic_params => [
+			"--regexp_v '" . join( '|', ( "SVTYPE=INV", "SVTYPE=RPL" ) ) . "'",
+			"--regexp '"
+			  . join( '|', ( "MIRNA_TRANSCRIPT", "MIRNA_MATURE" ) ) . "'",
+		],
+		previous => [$rare_miRNA]
+	);
+	$grep_miRNA->do_not_delete('vcf');
+	
+	my $rare_miRNA_genes_report = VcfToReport->new(
+		params            => $params,
+		out               => $project->file_prefix() . ".mir_genes.xls",
+		previous          => [$grep_miRNA],
+		additional_params => [ "--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE", ],
+	);
+	$rare_miRNA_genes_report->do_not_delete('xls');
 
-my $grep_miRNA = GrepVcf->new(
-	params       => $params,
-	out          => $project->file_prefix() . ".mir_genes.vcf",
-	basic_params => [
-		"--regexp_v '" . join( '|', ( "SVTYPE=INV", "SVTYPE=RPL" ) ) . "'",
-		"--regexp '"
-		  . join( '|', ( "MIRNA_TRANSCRIPT", "MIRNA_MATURE" ) ) . "'",
-	],
-	previous => [$rare_miRNA]
-);
-$grep_miRNA->do_not_delete('vcf');
 
-my $rare_miRNA_genes_report = VcfToReport->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".mir_genes.xls",
-	previous          => [$grep_miRNA],
-	additional_params => [ "--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE", ],
-);
-$rare_miRNA_genes_report->do_not_delete('xls');
+	### miRNA targets
+	
+	my $grep_miRNA_targets = GrepVcf->new(
+		params       => $params,
+		out          => $project->file_prefix() . ".mir_targets.vcf",
+		basic_params => [
+			"--regexp_v '" . join( '|', ( "SVTYPE=INV", "SVTYPE=RPL" ) ) . "'",
+			"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'",
+		],
+		previous => [$rare_miRNA]
+	);
+	$grep_miRNA_targets->do_not_delete('vcf');
+	
+	my $rare_miRNA_targets_report = VcfToReport->new(
+		params            => $params,
+		out               => $project->file_prefix() . ".mir_targets.xls",
+		previous          => [$grep_miRNA_targets],
+		additional_params => [ "--annotation", "MIRNA_SITE,GENE", ],
+	);
+	$rare_miRNA_targets_report->do_not_delete('xls');
+	
+	my $rare_miRNA_targets_report_proteins = AnnotateProteins->new(
+		params            => $params,
+		out               => $project->file_prefix() . ".mir_targets.a.xls",
+		additional_params => [
+			"--in",
+			$rare_miRNA_targets_report->out,
+			"--id_column gene",
+			"--gene_to_protein",
+			$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+			"--id_type gene",
+			"--uniprot_db",
+			$project->{'CONFIG'}->{'UNIPROT'},
+		],
+		previous => [$rare_cod_table]    #
+	);
+	$rare_miRNA_targets_report_proteins->do_not_delete('main');
+	
+}
 
-### miRNA targets
-
-my $grep_miRNA_targets = GrepVcf->new(
-	params       => $params,
-	out          => $project->file_prefix() . ".mir_targets.vcf",
-	basic_params => [
-		"--regexp_v '" . join( '|', ( "SVTYPE=INV", "SVTYPE=RPL" ) ) . "'",
-		"--regexp '" . join( '|', ("MIRNA_SITE") ) . "'",
-	],
-	previous => [$rare_miRNA]
-);
-$grep_miRNA_targets->do_not_delete('vcf');
-
-my $rare_miRNA_targets_report = VcfToReport->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".mir_targets.xls",
-	previous          => [$grep_miRNA_targets],
-	additional_params => [ "--annotation", "MIRNA_SITE,GENE", ],
-);
-$rare_miRNA_targets_report->do_not_delete('xls');
-
-my $rare_miRNA_targets_report_proteins = AnnotateProteins->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".mir_targets.a.xls",
-	additional_params => [
-		"--in",
-		$rare_miRNA_targets_report->out,
-		"--id_column gene",
-		"--gene_to_protein",
-		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-		"--id_type gene",
-		"--uniprot_db",
-		$project->{'CONFIG'}->{'UNIPROT'},
-	],
-	previous => [$rare_cod_table]    #
-);
-$rare_miRNA_targets_report_proteins->do_not_delete('main');
-
-########## REGULATION ANALYSIS ######################
-my $evolution_constraints_for_reg = IntersectVcfBed->new(
-	out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",
-	bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
-	params   => $params,
-	previous => [$variant_annotator]                                           #
-);
-$evolution_constraints_for_reg->do_not_delete('vcf');
-$evolution_constraints_for_reg->do_not_delete('idx');
-
-my $reg_constraints_rare = FilterFreq->new(
-	params       => $params,
-	basic_params => [ $max_freq, $max_freq, $max_freq, ],
-	previous     => [$evolution_constraints_for_reg]                           #
-);
-$reg_constraints_rare->do_not_delete('vcf');
-$reg_constraints_rare->do_not_delete('idx');
-
-#------------------------Fix site predictions!!!!!!!!!!!!!
-my $reg_constraints_rare_table = VariantsToTable->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".constrained.rare.txt",
-	additional_params => [
-		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
-		"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
-		"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
-		"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F CASE.set",
-		"--showFiltered"
-	],
-	previous => [$reg_constraints_rare]    #
-);
-$reg_constraints_rare_table->do_not_delete('txt');
-
-#-------------------------------------------------------------------------------------
-
-my $in_ensemble_regulatory = GrepVcf->new(
-	params       => $params,
-	basic_params =>
-	  [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'" ],
-	previous => [$reg_constraints_rare]    #
-);
-$in_ensemble_regulatory->do_not_delete('vcf');
-$in_ensemble_regulatory->do_not_delete('idx');
-
-my $regulatory_group_annotator = VariantAnnotator->new(
-	additional_params => [
-		"--resource:CASE,VCF $group_vcf",
-		"-E CASE.set",
-		"--resource:CONTROL,VCF $control_group_vcf",
-		"-E CONTROL.set",
-	],
-	params   => $params,
-	previous => [$in_ensemble_regulatory]
-);
-$regulatory_group_annotator->do_not_delete('vcf');
-$regulatory_group_annotator->do_not_delete('idx');
-
-my $near_genes = closestBed->new(
-	params => $params,
-	out    => $regulatory_group_annotator->output_by_type('vcf') . ".genes",
-	basic_params => [
-		"-t first",                                         "-a",
-		$regulatory_group_annotator->output_by_type('vcf'), "-b",
-		$project->{'CONFIG'}->{'TWOKBTSS'}
-	],
-	previous => [$regulatory_group_annotator]    #
-);
-$near_genes->do_not_delete('vcf');
-$near_genes->do_not_delete('idx');
-
-my $regulatory_rare_table = VariantsToTable->new(
-	params            => $params,
-	additional_params => [
-		"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
-		"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
-		"-F FILTER -F EFF -F CASE.set -F CONTROL.set",
-		"--showFiltered"
-	],
-	previous => [$regulatory_group_annotator]    #
-);
-$regulatory_rare_table->do_not_delete('txt');
-
-my $regulatory_rare_table_with_genes = JoinTabular->new(
-	params            => $params,
-	out               => $regulatory_rare_table->out . '.with_genes.txt',
-	additional_params => [
-		"--table",      $regulatory_rare_table->out,
-		"--annotation", $near_genes->out,
-		"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
-		"--annotation_columns 14",
-		"--annotation_header GENE_ID",
-		"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13",
-		"--skip_annotation_header",
-		"--annotation_header GENE_ID",
-
-	],
-	previous => [ $in_ensemble_regulatory, $regulatory_rare_table ]    #
-);
-$regulatory_rare_table_with_genes->do_not_delete('txt');
-
-my $regulatory_rare_table_with_genes_proteins = AnnotateProteins->new(
-	params => $params,
-	out    => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
-	additional_params => [
-		"--in",
-		$regulatory_rare_table_with_genes->out,
-		"--id_column gene",
-		"--gene_to_protein",
-		$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
-		"--id_type gene",
-		"--uniprot_db",
-		$project->{'CONFIG'}->{'UNIPROT'},
-	],
-	previous => [$regulatory_rare_table_with_genes]    #
-);
-$regulatory_rare_table_with_genes_proteins->do_not_delete('txt');
-
-my $reformat_regulation = ReformatRegulation->new(
-	params            => $params,
-	out               => $project->file_prefix() . ".reg.txt",
-	additional_params =>
-	  [ "--in", $regulatory_rare_table_with_genes->out, "--eff_column 11", ],
-	previous => [$regulatory_rare_table_with_genes]    #
-);
-$reformat_regulation->do_not_delete('txt');
-
-my $regulation_with_genes_marked = JoinTabular->new(
-	params            => $params,
-	out               => $reformat_regulation->out . '.marked.txt',
-	additional_params => [
-		"--table",
-		$reformat_regulation->out,
-		"--annotation",
-		$project->{'CONFIG'}->{'GOI'},
-		"--table_id_columns 14 --annotation_id_columns 0",
-		"--annotation_columns 1,2,3",
-		"--all_table",
-	],
-	previous => [ $reformat_regulation, ]    #
-);
-$regulation_with_genes_marked->do_not_delete('txt');
-
+if($RUN_REGULATION){
+	########## REGULATION ANALYSIS ######################
+	my $evolution_constraints_for_reg = IntersectVcfBed->new(
+		out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",
+		bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
+		params   => $params,
+		previous => [$variant_annotator]                                           #
+	);
+	$evolution_constraints_for_reg->do_not_delete('vcf');
+	$evolution_constraints_for_reg->do_not_delete('idx');
+	
+	my $reg_constraints_rare = FilterFreq->new(
+		params       => $params,
+		basic_params => [ $max_freq, $max_freq, $max_freq, ],
+		previous     => [$evolution_constraints_for_reg]                           #
+	);
+	$reg_constraints_rare->do_not_delete('vcf');
+	$reg_constraints_rare->do_not_delete('idx');
+	
+	#------------------------Fix site predictions!!!!!!!!!!!!!
+	my $reg_constraints_rare_table = VariantsToTable->new(
+		params            => $params,
+		out               => $project->file_prefix() . ".constrained.rare.txt",
+		additional_params => [
+			"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+			"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+			"-F FILTER -F SNPEFF_EFFECT -F SNPEFF_FUNCTIONAL_CLASS",
+			"-F SNPEFF_GENE_BIOTYPE -F SNPEFF_GENE_NAME -F SNPEFF_IMPACT",
+			"-F SNPEFF_TRANSCRIPT_ID -F SNPEFF_CODON_CHANGE",
+			"-F SNPEFF_AMINO_ACID_CHANGE -F SNPEFF_EXON_ID -F CASE.set",
+			"--showFiltered"
+		],
+		previous => [$reg_constraints_rare]    #
+	);
+	$reg_constraints_rare_table->do_not_delete('txt');
+	
+	#-------------------------------------------------------------------------------------
+	
+	my $in_ensemble_regulatory = GrepVcf->new(
+		params       => $params,
+		basic_params =>
+		  [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'" ],
+		previous => [$reg_constraints_rare]    #
+	);
+	$in_ensemble_regulatory->do_not_delete('vcf');
+	$in_ensemble_regulatory->do_not_delete('idx');
+	
+	my $regulatory_group_annotator = VariantAnnotator->new(
+		additional_params => [
+			"--resource:CASE,VCF $group_vcf",
+			"-E CASE.set",
+			"--resource:CONTROL,VCF $control_group_vcf",
+			"-E CONTROL.set",
+		],
+		params   => $params,
+		previous => [$in_ensemble_regulatory]
+	);
+	$regulatory_group_annotator->do_not_delete('vcf');
+	$regulatory_group_annotator->do_not_delete('idx');
+	
+	my $near_genes = closestBed->new(
+		params => $params,
+		out    => $regulatory_group_annotator->output_by_type('vcf') . ".genes",
+		basic_params => [
+			"-t first",                                         "-a",
+			$regulatory_group_annotator->output_by_type('vcf'), "-b",
+			$project->{'CONFIG'}->{'TWOKBTSS'}
+		],
+		previous => [$regulatory_group_annotator]    #
+	);
+	$near_genes->do_not_delete('vcf');
+	$near_genes->do_not_delete('idx');
+	
+	my $regulatory_rare_table = VariantsToTable->new(
+		params            => $params,
+		additional_params => [
+			"-F CHROM -F POS -F ID -F REF -F ALT -F AF -F CGI_FREQ\.AF",
+			"-F KG_FREQ\.AF -F EUR_FREQ\.AF -F QUAL",
+			"-F FILTER -F EFF -F CASE.set -F CONTROL.set",
+			"--showFiltered"
+		],
+		previous => [$regulatory_group_annotator]    #
+	);
+	$regulatory_rare_table->do_not_delete('txt');
+	
+	my $regulatory_rare_table_with_genes = JoinTabular->new(
+		params            => $params,
+		out               => $regulatory_rare_table->out . '.with_genes.txt',
+		additional_params => [
+			"--table",      $regulatory_rare_table->out,
+			"--annotation", $near_genes->out,
+			"--table_id_columns 0,1,3,4 --annotation_id_columns 0,1,3,4",
+			"--annotation_columns 14",
+			"--annotation_header GENE_ID",
+			"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13",
+			"--skip_annotation_header",
+			"--annotation_header GENE_ID",
+	
+		],
+		previous => [ $in_ensemble_regulatory, $regulatory_rare_table ]    #
+	);
+	$regulatory_rare_table_with_genes->do_not_delete('txt');
+	
+	my $regulatory_rare_table_with_genes_proteins = AnnotateProteins->new(
+		params => $params,
+		out    => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
+		additional_params => [
+			"--in",
+			$regulatory_rare_table_with_genes->out,
+			"--id_column gene",
+			"--gene_to_protein",
+			$project->{'CONFIG'}->{'ENSEMBL_TO_UNIPROT'},
+			"--id_type gene",
+			"--uniprot_db",
+			$project->{'CONFIG'}->{'UNIPROT'},
+		],
+		previous => [$regulatory_rare_table_with_genes]    #
+	);
+	$regulatory_rare_table_with_genes_proteins->do_not_delete('txt');
+	
+	my $reformat_regulation = ReformatRegulation->new(
+		params            => $params,
+		out               => $project->file_prefix() . ".reg.txt",
+		additional_params =>
+		  [ "--in", $regulatory_rare_table_with_genes->out, "--eff_column 11", ],
+		previous => [$regulatory_rare_table_with_genes]    #
+	);
+	$reformat_regulation->do_not_delete('txt');
+	
+	my $regulation_with_genes_marked = JoinTabular->new(
+		params            => $params,
+		out               => $reformat_regulation->out . '.marked.txt',
+		additional_params => [
+			"--table",
+			$reformat_regulation->out,
+			"--annotation",
+			$project->{'CONFIG'}->{'GOI'},
+			"--table_id_columns 14 --annotation_id_columns 0",
+			"--annotation_columns 1,2,3",
+			"--all_table",
+		],
+		previous => [ $reformat_regulation, ]    #
+	);
+	$regulation_with_genes_marked->do_not_delete('txt');
+	
+	
+}
 ######################################################
-
-my $bgzip = Bgzip->new(
-	params   => $params,
-	previous => [$variant_annotator]         #
-);
-
-my $tabix = Tabix->new(
-	params   => $params,
-	previous => [$bgzip]                     #
-);
 
 #result files:
 $mark_duplicates->do_not_delete('metrics');
@@ -824,13 +850,6 @@ $filter_low_qual->do_not_delete('vcf');
 $filter_low_qual->do_not_delete('idx');
 $variant_annotator->do_not_delete('vcf');
 $variant_annotator->do_not_delete('idx');
-$bgzip->do_not_delete('gz');
-$tabix->do_not_delete('tbi');
-
-#$evolution_constraints->do_not_delete('vcf');
-#$effect_annotator_rare->do_not_delete('vcf');
-#$constraints_rare->do_not_delete('vcf');
-#$effect_annotator_rare->do_not_delete('vcf');
 
 if ( $mode eq 'ALL' || $mode eq 'PINDEL_TRUE' ) {
 	$job_manager->start();

@@ -399,9 +399,12 @@ my $combine_indels = CombineVariants->new(
 
 my ( $gatk_snps, $gatk_indels ) = ( $combine_snps, $combine_indels );
 
-( $gatk_snps, $gatk_indels ) =
-  runRecalibrationAndVariantPhasing( $combine_snps, $combine_indels,
-	$mark_duplicates->output_by_type('bam'), $params );
+if($VARIANT_RECALIBRATION){
+	( $gatk_snps, $gatk_indels ) =
+	  runRecalibrationAndVariantPhasing( $combine_snps, $combine_indels,
+		$mark_duplicates->output_by_type('bam'), $params );	
+}
+
 
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",

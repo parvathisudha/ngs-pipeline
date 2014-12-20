@@ -33,7 +33,7 @@ my $config = XMLin( "$config_file", ForceArray => [ 'LANE', ], );
 $0 =~ /^(.+[\\\/])[^\\\/]+[\\\/]*$/;
 my $path = $1 || "./";
 $path =~ s/\/$//;
-my $params = XMLin("$path/$params_file", ForceArray => [ 'ADD'], );
+my $params = XMLin( "$path/$params_file", ForceArray => ['ADD'], );
 for my $param ( keys %{ $params->{PARAMETERS} } ) {
 	$config->{PARAMETERS}->{$param} = $params->{PARAMETERS}->{$param}
 	  unless exists $config->{PARAMETERS}->{$param};
@@ -72,15 +72,14 @@ my $control_group_vcf = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq          = $project->{'CONFIG'}->{'MAXFREQ'};
 my $loci              = $project->{'CONFIG'}->{'LOCI'};
 
-my $RUN_TELOMERES		= $project->{'CONFIG'}->{'RUN_TELOMERES'};
-my $RUN_BREAKDANCER		= $project->{'CONFIG'}->{'RUN_BREAKDANCER'};
-my $RUN_CNVSEQ			= $project->{'CONFIG'}->{'RUN_CNVSEQ'};
-my $RUN_FREEC			= $project->{'CONFIG'}->{'RUN_FREEC'};
-my $RUN_PINDEL			= $project->{'CONFIG'}->{'RUN_PINDEL'};
-my $RUN_MIRNA			= $project->{'CONFIG'}->{'RUN_MIRNA'};
-my $RUN_REGULATION		= $project->{'CONFIG'}->{'RUN_REGULATION'};
-
-
+my $VARIANT_RECALIBRATION = = $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'};
+my $RUN_TELOMERES         = $project->{'CONFIG'}->{'RUN_TELOMERES'};
+my $RUN_BREAKDANCER       = $project->{'CONFIG'}->{'RUN_BREAKDANCER'};
+my $RUN_CNVSEQ            = $project->{'CONFIG'}->{'RUN_CNVSEQ'};
+my $RUN_FREEC             = $project->{'CONFIG'}->{'RUN_FREEC'};
+my $RUN_PINDEL            = $project->{'CONFIG'}->{'RUN_PINDEL'};
+my $RUN_MIRNA             = $project->{'CONFIG'}->{'RUN_MIRNA'};
+my $RUN_REGULATION        = $project->{'CONFIG'}->{'RUN_REGULATION'};
 
 #############################
 
@@ -106,42 +105,42 @@ my @vep_coding_classes = qw/
   PARTIAL_CODON
   /;
 my @vep_severe = qw/
-	transcript_ablation
-	splice_donor_variant
-	splice_acceptor_variant
-	stop_gained
-	frameshift_variant
-	stop_lost
-	initiator_codon_variant
-	inframe_insertion
-	inframe_deletion
-	missense_variant
-	transcript_amplification
-	splice_region_variant
-	incomplete_terminal_codon_variant
-	mature_miRNA_variant
-	TFBS_ablation
-	TFBS_amplification
-	TF_binding_site_variant
-	regulatory_region_variant
-	regulatory_region_ablation
-	regulatory_region_amplification
-	coding_sequence_variant.*feature_truncation
-  /; 
+  transcript_ablation
+  splice_donor_variant
+  splice_acceptor_variant
+  stop_gained
+  frameshift_variant
+  stop_lost
+  initiator_codon_variant
+  inframe_insertion
+  inframe_deletion
+  missense_variant
+  transcript_amplification
+  splice_region_variant
+  incomplete_terminal_codon_variant
+  mature_miRNA_variant
+  TFBS_ablation
+  TFBS_amplification
+  TF_binding_site_variant
+  regulatory_region_variant
+  regulatory_region_ablation
+  regulatory_region_amplification
+  coding_sequence_variant.*feature_truncation
+  /;
 my @vep_non_severe = qw/
-	frameshift_variant&non_coding_exon_variant&nc_transcript_variant&feature_truncation
-	frameshift_variant&3_prime_UTR_variant&feature_truncation
-	frameshift_variant&5_prime_UTR_variant&feature_truncation
-	frameshift_variant&3_prime_UTR_variant&NMD_transcript_variant&feature_truncation
-	frameshift_variant&5_prime_UTR_variant&NMD_transcript_variant&feature_truncation
-	frameshift_variant&NMD_transcript_variant&feature_truncation
-	
-	frameshift_variant&NMD_transcript_variant
-	NMD_transcript_variant
-	nc_transcript_variant
-  /;     
+  frameshift_variant&non_coding_exon_variant&nc_transcript_variant&feature_truncation
+  frameshift_variant&3_prime_UTR_variant&feature_truncation
+  frameshift_variant&5_prime_UTR_variant&feature_truncation
+  frameshift_variant&3_prime_UTR_variant&NMD_transcript_variant&feature_truncation
+  frameshift_variant&5_prime_UTR_variant&NMD_transcript_variant&feature_truncation
+  frameshift_variant&NMD_transcript_variant&feature_truncation
+
+  frameshift_variant&NMD_transcript_variant
+  NMD_transcript_variant
+  nc_transcript_variant
+  /;
 my $coding_classes_string        = join( '|', @vep_coding_classes );
-my $vep_severe_string        = join( '|', @vep_severe );
+my $vep_severe_string            = join( '|', @vep_severe );
 my $vep_non_severe_string        = join( '|', @vep_non_severe );
 my $snpeff_coding_classes_string = join( '|', @snpeff_coding_classes );
 ####### Add Jobs #############
@@ -156,7 +155,7 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		previous => [$root_job],
 		lane     => $lane
 	);
-	if($RUN_TELOMERES){
+	if ($RUN_TELOMERES) {
 		my $telomere_count = CalcTelomeres->new(
 			params   => $params,
 			previous => [$root_job],
@@ -165,7 +164,7 @@ for my $lane ( @{ $project->get_lanes() } ) {
 		my $telomere_norm = NormalizeTelomeres->new(
 			params   => $params,
 			previous => [$telomere_count],
-		);		
+		);
 	}
 
 	push( @lanes_processing, $process_lane->last_job );
@@ -201,14 +200,11 @@ $coverage->do_not_delete('sample_summary');
 $coverage->do_not_delete('sample_statistics');
 $coverage->do_not_delete('sample_summary');
 
-
-
-
 #------------- Copy Number Variations ------------
-if($RUN_CNVSEQ){
+if ($RUN_CNVSEQ) {
 	runCNVSeq( $mark_duplicates, $params );
 }
-if($RUN_FREEC){
+if ($RUN_FREEC) {
 	runFREEC( $mark_duplicates, $params );
 }
 
@@ -216,72 +212,73 @@ if($RUN_FREEC){
 my $bam2cfg;
 my $brdMax;
 
-if($RUN_BREAKDANCER){
+if ($RUN_BREAKDANCER) {
 
-	if ($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
+	if ( $project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS' ) {
 		$bam2cfg = Bam2cfg->new(
 			params   => $params,
 			previous => [$mark_duplicates],
 		);
 		$bam2cfg->do_not_delete('cfg');
-		
+
 		$brdMax = BreakdancerMax->new(
 			params   => $params,
 			previous => [$bam2cfg],
-		);	
+		);
 		$brdMax->do_not_delete('max');
 		$brdMax->do_not_delete('bed');
 		$brdMax->do_not_delete('fastq');
-	}	
+	}
 }
-
 
 #------------- Pindel ----------------------------
 my $combined_pindel;
-if($RUN_PINDEL){
+if ($RUN_PINDEL) {
 	my $dedup_index_link = Ln->new(
 		params   => $params,
 		previous => [$mark_duplicates],
 		in       => $mark_duplicates->output_by_type('bai'),
 		out      => $mark_duplicates->output_by_type('bam') . ".bai",
 	);
-	
+
 	$dedup_index_link->do_not_delete('link');
-	
+
 	my $pindel_config = PindelConfig->new(
 		params            => $params,
 		previous          => [$insert_size_metrics],
 		additional_params => [
-			"--bam",             $mark_duplicates->output_by_type('bam'),
-			"--id",              $project->sample_id,
-			"--min_insert_size", $project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
+			"--bam",
+			$mark_duplicates->output_by_type('bam'),
+			"--id",
+			$project->sample_id,
+			"--min_insert_size",
+			$project->{'CONFIG'}->{'PINDEL_MIN_INSERT_SIZE'},
 		]
 	);
 	$pindel_config->do_not_delete('cfg');
 	my $pindel;
-	
-	if($project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS'){
+
+	if ( $project->{'CONFIG'}->{'EXPERIMENT'} eq 'WGS' ) {
 		$pindel = Pindel->new(
 			params            => $params,
 			previous          => [$pindel_config],
 			additional_params => [ "--breakdancer", $brdMax->out, ]
-		);	
+		);
 	}
-	else{
+	else {
 		$pindel = Pindel->new(
-			params            => $params,
-			previous          => [$pindel_config],
-		);	
+			params   => $params,
+			previous => [$pindel_config],
+		);
 	}
-	
-	
+
 	$pindel->do_not_delete('SV_D');
 	$pindel->do_not_delete('SV_INV');
 	$pindel->do_not_delete('SV_LI');
 	$pindel->do_not_delete('SV_SI');
 	$pindel->do_not_delete('SV_TD');
 	$pindel->do_not_delete('SV_BP');
-	
+
 	#------------- Process Pindel output ----------------
 	my $pindel_results = {};
 	for my $pindel_out ( @{ $pindel->VEP_compatible_files } ) {
@@ -300,35 +297,37 @@ if($RUN_PINDEL){
 		);
 		$pindel_left_aligned->do_not_delete('vcf');
 		$pindel_left_aligned->do_not_delete('idx');
-	
+
 		#------------- ChipSeq analysis
 		if ( $project->{'CONFIG'}->{'CHIPSEQ'} ) {
 			my $chipseq = IntersectVcfBed->new(
-				out => $pindel_left_aligned->output_by_type('vcf') . ".chipseq.vcf",
-				bed => $project->{'CONFIG'}->{'CHIPSEQ'},
+				out => $pindel_left_aligned->output_by_type('vcf')
+				  . ".chipseq.vcf",
+				bed      => $project->{'CONFIG'}->{'CHIPSEQ'},
 				params   => $params,
-				previous => [$pindel_left_aligned]    #
+				previous => [$pindel_left_aligned]               #
 			);
 			$chipseq->do_not_delete('vcf');
 			$chipseq->do_not_delete('idx');
-	
+
 			my $chipseq_idx = IGVTools->new(
 				out               => $chipseq->output_by_type('vcf') . ".idx",
 				params            => $params,
 				previous          => [$chipseq],
-				additional_params => [ "index", $chipseq->output_by_type('vcf'), ]
+				additional_params =>
+				  [ "index", $chipseq->output_by_type('vcf'), ]
 			);
 			$chipseq_idx->do_not_delete('main');
 		}
-	
+
 		$pindel_results->{$pindel_out} = $pindel_left_aligned;
 	}
-	
+
 	my @pindel_for_VEP =
 	  map { $pindel_results->{$_} } @{ $pindel->VEP_compatible_files };
 	my @pindel_for_SnpEff =
 	  map { $pindel_results->{$_} } @{ $pindel->SnpEff_compatible_files };
-	
+
 	#------------- Merge Pindel output ----------------
 	$combined_pindel = CombineVariants->new(
 		out      => $project->file_prefix() . ".PINDEL.vcf",
@@ -337,7 +336,7 @@ if($RUN_PINDEL){
 	);
 	$combined_pindel->do_not_delete('vcf');
 	$combined_pindel->do_not_delete('idx');
-	
+
 }
 
 #------------- GATK SNP and INDEL calling --------
@@ -373,13 +372,13 @@ for my $chr (@chr) {
 		params         => $params,
 		previous       => [$index_recalibrated],
 		variation_type => "SNP",
-		interval => $chr,
+		interval       => $chr,
 	);    #
 	my $call_indels = UnifiedGenotyper->new(
 		params         => $params,
 		previous       => [$index_recalibrated],
 		variation_type => "INDEL",
-		interval => $chr,
+		interval       => $chr,
 	);    #
 	push( @snps,   $call_snps );
 	push( @indels, $call_indels );
@@ -396,54 +395,18 @@ my $combine_indels = CombineVariants->new(
 	previous => \@indels
 );
 
-my $snps_variant_recalibrator = VariantRecalibrator->new(
-	params            => $params,
-	previous          => [$combine_snps],
-	additional_params => [
-"--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap",
-"--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni",
-"--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP",
-"-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ",
-		"-mode SNP",
-	]
-);
-$snps_variant_recalibrator->do_not_delete('recal_file');
-$snps_variant_recalibrator->do_not_delete('tranches_file');
-$snps_variant_recalibrator->do_not_delete('rscript_file');
-my $snps_apply_recalibration = ApplyRecalibration->new(
-	params            => $params,
-	previous          => [$snps_variant_recalibrator],
-	additional_params => [ "-mode SNP", ]
-);
-$snps_apply_recalibration->do_not_delete('vcf');
-$snps_apply_recalibration->do_not_delete('idx');
-my $indels_variant_recalibrator = VariantRecalibrator->new(
-	params            => $params,
-	previous          => [$combine_indels],
-	additional_params => [
-"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
-		"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
-		"-mode INDEL",
-	]
-);
-$indels_variant_recalibrator->do_not_delete('recal_file');
-$indels_variant_recalibrator->do_not_delete('tranches_file');
-$indels_variant_recalibrator->do_not_delete('rscript_file');
-my $indels_apply_recalibration = ApplyRecalibration->new(
-	params            => $params,
-	previous          => [$indels_variant_recalibrator],
-	additional_params => [ "-mode INDEL", ]
-);
-my $phase_variations = ReadBackedPhasing->new(
-	params   => $params,
-	previous => [$snps_apply_recalibration],
-	bam      => $mark_duplicates->output_by_type('bam'),
-);
+##########!!!!!!!!!!!!!!!!
+
+my ( $gatk_snps, $gatk_indels ) = ( $combine_snps, $combine_indels );
+
+( $gatk_snps, $gatk_indels ) =
+  runRecalibrationAndVariantPhasing( $combine_snps, $combine_indels,
+	$mark_duplicates->output_by_type('bam'), $params );
 
 my $variations = CombineVariants->new(
 	out      => $project->file_prefix() . ".variations.vcf",
 	params   => $params,
-	previous => [ $phase_variations, $indels_apply_recalibration ]
+	previous => [ $gatk_snps, $gatk_indels ]
 );
 
 my $filter_low_qual = FilterLowQual->new(
@@ -453,7 +416,7 @@ my $filter_low_qual = FilterLowQual->new(
 
 #Merge GATK and Pindel outputs
 my $gatk_and_pindel_combined = $filter_low_qual;
-if($RUN_PINDEL){
+if ($RUN_PINDEL) {
 	$gatk_and_pindel_combined = CombineVariants->new(
 		out      => $project->file_prefix() . ".gp.vcf",
 		params   => $params,
@@ -473,12 +436,11 @@ if($RUN_PINDEL){
 		]
 	);
 	$gatk_and_pindel_combined->do_not_delete('vcf');
-	$gatk_and_pindel_combined->do_not_delete('idx');	
+	$gatk_and_pindel_combined->do_not_delete('idx');
 }
 
-
 my $addings_to_annotator = get_annotation_addings_parameters();
-my $variant_annotator = VariantAnnotator->new(
+my $variant_annotator    = VariantAnnotator->new(
 	additional_params => [
 		"--resource:CASE,VCF $group_vcf",
 		"-E CASE.set",
@@ -531,23 +493,21 @@ my $rare_ann_eff = VEP->new(
 	previous          => [$rare],
 	out               => $rare->output_by_type('vcf') . ".vep.vcf",
 	additional_params => [
-		"--sift=b", "--polyphen=b", "--per_gene",
-		"--hgnc",   "--ccds",       "--canonical", "--numbers",
+		"--sift=b", "--polyphen=b", "--per_gene", "--hgnc",
+		"--ccds",   "--canonical",  "--numbers",
 	],
 );
 $rare_ann_eff->do_not_delete('vcf');
 $rare_ann_eff->do_not_delete('idx');
 
 my $rare_cod_table = CodingReport->new(
-	params   => $params,
-	out      => $project->file_prefix() . ".cod.txt",
-	previous => [$rare_ann_eff],
+	params            => $params,
+	out               => $project->file_prefix() . ".cod.txt",
+	previous          => [$rare_ann_eff],
 	additional_params => [
-		"--log_file",
-		$project->file_prefix() . ".cod.log",
-		"--addings",
-		get_annotation_addings_header_string(),
-	],                                              
+		"--log_file", $project->file_prefix() . ".cod.log",
+		"--addings",  get_annotation_addings_header_string(),
+	],
 );
 $rare_cod_table->do_not_delete('txt');
 
@@ -592,7 +552,7 @@ my $loci_cod_table = AddLoci->new(
 $loci_cod_table->do_not_delete('txt');
 
 ########## miRNA genes and targets   ################
-if($RUN_MIRNA){
+if ($RUN_MIRNA) {
 	my $rare_miRNA = VEP->new(
 		params            => $params,
 		previous          => [$rare],
@@ -614,7 +574,7 @@ if($RUN_MIRNA){
 		],
 	);
 	$rare_miRNA->do_not_delete('vcf');
-	$rare_miRNA->do_not_delete('idx');	
+	$rare_miRNA->do_not_delete('idx');
 
 	### miRNA genes
 	my $grep_miRNA = GrepVcf->new(
@@ -628,18 +588,18 @@ if($RUN_MIRNA){
 		previous => [$rare_miRNA]
 	);
 	$grep_miRNA->do_not_delete('vcf');
-	
+
 	my $rare_miRNA_genes_report = VcfToReport->new(
 		params            => $params,
 		out               => $project->file_prefix() . ".mir_genes.xls",
 		previous          => [$grep_miRNA],
-		additional_params => [ "--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE", ],
+		additional_params =>
+		  [ "--annotation", "MIRNA_TRANSCRIPT,MIRNA_MATURE", ],
 	);
 	$rare_miRNA_genes_report->do_not_delete('xls');
 
-
 	### miRNA targets
-	
+
 	my $grep_miRNA_targets = GrepVcf->new(
 		params       => $params,
 		out          => $project->file_prefix() . ".mir_targets.vcf",
@@ -650,7 +610,7 @@ if($RUN_MIRNA){
 		previous => [$rare_miRNA]
 	);
 	$grep_miRNA_targets->do_not_delete('vcf');
-	
+
 	my $rare_miRNA_targets_report = VcfToReport->new(
 		params            => $params,
 		out               => $project->file_prefix() . ".mir_targets.xls",
@@ -658,7 +618,7 @@ if($RUN_MIRNA){
 		additional_params => [ "--annotation", "MIRNA_SITE,GENE", ],
 	);
 	$rare_miRNA_targets_report->do_not_delete('xls');
-	
+
 	my $rare_miRNA_targets_report_proteins = AnnotateProteins->new(
 		params            => $params,
 		out               => $project->file_prefix() . ".mir_targets.a.xls",
@@ -675,28 +635,28 @@ if($RUN_MIRNA){
 		previous => [$rare_cod_table]    #
 	);
 	$rare_miRNA_targets_report_proteins->do_not_delete('main');
-	
+
 }
 
-if($RUN_REGULATION){
+if ($RUN_REGULATION) {
 	########## REGULATION ANALYSIS ######################
 	my $evolution_constraints_for_reg = IntersectVcfBed->new(
-		out      => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",
-		bed      => $project->{'CONFIG'}->{'CONSTRAINTS'},
+		out => $variant_annotator->output_by_type('vcf') . ".constraints.vcf",
+		bed => $project->{'CONFIG'}->{'CONSTRAINTS'},
 		params   => $params,
-		previous => [$variant_annotator]                                           #
+		previous => [$variant_annotator]    #
 	);
 	$evolution_constraints_for_reg->do_not_delete('vcf');
 	$evolution_constraints_for_reg->do_not_delete('idx');
-	
+
 	my $reg_constraints_rare = FilterFreq->new(
 		params       => $params,
 		basic_params => [ $max_freq, $max_freq, $max_freq, ],
-		previous     => [$evolution_constraints_for_reg]                           #
+		previous     => [$evolution_constraints_for_reg]        #
 	);
 	$reg_constraints_rare->do_not_delete('vcf');
 	$reg_constraints_rare->do_not_delete('idx');
-	
+
 	#------------------------Fix site predictions!!!!!!!!!!!!!
 	my $reg_constraints_rare_table = VariantsToTable->new(
 		params            => $params,
@@ -713,18 +673,20 @@ if($RUN_REGULATION){
 		previous => [$reg_constraints_rare]    #
 	);
 	$reg_constraints_rare_table->do_not_delete('txt');
-	
-	#-------------------------------------------------------------------------------------
-	
+
+#-------------------------------------------------------------------------------------
+
 	my $in_ensemble_regulatory = GrepVcf->new(
 		params       => $params,
-		basic_params =>
-		  [ "--regexp REGULATION", "--regexp_v '" . $coding_classes_string . "'" ],
+		basic_params => [
+			"--regexp REGULATION",
+			"--regexp_v '" . $coding_classes_string . "'"
+		],
 		previous => [$reg_constraints_rare]    #
 	);
 	$in_ensemble_regulatory->do_not_delete('vcf');
 	$in_ensemble_regulatory->do_not_delete('idx');
-	
+
 	my $regulatory_group_annotator = VariantAnnotator->new(
 		additional_params => [
 			"--resource:CASE,VCF $group_vcf",
@@ -737,7 +699,7 @@ if($RUN_REGULATION){
 	);
 	$regulatory_group_annotator->do_not_delete('vcf');
 	$regulatory_group_annotator->do_not_delete('idx');
-	
+
 	my $near_genes = closestBed->new(
 		params => $params,
 		out    => $regulatory_group_annotator->output_by_type('vcf') . ".genes",
@@ -750,7 +712,7 @@ if($RUN_REGULATION){
 	);
 	$near_genes->do_not_delete('vcf');
 	$near_genes->do_not_delete('idx');
-	
+
 	my $regulatory_rare_table = VariantsToTable->new(
 		params            => $params,
 		additional_params => [
@@ -762,7 +724,7 @@ if($RUN_REGULATION){
 		previous => [$regulatory_group_annotator]    #
 	);
 	$regulatory_rare_table->do_not_delete('txt');
-	
+
 	my $regulatory_rare_table_with_genes = JoinTabular->new(
 		params            => $params,
 		out               => $regulatory_rare_table->out . '.with_genes.txt',
@@ -775,12 +737,12 @@ if($RUN_REGULATION){
 			"--table_columns 0,1,2,3,4,5,6,7,8,9,10,11,12,13",
 			"--skip_annotation_header",
 			"--annotation_header GENE_ID",
-	
+
 		],
 		previous => [ $in_ensemble_regulatory, $regulatory_rare_table ]    #
 	);
 	$regulatory_rare_table_with_genes->do_not_delete('txt');
-	
+
 	my $regulatory_rare_table_with_genes_proteins = AnnotateProteins->new(
 		params => $params,
 		out    => $regulatory_rare_table_with_genes->out . '.uniprot.txt',
@@ -797,16 +759,17 @@ if($RUN_REGULATION){
 		previous => [$regulatory_rare_table_with_genes]    #
 	);
 	$regulatory_rare_table_with_genes_proteins->do_not_delete('txt');
-	
+
 	my $reformat_regulation = ReformatRegulation->new(
 		params            => $params,
 		out               => $project->file_prefix() . ".reg.txt",
-		additional_params =>
-		  [ "--in", $regulatory_rare_table_with_genes->out, "--eff_column 11", ],
+		additional_params => [
+			"--in", $regulatory_rare_table_with_genes->out, "--eff_column 11",
+		],
 		previous => [$regulatory_rare_table_with_genes]    #
 	);
 	$reformat_regulation->do_not_delete('txt');
-	
+
 	my $regulation_with_genes_marked = JoinTabular->new(
 		params            => $params,
 		out               => $reformat_regulation->out . '.marked.txt',
@@ -822,8 +785,7 @@ if($RUN_REGULATION){
 		previous => [ $reformat_regulation, ]    #
 	);
 	$regulation_with_genes_marked->do_not_delete('txt');
-	
-	
+
 }
 ######################################################
 
@@ -832,20 +794,14 @@ $mark_duplicates->do_not_delete('metrics');
 $mark_duplicates->do_not_delete('bam');
 $mark_duplicates->do_not_delete('bai');
 
-
-
 $combine_snps->do_not_delete('vcf');
 $combine_snps->do_not_delete('idx');
 $combine_indels->do_not_delete('vcf');
 $combine_indels->do_not_delete('idx');
 
-$indels_apply_recalibration->do_not_delete('vcf');
-$indels_apply_recalibration->do_not_delete('idx');
-
 $variations->do_not_delete('vcf');
 $variations->do_not_delete('idx');
-$phase_variations->do_not_delete('vcf');
-$phase_variations->do_not_delete('idx');
+
 $filter_low_qual->do_not_delete('vcf');
 $filter_low_qual->do_not_delete('idx');
 $variant_annotator->do_not_delete('vcf');
@@ -859,37 +815,92 @@ if ( $mode eq 'CLEAN' ) {
 	$job_manager->clean();
 }
 
-sub get_annotation_addings_parameters{
+sub get_annotation_addings_parameters {
 	return [] unless $project->{'CONFIG'}->{'ADD'};
 	my $addings = $project->{'CONFIG'}->{'ADD'};
 	print Dumper $addings;
 	my @result;
-	for my $addel(@$addings){
-		my $resource_str = "--resource:" . $addel->{'ALIAS'}. ",VCF " . $addel->{'FILE'};
-		push(@result,$resource_str);
-		
+	for my $addel (@$addings) {
+		my $resource_str =
+		  "--resource:" . $addel->{'ALIAS'} . ",VCF " . $addel->{'FILE'};
+		push( @result, $resource_str );
+
 		my $tag_str = $addel->{'TAG'};
-		my @tags = split (",", $tag_str);
-		for my $tag(@tags){
+		my @tags = split( ",", $tag_str );
+		for my $tag (@tags) {
 			my $ann_str = "-E " . $addel->{'ALIAS'} . "." . $tag;
-			push(@result,$ann_str);			
+			push( @result, $ann_str );
 		}
 	}
 	return \@result;
 }
-sub get_annotation_addings_header_string{
+
+sub get_annotation_addings_header_string {
 	return "" unless $project->{'CONFIG'}->{'ADD'};
 	my $addings = $project->{'CONFIG'}->{'ADD'};
 	my @result;
-	for my $add(@$addings){
+	for my $add (@$addings) {
 		my $tag_str = $add->{'TAG'};
-		my @tags = split (",", $tag_str);
-		for my $tag(@tags){		
+		my @tags = split( ",", $tag_str );
+		for my $tag (@tags) {
 			my $ann_str = $add->{'ALIAS'} . "." . $tag;
-			push(@result,$ann_str);
+			push( @result, $ann_str );
 		}
 	}
-	return join (",", @result);	
+	return join( ",", @result );
+}
+
+sub runRecalibrationAndVariantPhasing {
+	my ( $snps, $indels, $bam, $params ) = @_;
+
+	my $snps_variant_recalibrator = VariantRecalibrator->new(
+		params            => $params,
+		previous          => [$snps],
+		additional_params => [
+"--resource:hapmap,known=false,training=true,truth=true,prior=15.0 $hapmap",
+"--resource:omni,known=false,training=true,truth=false,prior=12.0 $omni",
+"--resource:dbsnp,known=true,training=false,truth=false,prior=8.0 $dbSNP",
+"-an QD -an HaplotypeScore -an MQRankSum -an ReadPosRankSum -an FS -an MQ",
+			"-mode SNP",
+		]
+	);
+	$snps_variant_recalibrator->do_not_delete('recal_file');
+	$snps_variant_recalibrator->do_not_delete('tranches_file');
+	$snps_variant_recalibrator->do_not_delete('rscript_file');
+	my $snps_apply_recalibration = ApplyRecalibration->new(
+		params            => $params,
+		previous          => [$snps_variant_recalibrator],
+		additional_params => [ "-mode SNP", ]
+	);
+	$snps_apply_recalibration->do_not_delete('vcf');
+	$snps_apply_recalibration->do_not_delete('idx');
+	my $indels_variant_recalibrator = VariantRecalibrator->new(
+		params            => $params,
+		previous          => [$indels],
+		additional_params => [
+"--resource:mills,VCF,known=true,training=true,truth=true,prior=12.0 $indels_mills",
+			"-an QD -an FS -an HaplotypeScore -an ReadPosRankSum",
+			"-mode INDEL",
+		]
+	);
+	$indels_variant_recalibrator->do_not_delete('recal_file');
+	$indels_variant_recalibrator->do_not_delete('tranches_file');
+	$indels_variant_recalibrator->do_not_delete('rscript_file');
+	my $indels_apply_recalibration = ApplyRecalibration->new(
+		params            => $params,
+		previous          => [$indels_variant_recalibrator],
+		additional_params => [ "-mode INDEL", ]
+	);
+	my $phase_variations = ReadBackedPhasing->new(
+		params   => $params,
+		previous => [$snps_apply_recalibration],
+		bam      => $bam,
+	);
+	$indels_apply_recalibration->do_not_delete('vcf');
+	$indels_apply_recalibration->do_not_delete('idx');
+	$phase_variations->do_not_delete('vcf');
+	$phase_variations->do_not_delete('idx');
+	return ( $phase_variations, $indels_apply_recalibration );
 }
 
 sub runCNVSeq {

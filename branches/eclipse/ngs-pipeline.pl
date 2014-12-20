@@ -72,7 +72,7 @@ my $control_group_vcf = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq          = $project->{'CONFIG'}->{'MAXFREQ'};
 my $loci              = $project->{'CONFIG'}->{'LOCI'};
 
-my $VARIANT_RECALIBRATION = = $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'};
+my $VARIANT_RECALIBRATION = $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'};
 my $RUN_TELOMERES         = $project->{'CONFIG'}->{'RUN_TELOMERES'};
 my $RUN_BREAKDANCER       = $project->{'CONFIG'}->{'RUN_BREAKDANCER'};
 my $RUN_CNVSEQ            = $project->{'CONFIG'}->{'RUN_CNVSEQ'};

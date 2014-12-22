@@ -702,6 +702,7 @@ use Data::Dumper;
 				"--format vcf",
 				"--cache",
 				"--vcf",
+				"--offline",
 				"--buffer_size 30000",
 				"--force_overwrite",
 				"--dir " . $self->project()->{'CONFIG'}->{'VEPCACHE'},

@@ -38,6 +38,7 @@
 <EURKG>/data/genomes/ngs-pipeline/GRCh37/EUR.snvs.sites.20111019.vcf</EURKG>
 <CGI>/data/genomes/ngs-pipeline/GRCh37/69Genomes.reference.20120226.vcf</CGI>
 <HGMD>/data/genomes/ngs-pipeline/GRCh37/hgmd.20120305.vcf</HGMD>
+<OMIM_DIR>/data/genomes/ngs-pipeline/GRCh37/omim_20141223</OMIM_DIR>
 
 <MAXFREQ>0.05</MAXFREQ>
 

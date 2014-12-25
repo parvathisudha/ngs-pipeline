@@ -16,7 +16,7 @@ GetOptions(
 my $omim = Omim->new( "$omim_dir");
 
 ###### setup Excel file    ###
-my $excel_file = 'perl.xls';
+my $excel_file = $out;
 system("rm -f $excel_file");
 my $workbook = Spreadsheet::WriteExcel->new($excel_file); # Step 1
 my $worksheet = $workbook->add_worksheet();               # Step 2
@@ -24,8 +24,6 @@ my $line_counter = 1;
 
 ##### add annotation to input file ###
 open IN, "<$in" or die "Can't open $in\n";
-open OUT, ">$out" or die "Can't open $out\n";
-
 
 my @display = qw/TI,no_header TX,description CS,inheritance/;
 
@@ -59,8 +57,6 @@ while(my $curr_str = <IN>){
         $worksheet->write_row($first_cell, \@line_data);
 }
 
-
-close OUT;
 close IN;
 
 ################################################

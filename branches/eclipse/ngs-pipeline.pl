@@ -71,6 +71,7 @@ my $group_vcf         = $project->{'CONFIG'}->{'CASE'};
 my $control_group_vcf = $project->{'CONFIG'}->{'CONTROL'};
 my $max_freq          = $project->{'CONFIG'}->{'MAXFREQ'};
 my $loci              = $project->{'CONFIG'}->{'LOCI'};
+my $omim_dir		  = $project->{'CONFIG'}->{'OMIM_DIR'};
 
 my $VARIANT_RECALIBRATION = $project->{'CONFIG'}->{'VARIANT_RECALIBRATION'};
 my $RUN_TELOMERES         = $project->{'CONFIG'}->{'RUN_TELOMERES'};
@@ -546,6 +547,19 @@ $cod_annotate_proteins->do_not_delete('txt');
 #	previous => [ $cod_annotate_proteins, ]    #
 #);
 #$cod_annotate_proteins_mark->do_not_delete('txt');
+
+my $omim_table = AnnotateOMIM->new(
+	params            => $params,
+	out               => $cod_annotate_proteins->out() . '.omim.xls',
+	previous          => [$cod_annotate_proteins],
+	additional_params => [ "--in ", $cod_annotate_proteins->out(),
+						   "--out ", $cod_annotate_proteins->out() . '.omim.xls',
+						   "--omim_dir", $omim_dir,
+							],
+);
+$omim_table->do_not_delete('xls');
+
+
 
 my $loci_cod_table = AddLoci->new(
 	params            => $params,

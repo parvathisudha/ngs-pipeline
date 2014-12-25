@@ -827,6 +827,24 @@ use Data::Dumper;
 }
 #######################################################
 {
+	package AnnotateOMIM;
+	our @ISA = qw( PerlJob );
+
+	sub new {
+		my ( $class, %params ) = @_;
+		my $self = $class->SUPER::new( %params, );
+		bless $self, $class;
+		$self->program->name("table_to_disease.pl");
+		$self->program->path( $self->project()->install_dir . "/accessory" );
+		$self->memory(1);
+		$self->output_by_type( 'xls', $self->out );
+		$self->program->basic_params( [] );
+		return $self;
+	}
+	1;
+}
+#######################################################
+{
 
 	package AnnotateProteins;
 	our @ISA = qw( PerlJob );

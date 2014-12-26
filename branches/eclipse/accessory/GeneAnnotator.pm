@@ -17,7 +17,7 @@ sub new {
 		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{gene_to_protein} );
 	}
 	$self->{DB} = $self->read_uniprot_db;
-	my $empty = ["","","","","",""];
+	my $empty = ["NO","NO","NO","NO","NO","NO"];
 	$self->{empty} = join("\t",@$empty);
 	return $self;
 }

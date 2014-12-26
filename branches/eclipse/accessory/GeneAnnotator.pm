@@ -32,11 +32,12 @@ sub protein_info {
 	my $protein_id = $self->gene_to_protein($gene_id);
 	my $annotation_string = $self->{DB}->{$protein_id};
 	if($protein_id && exists $self->{DB}->{$protein_id}){
-#		my @d = split ("\t", $annotation_string);
-#		my $ann_number = 7;
-#		my $have_annotations = scalar @d;
-#		my $diff = $ann_number - $have_annotations;
-#		my $fixed_annotations = $annotation_string . "\tNO"x$diff;
+		$annotation_string =~ s/\t+$//;
+		my @d = split ("\t", $annotation_string);
+		my $ann_number = 7;
+		my $have_annotations = scalar @d;
+		my $diff = $ann_number - $have_annotations;
+		my $fixed_annotations = $annotation_string . "\tNO"x$diff;
 		return $annotation_string;
 	}
 	return $self->{empty};

@@ -17,7 +17,7 @@ sub new {
 		$self->{$self->{id_type}} = $self->read_annotation( 1, 2, $self->{gene_to_protein} );
 	}
 	$self->{DB} = $self->read_uniprot_db;
-	my $empty = ["NO","NO","NO","NO","NO","NO"];
+	my $empty = ["NO","NO","NO","NO","NO","NO","NO","NO"];
 	$self->{empty} = join("\t",@$empty);
 	return $self;
 }
@@ -30,8 +30,14 @@ sub get_header {
 sub protein_info {
 	my ( $self, $gene_id) = @_;
 	my $protein_id = $self->gene_to_protein($gene_id);
+	my $annotation_string = $self->{DB}->{$protein_id};
 	if($protein_id && exists $self->{DB}->{$protein_id}){
-		return $self->{DB}->{$protein_id};
+		my @d = split ("\t", $annotation_string);
+		my $ann_number = 8;
+		my $have_annotations = scalar @d;
+		my $diff = $ann_number - $have_annotations;
+		my $fixed_annotations = $annotation_string . "\tNO"x$diff;
+		return $fixed_annotations;
 	}
 	return $self->{empty};
 }
